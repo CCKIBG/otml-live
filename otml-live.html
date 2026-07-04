@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OTML Live — Kiunga Ops</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#111a2e; --card2:#0e1729; --line:#1e2b4a;
+  --text:#eef2ff; --muted:#94a3b8; --dim:#64748b;
+  --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#38bdf8;
+  --accent:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:12px 12px 40px;max-width:520px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+h1{font-size:18px;font-weight:700;letter-spacing:.3px}
+.stamp{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stamp .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:middle}
+.stamp.stale .dot{background:var(--warn)}
+.stamp.dead .dot{background:var(--bad)}
+
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;margin-bottom:10px}
+.tile h2{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.tile .row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;font-size:14px}
+.tile .row .k{color:var(--muted)}
+.tile .row .v{font-weight:600;font-variant-numeric:tabular-nums}
+.tile .big{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px}
+.tile .big .num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.tile .big .unit{font-size:14px;color:var(--muted)}
+.tile .sub{font-size:12px;color:var(--dim);margin-top:6px}
+
+.tile.hero .num{font-size:34px}
+.tile.hero{background:linear-gradient(180deg,#132043,#0f1a36)}
+
+/* Pipeline Health — 4-cell freshness grid */
+.health-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin-top:6px}
+.health-cell{text-align:center;padding:6px 2px;border-radius:6px;background:rgba(255,255,255,.03)}
+.health-cell.ok{background:rgba(34,197,94,.12)}
+.health-cell.warn{background:rgba(245,158,11,.12)}
+.health-cell.stale{background:rgba(239,68,68,.12)}
+.health-k{font-size:10px;color:var(--muted);letter-spacing:.6px;font-weight:600}
+.health-v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* Forecast hero — 4-cell grid: NOW | +12h | +24h | +48h */
+.forecast-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:4px;margin:6px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.forecast-cell{text-align:center;padding:6px 2px;border-radius:6px;background:rgba(255,255,255,.03)}
+.forecast-cell.current{background:rgba(56,189,248,.10)}
+.forecast-label{font-size:10px;color:var(--muted);letter-spacing:.6px;font-weight:600;margin-bottom:2px}
+.forecast-num{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
+.forecast-unit{font-size:9px;color:var(--muted);margin-top:-2px}
+
+/* Power System hero — 3-cell grid: Hydro | TPS | Load */
+.power-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.power-cell{text-align:center;padding:4px 2px}
+.power-cell.load{background:rgba(56,189,248,.08);border-radius:8px}
+.power-label{font-size:10px;color:var(--muted);letter-spacing:.6px;font-weight:600;margin-bottom:2px}
+.power-num{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
+.power-unit{font-size:10px;color:var(--muted);margin-top:-2px}
+
+/* Depot expandable row for Kiunga tank detail */
+.depot-detail{margin:2px 0;list-style:none}
+.depot-detail summary{display:flex;align-items:baseline;justify-content:space-between;padding:4px 0;font-size:14px;cursor:pointer;list-style:none}
+.depot-detail summary::-webkit-details-marker{display:none}
+.depot-detail .chev{color:var(--muted);font-size:12px;transition:transform .2s;margin-left:6px}
+.depot-detail[open] .chev{transform:rotate(180deg)}
+.depot-detail .detail-inner{padding:6px 8px 4px;background:rgba(255,255,255,.02);border-radius:8px;margin-top:4px}
+.depot-detail .detail-inner table{width:100%;font-size:12px;border-collapse:collapse}
+.depot-detail .detail-inner th{text-align:left;color:var(--muted);font-weight:500;padding:4px 0;border-bottom:1px solid var(--line)}
+.depot-detail .detail-inner td{padding:5px 0;border-bottom:1px solid #0e1526;font-variant-numeric:tabular-nums}
+.depot-detail .detail-inner td.n{text-align:right}
+.depot-detail .detail-inner tr:last-child td{border-bottom:none}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.grid .tile{margin-bottom:0}
+
+.tanks{margin-top:8px}
+.tanks table{width:100%;font-size:12px;border-collapse:collapse}
+.tanks th{text-align:left;color:var(--muted);font-weight:500;padding:4px 0;border-bottom:1px solid var(--line)}
+.tanks td{padding:5px 0;border-bottom:1px solid #0e1526;font-variant-numeric:tabular-nums}
+.tanks td.n{text-align:right}
+.tanks tr:last-child td{border-bottom:none}
+
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:#1e293b;color:var(--muted);margin-left:6px;font-weight:600;letter-spacing:.4px}
+.tag.ok{background:rgba(34,197,94,.15);color:var(--ok)}
+.tag.warn{background:rgba(245,158,11,.15);color:var(--warn)}
+.tag.bad{background:rgba(239,68,68,.15);color:var(--bad)}
+.tag.info{background:rgba(56,189,248,.15);color:var(--info)}
+
+.err{font-size:11px;color:var(--bad);margin-top:4px}
+.footer{margin-top:16px;text-align:center;font-size:11px;color:var(--dim)}
+.footer a{color:var(--muted)}
+.refresh{position:sticky;top:0;background:var(--bg);z-index:10;display:flex;gap:6px;padding:6px 0 10px}
+.refresh button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:13px;font-weight:600;padding:8px;border-radius:10px;cursor:pointer}
+.refresh button:active{background:#1a2440}
+.rag{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+.rag.g{background:var(--ok)} .rag.a{background:var(--warn)} .rag.r{background:var(--bad)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>OTML Live · Kiunga</h1>
+  <div class="stamp" id="stamp"><span class="dot"></span><span id="stamp-text">Loading…</span></div>
+</header>
+
+<div class="refresh">
+  <button onclick="location.reload()">↻ Refresh</button>
+</div>
+
+<div class="tile" id="health-tile" style="padding:10px 12px 8px">
+  <h2>Pipeline Health <span id="health-tag" class="tag"></span></h2>
+  <div class="health-grid">
+    <div class="health-cell"><div class="health-k">PI Data</div><div class="health-v" id="h-pi">–</div></div>
+    <div class="health-cell"><div class="health-k">TLS-4</div><div class="health-v" id="h-tls">–</div></div>
+    <div class="health-cell"><div class="health-k">Dip</div><div class="health-v" id="h-dip">–</div></div>
+    <div class="health-cell"><div class="health-k">Prod PDF</div><div class="health-v" id="h-prod">–</div></div>
+    <div class="health-cell"><div class="health-k">VDV</div><div class="health-v" id="h-vdv">–</div></div>
+  </div>
+</div>
+
+<div class="tile hero" id="hydro-tile">
+  <h2>Power System <span id="hydro-tag" class="tag"></span></h2>
+  <div class="power-grid">
+    <div class="power-cell">
+      <div class="power-label">HYDRO</div>
+      <div class="power-num" id="hydro-mw">–</div>
+      <div class="power-unit">MW</div>
+    </div>
+    <div class="power-cell">
+      <div class="power-label">TPS</div>
+      <div class="power-num" id="tps-mw">–</div>
+      <div class="power-unit">MW</div>
+    </div>
+    <div class="power-cell load">
+      <div class="power-label">LOAD</div>
+      <div class="power-num" id="load-mw">–</div>
+      <div class="power-unit">MW</div>
+    </div>
+  </div>
+  <div class="row"><span class="k">GH01</span><span class="v" id="gh01">–</span></div>
+  <div class="row"><span class="k">GH02</span><span class="v" id="gh02">–</span></div>
+  <div class="row"><span class="k">Yuk Creek</span><span class="v" id="yuk">–</span></div>
+  <div class="sub" id="pi-sub">–</div>
+</div>
+
+<div class="grid">
+  <div class="tile" id="menga-tile">
+    <h2>Ok Menga <span id="menga-tag" class="tag"></span></h2>
+    <div class="big"><span class="num" id="menga">–</span><span class="unit">m</span></div>
+    <div class="sub">Level Estimate (PI)</div>
+  </div>
+  <div class="tile" id="kiunga-tile">
+    <h2>Kiunga River <span id="kiunga-tag" class="tag"></span></h2>
+    <div class="big"><span class="num" id="kiunga">–</span><span class="unit">m</span></div>
+    <div class="sub" id="kiunga-sub">AM TLS Dip 0830</div>
+  </div>
+</div>
+
+<div class="tile" id="forecast-tile">
+  <h2>Kiunga River Forecast <span id="forecast-tag" class="tag"></span></h2>
+  <div class="forecast-grid">
+    <div class="forecast-cell current"><div class="forecast-label">NOW</div><div class="forecast-num" id="fc-now">–</div><div class="forecast-unit">m</div></div>
+    <div class="forecast-cell"><div class="forecast-label">+12h</div><div class="forecast-num" id="fc-12h">–</div><div class="forecast-unit">m</div></div>
+    <div class="forecast-cell"><div class="forecast-label">+24h</div><div class="forecast-num" id="fc-24h">–</div><div class="forecast-unit">m</div></div>
+    <div class="forecast-cell"><div class="forecast-label">+48h</div><div class="forecast-num" id="fc-48h">–</div><div class="forecast-unit">m</div></div>
+  </div>
+  <div class="row"><span class="k">Trend</span><span class="v" id="fc-trend">–</span></div>
+  <div class="row"><span class="k">Olsobip rain 24h</span><span class="v" id="fc-ols">–</span></div>
+  <div class="row"><span class="k">Palmer rain 24h</span><span class="v" id="fc-plm">–</span></div>
+  <div class="row"><span class="k">Palmer level Δ 12h</span><span class="v" id="fc-plm-d">–</span></div>
+  <div class="sub" id="fc-sub">Olsobip → Kiunga 24h lag rule + Palmer support</div>
+</div>
+
+<div class="tile" id="prod-tile">
+  <h2>Kiunga Production &amp; CuCon Shed <span id="prod-tag" class="tag"></span></h2>
+  <div class="big"><span class="num" id="shed-t">–</span><span class="unit">t in shed / 80,000 t cap</span></div>
+  <div class="row"><span class="k">Days to 80 kt cap</span><span class="v" id="shed-days" style="font-size:16px">–</span></div>
+  <div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
+    <span class="k">Cu concentrate / day</span><span class="v" id="prod-cu">–</span>
+  </div>
+  <div class="row"><span class="k">MTD production</span><span class="v" id="prod-mtd">–</span></div>
+  <div class="row"><span class="k">Slurry hrs (24h)</span><span class="v" id="prod-slurry">–</span></div>
+  <div class="row"><span class="k">Barges loaded today</span><span class="v" id="prod-barges">–</span></div>
+  <div class="row"><span class="k">Vessel loading</span><span class="v" id="prod-vessel">–</span></div>
+  <div class="sub" id="prod-sub">Awaiting PAD flow wiring for Kiunga Daily Production Report</div>
+</div>
+
+<div class="tile" id="depot-tile">
+  <h2>Depot Balances — AM TLS Dip <span id="depot-tag" class="tag"></span></h2>
+  <div class="big"><span class="num" id="total-fuel">–</span><span class="unit">ML total</span></div>
+  <div class="row"><span class="k">Tabubil <span id="tab-trend" class="tag"></span></span><span class="v" id="tab">–</span></div>
+  <details class="depot-detail">
+    <summary><span class="k">Kiunga <span id="kiu-trend" class="tag"></span></span><span class="v" id="kiu">–</span><span class="chev">▾</span></summary>
+    <div class="detail-inner">
+      <div class="sub" style="margin:6px 0">Kiunga Tank Farm — TLS-4 · <span id="tank-total">–</span> ML · <span id="tls-sub">–</span></div>
+      <table id="tank-table">
+        <thead><tr><th>Tank</th><th class="n">Fuel (L)</th><th class="n">Height (mm)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+  <div class="row"><span class="k">Mine <span id="mine-trend" class="tag"></span></span><span class="v" id="mine">–</span></div>
+  <div class="sub" id="dip-sub">–</div>
+</div>
+
+<div class="tile" id="usage-tile">
+  <h2>24h Diesel Consumption <span id="usage-tag" class="tag"></span></h2>
+  <div class="big"><span class="num" id="usage-total">–</span><span class="unit">kL / day</span></div>
+  <div class="row"><span class="k">Kiunga (KUFL)</span><span class="v" id="usage-kiu">–</span></div>
+  <div class="row"><span class="k">Tabubil (TBFL)</span><span class="v" id="usage-tab">–</span></div>
+  <div class="row"><span class="k">Mine (MNFL)</span><span class="v" id="usage-mine">–</span></div>
+  <div class="row"><span class="k">6-day rolling avg</span><span class="v" id="usage-roll">–</span></div>
+  <div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
+    <span class="k">Days remaining (rolling)</span><span class="v" id="days-rolling" style="font-size:16px">–</span>
+  </div>
+  <div class="row"><span class="k">Days remaining (yest actual)</span><span class="v" id="days-actual">–</span></div>
+  <div class="sub" id="usage-sub">MD directive 580 kL/day cap</div>
+</div>
+
+<div class="tile" id="onwater-tile">
+  <h2>On Water — Awaiting Ullage</h2>
+  <div class="big"><span class="num" id="onwater-ml">–</span><span class="unit">ML diesel</span></div>
+  <div class="row"><span class="k">Vessel</span><span class="v" id="onwater-vessel">–</span></div>
+  <div class="row"><span class="k">Voyage</span><span class="v" id="onwater-id">–</span></div>
+  <div class="sub">Excluded from depot totals until discharged</div>
+</div>
+
+<div class="footer">
+  Reads <code>latest_summary.json</code> alongside this page. Refresh with ↻ or pull-down. Auto-refresh every 10 min.
+</div>
+
+<!-- Data file: parser writes latest_summary.js which sets window.LATEST_DATA -->
+<script>window.LATEST_DATA = {"generated_at": "2026-07-04T15:40:21+10:00", "root": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data", "pi": {"source_file": "PI_Data_20260704_110000.csv", "timestamp": "2026-07-04 12:00:00", "menga_level_m": 1.679, "gh01_mw": 23.229, "gh02_mw": 23.607, "yuk_creek_mw": 0.901, "total_gen_mw": 47.986, "total_load_mw": 43.988, "row_count": 3601}, "tls": {"timestamp": "30.06.26 11:45", "source_file": "tls_latest.txt", "tank_count": 4, "tanks": [{"tank": 4, "fuel_L": 2031106, "fuel_tc_L": 2029000, "ullage_L": 250585, "fuel_height_mm": 6380.85, "water_height_mm": 0.0, "temp_C": 28.35}, {"tank": 5, "fuel_L": 1323865, "fuel_tc_L": 1322466, "ullage_L": 955581, "fuel_height_mm": 4159.51, "water_height_mm": 0.0, "temp_C": 28.6}, {"tank": 6, "fuel_L": 1416753, "fuel_tc_L": 1415214, "ullage_L": 881449, "fuel_height_mm": 4396.53, "water_height_mm": 0.0, "temp_C": 28.97}, {"tank": 7, "fuel_L": 51633, "fuel_tc_L": 51576, "ullage_L": 892018, "fuel_height_mm": 399.74, "water_height_mm": 0.0, "temp_C": 29.14}], "kiunga_total_L": 4823357, "kiunga_total_ML": 4.823}, "dip": {"source_file": "dip_latest.txt", "tabubil_L": 8687091, "kiunga_L": 3104907, "mine_L": 470870, "tabubil_trend": "increasing", "kiunga_trend": "decreasing", "mine_trend": "SFL", "total_prior_L": 13963535, "total_current_L": 12262868, "kiunga_river_m": 7.1, "ok_menga_m": 1.47, "kiunga_river_trend": "Increasing", "ok_menga_trend": "Decreasing", "kiunga_24h_L": 59369, "tabubil_24h_L": 55366, "mine_24h_L": 112721, "total_24h_L": 227456, "rolling_avg_kL_day": 340, "on_water_vessel": "Fly Resilience", "on_water_id": "V113N", "on_water_ML": 1.9, "report_date": "30-06-26"}, "production": {"source_file": "Kiunga Daily Production Report_02.07.2026.pdf", "report_date": "02-07-26", "os_tonnes_wmt": 19611, "os_moisture_pct": 9.47, "os_cu_grade_pct": 24.4, "prod_day_wmt": 1243, "prod_day_cu_grade_pct": 21.9, "prod_mtd_wmt": 3481, "barge_day_count": 1.0, "cs_tonnes_wmt": 17267, "kiunga_slurry_hrs": 5.92, "river_0600_m": 7.49, "safety": "Nil significant safety incidents/accidents past 24hrs", "cargo_on_feeders_wmt": 10360, "vessel_loading": "Fly Resilience", "vessel_lot": "6949", "vessel_wmt": 2514, "source": "pdf", "shed_storage_t": 17267, "copper_t_day": 1243, "days_to_80kt": 50.5, "shed_cap_t": 80000}, "vdv": {"source_file": "vdv_20260704_154022.csv", "vdv_timestamp": "2026-07-04 13:00:00", "kiunga_shipping_m": 6.9420006866455, "kiunga_ohd_m": 17.28, "kiunga_flow_m3s": 397.2, "kiunga_rain_mm": 0.0, "ok_menga_m": 1.656, "ok_menga_flow_m3s": 36.38, "palmer_m": 22.82, "palmer_rain_mm": 0.0, "olsobip_rain_mm": 0.0, "olsobip_rain_12h_mm": 1.0, "olsobip_rain_24h_mm": 8.0, "palmer_rain_12h_mm": 0.0, "palmer_rain_24h_mm": 0.0, "kiunga_rain_24h_mm": 0.0, "kiunga_delta_24h_m": -0.42, "kiunga_delta_12h_m": -0.29, "palmer_delta_12h_m": -0.34, "palmer_delta_24h_m": -0.33, "ok_menga_delta_24h_m": 0.226, "state": "fetched"}, "forecast": {"available": true, "current_m": 6.94, "trend": "falling", "trigger": "Dry upstream \u2014 continuing current trend", "forecast_12h_m": 6.73, "forecast_24h_m": 6.52, "forecast_48h_m": 6.1, "expected_rise_m": -0.42, "confidence": "medium"}, "headline": {"hydro_mw": 47.74, "tps_mw": 0.25, "total_load_mw": 43.988, "total_gen_mw": 47.986, "menga_level_m": 1.656, "menga_source": "VDV", "kiunga_river_m": 6.9420006866455, "kiunga_river_source": "VDV", "kiunga_river_flow_m3s": 397.2, "palmer_river_m": 22.82, "olsobip_rain_mm": 0.0, "kiunga_tank_ML": 4.823, "total_fuel_ML": 12.263, "days_remaining": 36.1, "days_remaining_actual": 53.9, "cucon_shed_t": 17267, "cu_t_day": 1243, "shed_days_to_80kt": 50.5}, "health": {"pi_csv_hours": 3.6, "pi_csv_file": "PI_Data_20260704_110000.csv", "tls_hours": 0.0, "dip_hours": 0.0, "prod_pdf_hours": 30.7, "prod_pdf_file": "Kiunga Daily Production Report_02.07.2026.pdf", "vdv_hours": 0.0, "vdv_state": "fetched", "overall": "warn"}};</script>
+
+<script>
+const JSON_URL = 'latest_summary.json'; // fallback only
+
+function fmtL(n){ if(n==null) return '–'; return n.toLocaleString() + ' L'; }
+function fmtN(n, dp=2, unit=''){ if(n==null) return '–'; return Number(n).toFixed(dp) + (unit?(' '+unit):''); }
+function fmtML(l){ if(l==null) return '–'; return (l/1_000_000).toFixed(2) + ' ML'; }
+function safe(o, ...ks){ return ks.reduce((x,k)=>x==null?null:x[k], o); }
+function ago(iso){
+  if(!iso) return 'n/a';
+  const t = new Date(iso);
+  const s = Math.round((Date.now() - t)/1000);
+  if(s<60) return s+'s ago';
+  if(s<3600) return Math.round(s/60)+'m ago';
+  if(s<86400) return Math.round(s/3600)+'h ago';
+  return Math.round(s/86400)+'d ago';
+}
+function rag(el, level){ // 'g'|'a'|'r' — no-op if element missing
+  if (!el) return;
+  el.className = 'tag ' + (level==='g'?'ok':level==='a'?'warn':'bad');
+  el.textContent = level==='g'?'OK':level==='a'?'WATCH':'CRITICAL';
+}
+
+function render(data){
+  // Stamp
+  const stamp = document.getElementById('stamp');
+  const st = document.getElementById('stamp-text');
+  const gen = data.generated_at;
+  st.textContent = 'Updated ' + ago(gen);
+  const age = (Date.now() - new Date(gen))/60000;
+  stamp.className = 'stamp' + (age>90?' dead':age>65?' stale':'');
+
+  // Pipeline Health
+  const health = data.health || {};
+  const cellClass = (h) => (h==null?'stale':h>48?'stale':h>26?'warn':'ok');
+  const cellVal = (h) => h==null ? '–' : h < 1 ? Math.round(h*60) + 'm' : h < 24 ? h + 'h' : Math.round(h/24) + 'd';
+  const setCell = (id, hours) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = cellVal(hours);
+    const parent = el.closest('.health-cell');
+    if (parent) parent.className = 'health-cell ' + cellClass(hours);
+  };
+  setCell('h-pi', health.pi_csv_hours);
+  setCell('h-tls', health.tls_hours);
+  setCell('h-dip', health.dip_hours);
+  setCell('h-prod', health.prod_pdf_hours);
+  setCell('h-vdv', health.vdv_hours);
+  const hTag = document.getElementById('health-tag');
+  const ov = health.overall;
+  if (ov==='ok') rag(hTag,'g');
+  else if (ov==='warn') rag(hTag,'a');
+  else rag(hTag,'r');
+
+  // Power system (Hydro / TPS / Load)
+  const pi = data.pi || {};
+  const h = data.headline || {};
+  const hydro = h.hydro_mw;
+  document.getElementById('hydro-mw').textContent = fmtN(hydro,1);
+  document.getElementById('tps-mw').textContent = fmtN(h.tps_mw,1);
+  document.getElementById('load-mw').textContent = fmtN(h.total_load_mw,1);
+  document.getElementById('gh01').textContent = fmtN(pi.gh01_mw,2,'MW');
+  document.getElementById('gh02').textContent = fmtN(pi.gh02_mw,2,'MW');
+  document.getElementById('yuk').textContent = fmtN(pi.yuk_creek_mw,2,'MW');
+  document.getElementById('pi-sub').textContent = pi.source_file ? (pi.source_file + ' · ' + (pi.timestamp||'')) : (pi.error || 'no PI data');
+  const hydroTag = document.getElementById('hydro-tag');
+  if(hydro==null) rag(hydroTag,'r');
+  else if(hydro>=25) rag(hydroTag,'g');
+  else if(hydro>=15) rag(hydroTag,'a');
+  else rag(hydroTag,'r');
+
+  // Menga
+  const menga = h.menga_level_m;
+  document.getElementById('menga').textContent = fmtN(menga,2);
+  const mSub = document.querySelector('#menga-tile .sub');
+  if (mSub) mSub.textContent = 'Source: ' + (h.menga_source || 'PI');
+  const mTag = document.getElementById('menga-tag');
+  if(menga==null) rag(mTag,'r');
+  else if(menga>=1.6) rag(mTag,'g');
+  else if(menga>=1.3) rag(mTag,'a');
+  else rag(mTag,'r');
+
+  // Kiunga river
+  const kr = h.kiunga_river_m;
+  document.getElementById('kiunga').textContent = fmtN(kr,2);
+  const krSource = h.kiunga_river_source || 'AM TLS Dip';
+  const krFlow = h.kiunga_river_flow_m3s;
+  const krFlowStr = krFlow!=null ? (' · ' + Math.round(krFlow).toLocaleString() + ' m³/s') : '';
+  document.getElementById('kiunga-sub').textContent = krSource + krFlowStr;
+  const kTag = document.getElementById('kiunga-tag');
+  if(kr==null) rag(kTag,'r');
+  else if(kr>=5.0) rag(kTag,'g');
+  else if(kr>=4.0) rag(kTag,'a');
+  else rag(kTag,'r');
+
+  // Kiunga River Forecast
+  const fc = data.forecast || {};
+  const vdv = data.vdv || {};
+  const fcTag = document.getElementById('forecast-tag');
+  if (fc.available) {
+    document.getElementById('fc-now').textContent = fmtN(fc.current_m,2);
+    document.getElementById('fc-12h').textContent = fmtN(fc.forecast_12h_m,2);
+    document.getElementById('fc-24h').textContent = fmtN(fc.forecast_24h_m,2);
+    document.getElementById('fc-48h').textContent = fmtN(fc.forecast_48h_m,2);
+    const trendIcon = fc.trend==='rising'?'▲ Rising':fc.trend==='falling'?'▼ Falling':'– Stable';
+    document.getElementById('fc-trend').textContent = trendIcon + (fc.expected_rise_m!=null ? ' (' + (fc.expected_rise_m>=0?'+':'') + fc.expected_rise_m + 'm/24h)' : '');
+    document.getElementById('fc-ols').textContent = vdv.olsobip_rain_24h_mm!=null ? (vdv.olsobip_rain_24h_mm + ' mm') : '–';
+    document.getElementById('fc-plm').textContent = vdv.palmer_rain_24h_mm!=null ? (vdv.palmer_rain_24h_mm + ' mm') : '–';
+    document.getElementById('fc-plm-d').textContent = vdv.palmer_delta_12h_m!=null ? ((vdv.palmer_delta_12h_m>=0?'+':'') + vdv.palmer_delta_12h_m + ' m') : '–';
+    document.getElementById('fc-sub').textContent = fc.trigger + ' · ' + (fc.confidence||'medium') + ' confidence';
+    // RAG based on trend: rising = green (good for shipping), stable = amber, falling = red
+    if (fc.trend==='rising') rag(fcTag,'g');
+    else if (fc.trend==='stable') rag(fcTag,'a');
+    else rag(fcTag,'r');
+  } else {
+    document.getElementById('fc-sub').textContent = fc.reason || 'Forecast unavailable';
+    rag(fcTag,'r');
+  }
+
+  // Tanks (now rendered inside the expandable Kiunga row in Depot Balances tile)
+  const tls = data.tls || {};
+  const tanks = tls.tanks || [];
+  const tbody = document.querySelector('#tank-table tbody');
+  if (tbody) {
+    tbody.innerHTML = '';
+    tanks.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>Tank ${t.tank}</td><td class="n">${t.fuel_L?.toLocaleString()||'–'}</td><td class="n">${t.fuel_height_mm?.toFixed(0)||'–'}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  const total_ml = tls.kiunga_total_ML;
+  const tankTotalEl = document.getElementById('tank-total');
+  if (tankTotalEl) tankTotalEl.textContent = fmtN(total_ml,2);
+  const tlsSubEl = document.getElementById('tls-sub');
+  if (tlsSubEl) tlsSubEl.textContent = tls.timestamp ? ('Sampled ' + tls.timestamp) : (tls.error || 'no TLS data');
+  // Note: tank-tag element was removed from template - RAG now surfaces on the parent Kiunga row via kiu-trend
+
+  // Depot balances
+  const dip = data.dip || {};
+  const total_fuel_ml = h.total_fuel_ML;
+  document.getElementById('total-fuel').textContent = fmtN(total_fuel_ml,2);
+  document.getElementById('tab').textContent = fmtL(dip.tabubil_L);
+  document.getElementById('kiu').textContent = fmtL(dip.kiunga_L);
+  document.getElementById('mine').textContent = fmtL(dip.mine_L);
+  document.getElementById('dip-sub').textContent = dip.report_date ? ('Report ' + dip.report_date) : (dip.error || 'no dip data');
+  const dTag = document.getElementById('depot-tag');
+  if(total_fuel_ml==null) rag(dTag,'r');
+  else if(total_fuel_ml>=15) rag(dTag,'g');
+  else if(total_fuel_ml>=10) rag(dTag,'a');
+  else rag(dTag,'r');
+
+  // Depot trends
+  const trendTag = (id, trend) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(!trend) { el.textContent=''; el.className='tag'; return; }
+    if(trend==='increasing') { el.textContent='▲'; el.className='tag ok'; }
+    else if(trend==='decreasing') { el.textContent='▼'; el.className='tag warn'; }
+    else if(trend==='SFL') { el.textContent='SFL'; el.className='tag bad'; }
+    else { el.textContent=trend.substring(0,8); el.className='tag'; }
+  };
+  trendTag('tab-trend', dip.tabubil_trend);
+  trendTag('kiu-trend', dip.kiunga_trend);
+  trendTag('mine-trend', dip.mine_trend);
+
+  // 24h consumption + days remaining
+  const total_24h = dip.total_24h_L;
+  const total_kL = total_24h ? Math.round(total_24h/1000) : null;
+  document.getElementById('usage-total').textContent = total_kL!=null ? total_kL : '–';
+  document.getElementById('usage-kiu').textContent = fmtL(dip.kiunga_24h_L);
+  document.getElementById('usage-tab').textContent = fmtL(dip.tabubil_24h_L);
+  document.getElementById('usage-mine').textContent = fmtL(dip.mine_24h_L);
+  document.getElementById('usage-roll').textContent = dip.rolling_avg_kL_day ? (dip.rolling_avg_kL_day + ' kL/day') : '–';
+  document.getElementById('days-rolling').textContent = h.days_remaining!=null ? (h.days_remaining + ' days') : '–';
+  document.getElementById('days-actual').textContent  = h.days_remaining_actual!=null ? (h.days_remaining_actual + ' days') : '–';
+  const uTag = document.getElementById('usage-tag');
+  const dr = h.days_remaining;
+  if(dr==null) rag(uTag,'r');
+  else if(dr>=60) rag(uTag,'g');
+  else if(dr>=30) rag(uTag,'a');
+  else rag(uTag,'r');
+
+  // On water
+  document.getElementById('onwater-ml').textContent = fmtN(dip.on_water_ML,1);
+  document.getElementById('onwater-vessel').textContent = dip.on_water_vessel || '–';
+  document.getElementById('onwater-id').textContent = dip.on_water_id || '–';
+
+  // Production + CuCon shed (from PDF report)
+  const prod = data.production || {};
+  const pTag = document.getElementById('prod-tag');
+  // Shed hero: current tonnes + days-to-80kt
+  const shedT = prod.shed_storage_t;
+  document.getElementById('shed-t').textContent = shedT!=null ? shedT.toLocaleString() : '–';
+  const shedDays = prod.days_to_80kt;
+  document.getElementById('shed-days').textContent = shedDays!=null ? (shedDays + ' days') : '–';
+  // Daily production
+  const cuDay = prod.copper_t_day;
+  const cuGrade = prod.prod_day_cu_grade_pct;
+  document.getElementById('prod-cu').textContent = cuDay!=null
+    ? (cuDay.toLocaleString() + ' t' + (cuGrade!=null ? (' @ ' + cuGrade + '% Cu') : ''))
+    : '–';
+  // MTD production
+  document.getElementById('prod-mtd').textContent = prod.prod_mtd_wmt!=null ? (prod.prod_mtd_wmt.toLocaleString() + ' t') : '–';
+  // Slurry + barges + vessel
+  document.getElementById('prod-slurry').textContent = prod.kiunga_slurry_hrs!=null ? (prod.kiunga_slurry_hrs + ' hrs / 24h') : '–';
+  document.getElementById('prod-barges').textContent = prod.barge_day_count!=null ? prod.barge_day_count : '–';
+  const vessel = prod.vessel_loading;
+  const lot = prod.vessel_lot;
+  const wmt = prod.vessel_wmt;
+  document.getElementById('prod-vessel').textContent = vessel
+    ? (vessel + (lot ? (' (LOT ' + lot + ')') : '') + (wmt ? (' · ' + wmt.toLocaleString() + ' t') : ''))
+    : '–';
+  const prodSub = document.getElementById('prod-sub');
+  if(prod.error) { prodSub.textContent = prod.note || prod.error; rag(pTag,'r'); }
+  else if(prod.report_date) { prodSub.textContent = 'Report ' + prod.report_date + (prod.source==='pdf' ? ' · PDF' : ''); }
+  // RAG on shed capacity: green > 30 days, amber 10-30, red < 10
+  if (shedDays==null) rag(pTag,'a');
+  else if (shedDays < 10) rag(pTag,'r');
+  else if (shedDays < 30) rag(pTag,'a');
+  else rag(pTag,'g');
+
+  // Kiunga River tile — append trend if we have it, but preserve the source label chosen above
+  if (dip.kiunga_river_trend && h.kiunga_river_source !== 'VDV') {
+    const kSub = document.getElementById('kiunga-sub');
+    kSub.textContent = 'AM TLS Dip · ' + (dip.report_date||'') + ' · ' + dip.kiunga_river_trend;
+  }
+}
+
+function showError(msg){
+  document.getElementById('stamp-text').textContent = 'ERROR loading data';
+  document.getElementById('stamp').classList.add('dead');
+  const err = document.createElement('div');
+  err.className = 'err';
+  err.textContent = msg;
+  document.body.appendChild(err);
+}
+
+async function load(){
+  // Path 1: use window.LATEST_DATA from the <script src="latest_summary.js"> loaded at top
+  if (window.LATEST_DATA) {
+    render(window.LATEST_DATA);
+    return;
+  }
+  // Path 2: try fetch() — works when served over http(s)://, fails on file://
+  try {
+    const r = await fetch(JSON_URL + '?cb=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    render(data);
+  } catch(e) {
+    showError('Could not load latest_summary.js or latest_summary.json — run parse-otml-data.py to regenerate');
+  }
+}
+load();
+// Refresh strategy: <script src> is cached until page reload, so location.reload() on the ↻ button
+// is what actually pulls fresh data. setInterval does a full reload every 10 min.
+setInterval(() => location.reload(), 10*60*1000);
+</script>
+
+</body>
+</html>
