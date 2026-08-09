@@ -35,7 +35,7 @@ h1{font-size:18px;font-weight:700;letter-spacing:.3px}
 .tile.hero{background:linear-gradient(180deg,#132043,#0f1a36)}
 
 /* Pipeline Health — 4-cell freshness grid */
-.health-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin-top:6px}
+.health-grid{display:grid;grid-template-columns:repeat(6, 1fr);gap:4px;margin-top:6px}
 .health-cell{text-align:center;padding:6px 2px;border-radius:6px;background:rgba(255,255,255,.03)}
 .health-cell.ok{background:rgba(34,197,94,.12)}
 .health-cell.warn{background:rgba(245,158,11,.12)}
@@ -117,7 +117,9 @@ h1{font-size:18px;font-weight:700;letter-spacing:.3px}
     <div class="health-cell"><div class="health-k">Dip</div><div class="health-v" id="h-dip">–</div></div>
     <div class="health-cell"><div class="health-k">Prod PDF</div><div class="health-v" id="h-prod">–</div></div>
     <div class="health-cell"><div class="health-k">VDV</div><div class="health-v" id="h-vdv">–</div></div>
+    <div class="health-cell"><div class="health-k">Food (wk)</div><div class="health-v" id="h-food">–</div></div>
   </div>
+  <div id="food-stale-banner" style="display:none;margin-top:8px;padding:6px 8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);border-radius:6px;font-size:11px;color:var(--warn);font-weight:600"></div>
 </div>
 
 <div class="tile hero" id="hydro-tile">
@@ -199,7 +201,8 @@ h1{font-size:18px;font-weight:700;letter-spacing:.3px}
 
 <div class="tile" id="depot-tile">
   <h2>Depot Balances — AM TLS Dip <span id="depot-tag" class="tag"></span></h2>
-  <div class="big"><span class="num" id="total-fuel">–</span><span class="unit">ML total</span></div>
+  <div class="big"><span class="num" id="total-fuel">–</span><span class="unit">ML net</span></div>
+  <div class="sub" id="depot-heel-note" style="margin-top:-4px">Gross <span id="total-gross">–</span> ML − heel <span id="total-heel">–</span> ML</div>
   <details class="depot-detail">
     <summary><span class="k">Tabubil <span id="tab-trend" class="tag"></span></span><span class="v" id="tab">–</span><span class="chev">▾</span></summary>
     <div class="detail-inner">
@@ -245,6 +248,15 @@ h1{font-size:18px;font-weight:700;letter-spacing:.3px}
   <div class="sub" id="shipping-sub">–</div>
 </div>
 
+<div class="tile" id="food-tile">
+  <h2>Camp Food Stocks <span id="food-tag" class="tag"></span></h2>
+  <div class="big"><span class="num" id="food-days">–</span><span class="unit">days cover (worst site)</span></div>
+  <div class="row"><span class="k">Tabubil</span><span class="v" id="food-tabubil">–</span></div>
+  <div class="row"><span class="k">Bige</span><span class="v" id="food-bige">–</span></div>
+  <div class="row"><span class="k">Kiunga</span><span class="v" id="food-kiunga">–</span></div>
+  <div class="sub" id="food-sub">Weekly xlsx from Arthur Kobal · updates Wednesdays</div>
+</div>
+
 <div class="tile" id="onwater-tile">
   <h2>On Water — Awaiting Ullage</h2>
   <div class="big"><span class="num" id="onwater-ml">–</span><span class="unit">ML diesel</span></div>
@@ -258,7 +270,7 @@ h1{font-size:18px;font-weight:700;letter-spacing:.3px}
 </div>
 
 <!-- Data file: parser writes latest_summary.js which sets window.LATEST_DATA -->
-<script>window.LATEST_DATA = {"generated_at": "2026-08-03T17:15:45+10:00", "root": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data", "pi": {"source_file": "PI_Data_20260803_160000.csv", "timestamp": "2026-08-03 17:00:00", "menga_level_m": 1.13, "gh01_mw": 0.0, "gh02_mw": 16.986, "yuk_creek_mw": -0.076, "total_gen_mw": 51.194, "total_load_mw": 46.556, "row_count": 3601}, "tls": {"timestamp": null, "source_file": "tls_latest.txt", "farm": "Tabubil", "tank_count": 3, "tanks": [{"tank": 1, "fuel_L": 2233600, "fuel_tc_L": 2231339, "ullage_L": 70003, "fuel_height_mm": 6995.75, "water_height_mm": 0.0, "temp_C": 28.06}, {"tank": 2, "fuel_L": 559334, "fuel_tc_L": 558870, "ullage_L": 1738257, "fuel_height_mm": 1755.23, "water_height_mm": 0.0, "temp_C": 25.8}, {"tank": 3, "fuel_L": 4474974, "fuel_tc_L": 4432132, "ullage_L": 3145358, "fuel_height_mm": 6224.76, "water_height_mm": 0.0, "temp_C": 27.38}], "kiunga_total_L": 7267908, "kiunga_total_ML": 7.268, "total_L": 7267908, "total_ML": 7.268}, "tabubil_tls": {"timestamp": null, "source_file": "tabubil_latest.txt", "farm": "Tabubil", "tank_count": 3, "tanks": [{"tank": 1, "fuel_L": 860583, "fuel_tc_L": 859893, "ullage_L": 1443020, "fuel_height_mm": 2695.39, "water_height_mm": 0.0, "temp_C": 25.46}, {"tank": 2, "fuel_L": 1936733, "fuel_tc_L": 1935008, "ullage_L": 360858, "fuel_height_mm": 6077.6, "water_height_mm": 0.0, "temp_C": 26.55}, {"tank": 3, "fuel_L": 6471170, "fuel_tc_L": 6413883, "ullage_L": 1149162, "fuel_height_mm": 9001.5, "water_height_mm": 0.0, "temp_C": 26.48}], "kiunga_total_L": 9268486, "kiunga_total_ML": 9.268, "total_L": 9268486, "total_ML": 9.268}, "dip": {"source_file": "dip_latest.txt", "tabubil_L": 6732307, "kiunga_L": 1583927, "mine_L": 602883, "tabubil_trend": "decreasing", "kiunga_trend": "decreasing", "mine_trend": "SFL", "total_prior_L": 10619784, "total_current_L": 8919117, "kiunga_river_m": 3.59, "ok_menga_m": 1.12, "kiunga_river_trend": "Decreasing", "ok_menga_trend": "Decreasing", "kiunga_24h_L": 15340, "tabubil_24h_L": 274726, "mine_24h_L": 142652, "total_24h_L": 432718, "rolling_avg_kL_day": 400, "on_water_vessel": "Fly EIMBARI", "on_water_id": "V81N", "on_water_ML": 1.3, "report_date": "03-08-26", "report_date_source": "body"}, "production": {"source_file": "Kiunga Daily Production Report_02.08.2026.pdf", "report_date": "02-08-26", "os_tonnes_wmt": 19611, "os_moisture_pct": 9.47, "os_cu_grade_pct": 24.4, "prod_day_wmt": 1676, "prod_day_cu_grade_pct": 26.4, "prod_mtd_wmt": 2921, "barge_day_count": 0.0, "cs_tonnes_wmt": 31153, "safety": "Nil significant safety incidents/accidents past 24hrs", "cargo_on_feeders_wmt": 8637, "source": "pdf", "shed_storage_t": 31153, "copper_t_day": 1676, "days_to_80kt": 29.1, "shed_cap_t": 80000}, "vessels": {"count": 18, "refreshed_at": "2026-08-03T04:00:06", "source": "Power BI (via PA Cloud)", "vessels": [{"name": "O.T.IDEAAL", "lat": -17.228132, "lon": 146.14464, "speed": 55.0, "status": "0", "location": "Other", "activity": null, "role": "Support"}, {"name": "RAGGIANA ARROW", "lat": -9.464155, "lon": 147.13202, "speed": 0.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Support"}, {"name": "JOHNNY TRAVELLER", "lat": -9.467116, "lon": 147.14154, "speed": 0.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Support"}, {"name": "FLY ALLIANCE", "lat": -7.24, "lon": 141.145, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY PROSPERITY", "lat": -7.238333, "lon": 141.14333, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY WARRIOR", "lat": -6.135, "lon": 141.30499, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "FLY CHALLENGER", "lat": -7.233333, "lon": 141.13834, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY RESILIENCE", "lat": -6.125, "lon": 141.29834, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "KIUNGA CHIEF", "lat": -6.135, "lon": 141.29333, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Loading concentrate", "role": "CuCon carrier"}, {"name": "FLY ENTERPRISE", "lat": -6.136667, "lon": 141.29167, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "FLY VALIANT", "lat": -8.301666, "lon": 142.41167, "speed": 60.0, "status": "0", "location": "In transit \u2014 Fly River", "activity": "Underway", "role": "Fuel feeder"}, {"name": "ELIMBARI", "lat": -6.16, "lon": 141.24001, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "At wharf", "role": "Passenger/support"}, {"name": "GILUWE", "lat": -6.61, "lon": 140.84666, "speed": 0.0, "status": "0", "location": "Other", "activity": null, "role": "Passenger/support"}, {"name": "AIRD HILLS", "lat": -6.618333, "lon": 140.855, "speed": 0.0, "status": "0", "location": "Other", "activity": null, "role": "Support"}, {"name": "BBC GDANSK", "lat": -27.378994, "lon": 153.16541, "speed": 0.0, "status": "5", "location": "Other", "activity": null, "role": "Other"}, {"name": "HIRI CHIEF", "lat": -8.365, "lon": 148.325, "speed": 90.0, "status": "0", "location": "Other", "activity": null, "role": "Other"}, {"name": "FLY EXPLORER", "lat": null, "lon": null, "speed": null, "status": "", "location": "Unknown position", "activity": null, "role": "Other"}, {"name": "TAMANOU", "lat": null, "lon": null, "speed": null, "status": "", "location": "Unknown position", "activity": null, "role": "Other"}], "groups": {"Other": ["O.T.IDEAAL", "GILUWE", "AIRD HILLS", "BBC GDANSK", "HIRI CHIEF"], "Port Moresby": ["RAGGIANA ARROW", "JOHNNY TRAVELLER"], "Waiting on river": ["FLY ALLIANCE", "FLY PROSPERITY", "FLY CHALLENGER"], "Kiunga wharf": ["FLY WARRIOR", "FLY RESILIENCE", "KIUNGA CHIEF", "FLY ENTERPRISE", "ELIMBARI"], "In transit \u2014 Fly River": ["FLY VALIANT"], "Unknown position": ["FLY EXPLORER", "TAMANOU"]}}, "food": {"error": "Food Stocks folder not found: C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Food Stocks"}, "vdv_reconciliation": {"log_file": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\VDV\\vdv_source_reconciliation.csv", "formula": "diff_m = csv_m - pbi_m ; pbi_adjusted = pbi_raw + mean_offset_m", "rows_logged": 747, "pbi_live_rows": 484, "pbi_live_now": false, "stations": {"kiunga": {"n": 118, "mean_offset_m": -0.8681, "stdev_m": 0.9875, "min_m": -10.598, "max_m": -0.1, "last_diff_m": -0.58, "stable": false, "recommended_pa_offset_m": null}, "menga": {"n": 118, "mean_offset_m": 0.0027, "stdev_m": 0.0535, "min_m": -0.11, "max_m": 0.136, "last_diff_m": -0.062, "stable": false, "recommended_pa_offset_m": null}, "palmer": {"n": 118, "mean_offset_m": -0.2222, "stdev_m": 1.4334, "min_m": -1.57, "max_m": 14.88, "last_diff_m": -0.22, "stable": false, "recommended_pa_offset_m": null}}, "ready_to_calibrate_pa": false, "note": "PBI feed reading all-zero \u2014 row logged but excluded from offset mean; waiting on live PA Cloud data before calibrating."}, "vdv": {"source_file": "vistavision_latest.json", "source": "Power BI (via PA Cloud)", "vdv_timestamp": "2026-08-03T00:00:00", "kiunga_ohd_m": 13.92, "kiunga_shipping_m": 3.582, "kiunga_flow_m3s": 188.37, "ok_menga_m": 1.122, "palmer_m": 21.15, "olsobip_rain_mm": 0.0, "palmer_rain_mm": 1.0, "kiunga_rain_mm": 0.0, "kiunga_delta_24h_m": 0.0, "ok_menga_delta_24h_m": 0.021, "palmer_delta_24h_m": -0.01, "kiunga_delta_12h_m": null, "palmer_delta_12h_m": null, "olsobip_rain_24h_mm": 0.0, "palmer_rain_24h_mm": 1.0, "kiunga_rain_24h_mm": 0.0, "_ohd_offset_m_applied": 10.338, "state": "pbi_json"}, "forecast": {"available": true, "current_m": 3.58, "trend": "stable", "trigger": "At/near base flow \u2014 continuing current trend", "forecast_12h_m": 3.58, "forecast_24h_m": 3.58, "forecast_48h_m": 3.58, "expected_rise_m": 0, "confidence": "medium", "model": "trend_extrapolation"}, "headline": {"hydro_mw": 16.91, "tps_mw": 34.28, "total_load_mw": 46.556, "mill_mine_mw": 46.556, "township_mw": 4.64, "total_gen_mw": 51.194, "menga_level_m": 1.122, "menga_source": "VDV", "kiunga_river_m": 3.582, "kiunga_river_source": "VDV", "kiunga_river_flow_m3s": 188.37, "palmer_river_m": 21.15, "olsobip_rain_mm": 0.0, "kiunga_tank_ML": 7.268, "total_fuel_ML": 8.919, "days_remaining": 22.3, "days_remaining_actual": 20.6, "cucon_shed_t": 31153, "cu_t_day": 1676, "shed_days_to_80kt": 29.1}, "health": {"pi_csv_hours": 0.2, "pi_csv_file": "PI_Data_20260803_160000.csv", "tls_hours": 0.0, "dip_hours": 0.0, "prod_pdf_hours": 7.7, "prod_pdf_file": "Kiunga Daily Production Report_02.08.2026.pdf", "vdv_hours": 0.3, "vdv_state": "pbi_json", "overall": "ok"}};</script>
+<script>window.LATEST_DATA = {"generated_at": "2026-08-09T14:16:06+10:00", "root": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data", "pi": {"source_file": "PI_Data_20260809_130000.csv", "timestamp": "2026-08-09 14:00:00", "menga_level_m": 0.996, "gh01_mw": 0.0, "gh02_mw": 11.189, "yuk_creek_mw": -0.142, "total_gen_mw": 11.155, "total_load_mw": 7.119, "row_count": 3601}, "tls": {"timestamp": "09.08.26 11:45", "source_file": "tls_latest.txt", "farm": "Kiunga", "tank_count": 4, "tanks": [{"tank": 4, "fuel_L": 59877, "fuel_tc_L": 59802, "ullage_L": 2221814, "fuel_height_mm": 188.1, "water_height_mm": 0.0, "temp_C": 31.15}, {"tank": 5, "fuel_L": 60186, "fuel_tc_L": 60109, "ullage_L": 2219260, "fuel_height_mm": 189.1, "water_height_mm": 0.0, "temp_C": 31.33}, {"tank": 6, "fuel_L": 2016645, "fuel_tc_L": 2014444, "ullage_L": 281557, "fuel_height_mm": 6303.0, "water_height_mm": 0.0, "temp_C": 29.03}, {"tank": 7, "fuel_L": 47358, "fuel_tc_L": 47303, "ullage_L": 896293, "fuel_height_mm": 368.96, "water_height_mm": 0.0, "temp_C": 30.04}], "kiunga_total_L": 2184066, "kiunga_total_ML": 2.184, "total_L": 2184066, "total_ML": 2.184}, "tabubil_tls": {"timestamp": null, "source_file": "tabubil_latest.txt", "farm": "Tabubil", "tank_count": 3, "tanks": [{"tank": 1, "fuel_L": 860583, "fuel_tc_L": 859893, "ullage_L": 1443020, "fuel_height_mm": 2695.39, "water_height_mm": 0.0, "temp_C": 25.46}, {"tank": 2, "fuel_L": 1936733, "fuel_tc_L": 1935008, "ullage_L": 360858, "fuel_height_mm": 6077.6, "water_height_mm": 0.0, "temp_C": 26.55}, {"tank": 3, "fuel_L": 6471170, "fuel_tc_L": 6413883, "ullage_L": 1149162, "fuel_height_mm": 9001.5, "water_height_mm": 0.0, "temp_C": 26.48}], "kiunga_total_L": 9268486, "kiunga_total_ML": 9.268, "total_L": 9268486, "total_ML": 9.268}, "dip": {"source_file": "dip_latest.txt", "tabubil_L": 4670382, "tabubil_gross_L": 5429172, "tabubil_heel_L": 758790, "kiunga_L": 1294678, "kiunga_gross_L": 2186555, "kiunga_heel_L": 891877, "mine_L": 640612, "mine_gross_L": 690612, "mine_heel_L": 50000, "total_heel_L": 1700667, "tabubil_trend": "decreasing", "kiunga_trend": "decreasing", "mine_trend": "SFL", "total_prior_L": 8306339, "total_current_L": 6605672, "kiunga_river_m": 2.18, "ok_menga_m": 1.08, "kiunga_river_trend": "Decreasing", "ok_menga_trend": "Decreasing", "kiunga_24h_L": 57287, "tabubil_24h_L": 157641, "mine_24h_L": 74508, "total_24h_L": 289436, "rolling_avg_kL_day": 400, "on_water_vessel": "EIMBARI", "on_water_id": "V81N", "on_water_ML": 1.3, "report_date": "09-08-26", "report_date_source": "body"}, "production": {"source_file": "Kiunga Daily Production Report_08.08.2026.pdf", "report_date": "08-08-26", "os_tonnes_wmt": 19611, "os_moisture_pct": 9.47, "os_cu_grade_pct": 24.4, "prod_day_wmt": 1363, "prod_day_cu_grade_pct": 22.3, "prod_mtd_wmt": 12741, "barge_day_count": 0.0, "cs_tonnes_wmt": 42574, "river_0600_m": 2.18, "safety": "Nil significant safety incidents/accidents past 24hrs", "cargo_on_feeders_wmt": 8637, "source": "pdf", "shed_storage_t": 42574, "copper_t_day": 1363, "days_to_80kt": 27.5, "shed_cap_t": 80000}, "vessels": {"count": 18, "refreshed_at": "2026-08-09T04:00:06", "source": "Power BI (via PA Cloud)", "vessels": [{"name": "O.T.IDEAAL", "lat": -9.936564, "lon": 147.29192, "speed": 91.0, "status": "0", "location": "Other", "activity": null, "role": "Support"}, {"name": "RAGGIANA ARROW", "lat": -9.463718, "lon": 147.13269, "speed": 0.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Support"}, {"name": "JOHNNY TRAVELLER", "lat": -9.466683, "lon": 147.14224, "speed": 0.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Support"}, {"name": "FLY ALLIANCE", "lat": -7.241667, "lon": 141.14667, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY PROSPERITY", "lat": -7.24, "lon": 141.145, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY WARRIOR", "lat": -6.135, "lon": 141.30499, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "FLY CHALLENGER", "lat": -7.236667, "lon": 141.14166, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY RESILIENCE", "lat": -6.125, "lon": 141.29834, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "KIUNGA CHIEF", "lat": -6.135, "lon": 141.29333, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Loading concentrate", "role": "CuCon carrier"}, {"name": "FLY ENTERPRISE", "lat": -6.136667, "lon": 141.29167, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "FLY VALIANT", "lat": -7.595, "lon": 141.39999, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "ELIMBARI", "lat": -6.16, "lon": 141.24001, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "At wharf", "role": "Passenger/support"}, {"name": "GILUWE", "lat": -6.61, "lon": 140.845, "speed": 0.0, "status": "0", "location": "Other", "activity": null, "role": "Passenger/support"}, {"name": "AIRD HILLS", "lat": -6.618333, "lon": 140.855, "speed": 0.0, "status": "0", "location": "Other", "activity": null, "role": "Support"}, {"name": "BBC GDANSK", "lat": -9.503573, "lon": 147.16679, "speed": 0.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Other"}, {"name": "HIRI CHIEF", "lat": -9.290566, "lon": 149.58345, "speed": 86.0, "status": "0", "location": "Other", "activity": null, "role": "Other"}, {"name": "FLY EXPLORER", "lat": null, "lon": null, "speed": null, "status": "", "location": "Unknown position", "activity": null, "role": "Other"}, {"name": "TAMANOU", "lat": -6.272838, "lon": 141.08145, "speed": 0.0, "status": "99", "location": "Waiting on river", "activity": "Anchored", "role": "Other"}], "groups": {"Other": ["O.T.IDEAAL", "GILUWE", "AIRD HILLS", "HIRI CHIEF"], "Port Moresby": ["RAGGIANA ARROW", "JOHNNY TRAVELLER", "BBC GDANSK"], "Waiting on river": ["FLY ALLIANCE", "FLY PROSPERITY", "FLY CHALLENGER", "FLY VALIANT", "TAMANOU"], "Kiunga wharf": ["FLY WARRIOR", "FLY RESILIENCE", "KIUNGA CHIEF", "FLY ENTERPRISE", "ELIMBARI"], "Unknown position": ["FLY EXPLORER"]}}, "food": {"error": "Food Stocks folder not found: C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Food Stocks"}, "vdv_reconciliation": {"log_file": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\VDV\\vdv_source_reconciliation.csv", "formula": "diff_m = csv_m - pbi_m ; pbi_adjusted = pbi_raw + mean_offset_m", "rows_logged": 781, "pbi_live_rows": 484, "pbi_live_now": false, "stations": {"kiunga": {"n": 118, "mean_offset_m": -0.8681, "stdev_m": 0.9875, "min_m": -10.598, "max_m": -0.1, "last_diff_m": -0.58, "stable": false, "recommended_pa_offset_m": null}, "menga": {"n": 118, "mean_offset_m": 0.0027, "stdev_m": 0.0535, "min_m": -0.11, "max_m": 0.136, "last_diff_m": -0.062, "stable": false, "recommended_pa_offset_m": null}, "palmer": {"n": 118, "mean_offset_m": -0.2222, "stdev_m": 1.4334, "min_m": -1.57, "max_m": 14.88, "last_diff_m": -0.22, "stable": false, "recommended_pa_offset_m": null}}, "ready_to_calibrate_pa": false, "note": "PBI feed reading all-zero \u2014 row logged but excluded from offset mean; waiting on live PA Cloud data before calibrating."}, "vdv": {"source_file": "vdv_20260809_141609.csv", "vdv_timestamp": "2026-08-09 13:00:00", "kiunga_shipping_m": 2.1820004577637, "kiunga_ohd_m": 12.52, "kiunga_flow_m3s": 43.32, "kiunga_rain_mm": 0.0, "ok_menga_m": 1.046, "ok_menga_flow_m3s": 9.31, "palmer_m": 21.05, "palmer_rain_mm": 0.0, "olsobip_rain_mm": 0.0, "olsobip_rain_12h_mm": 0.0, "olsobip_rain_24h_mm": 0.0, "palmer_rain_12h_mm": 1.0, "palmer_rain_24h_mm": 1.0, "kiunga_rain_24h_mm": 0, "kiunga_delta_24h_m": null, "kiunga_delta_12h_m": null, "palmer_delta_12h_m": 0.01, "palmer_delta_24h_m": 0.05, "ok_menga_delta_24h_m": -0.015, "state": "fetched"}, "forecast": {"available": true, "current_m": 2.18, "trend": "stable", "trigger": "At/near base flow \u2014 continuing current trend", "forecast_12h_m": 2.18, "forecast_24h_m": 2.18, "forecast_48h_m": 2.18, "expected_rise_m": 0, "confidence": "medium", "model": "trend_extrapolation"}, "headline": {"hydro_mw": 11.05, "tps_mw": 0.0, "total_load_mw": 7.119, "mill_mine_mw": 7.119, "township_mw": 4.04, "total_gen_mw": 11.155, "menga_level_m": 1.046, "menga_source": "VDV", "kiunga_river_m": 2.1820004577637, "kiunga_river_source": "VDV", "kiunga_river_flow_m3s": 43.32, "palmer_river_m": 21.05, "olsobip_rain_mm": 0.0, "kiunga_tank_ML": 2.184, "total_fuel_ML": 6.606, "days_remaining": 16.5, "days_remaining_actual": 22.8, "cucon_shed_t": 42574, "cu_t_day": 1363, "shed_days_to_80kt": 27.5}, "health": {"pi_csv_hours": 0.2, "pi_csv_file": "PI_Data_20260809_130000.csv", "tls_hours": 1.0, "dip_hours": 1.0, "prod_pdf_hours": 6.2, "prod_pdf_file": "Kiunga Daily Production Report_08.08.2026.pdf", "vdv_hours": 0.3, "vdv_state": "fetched", "overall": "ok"}};</script>
 
 <script>
 const JSON_URL = 'latest_summary.json'; // fallback only
@@ -307,6 +319,29 @@ function render(data){
   setCell('h-dip', health.dip_hours);
   setCell('h-prod', health.prod_pdf_hours);
   setCell('h-vdv', health.vdv_hours);
+  // Food (weekly xlsx) — convert days -> hours for setCell; treat >8d as stale
+  const foodAge = data.food && data.food.age_days;
+  const foodHours = (foodAge != null) ? foodAge * 24 : null;
+  const foodCellEl = document.getElementById('h-food');
+  if (foodCellEl) {
+    foodCellEl.textContent = foodAge == null ? '–' : (foodAge < 1 ? Math.round(foodAge*24) + 'h' : Math.round(foodAge) + 'd');
+    const parent = foodCellEl.closest('.health-cell');
+    if (parent) {
+      // Weekly cadence: <7d ok, 7-8d warn, >8d stale
+      const cls = foodAge == null ? 'stale' : foodAge > 8 ? 'stale' : foodAge > 7 ? 'warn' : 'ok';
+      parent.className = 'health-cell ' + cls;
+    }
+  }
+  // Stale-food banner at top of Pipeline Health tile
+  const banner = document.getElementById('food-stale-banner');
+  if (banner) {
+    if (data.food && data.food.is_stale && data.food.stale_note) {
+      banner.textContent = '⚠ ' + data.food.stale_note;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
   const hTag = document.getElementById('health-tag');
   const ov = health.overall;
   if (ov==='ok') rag(hTag,'g');
@@ -419,10 +454,25 @@ function render(data){
   const dip = data.dip || {};
   const total_fuel_ml = h.total_fuel_ML;
   document.getElementById('total-fuel').textContent = fmtN(total_fuel_ml,2);
-  document.getElementById('tab').textContent = fmtL(dip.tabubil_L);
-  document.getElementById('kiu').textContent = fmtL(dip.kiunga_L);
-  document.getElementById('mine').textContent = fmtL(dip.mine_L);
-  document.getElementById('dip-sub').textContent = dip.report_date ? ('Report ' + dip.report_date) : (dip.error || 'no dip data');
+  // Gross + heel breakdown
+  const totGross = (dip.total_prior_L!=null) ? (dip.total_prior_L/1e6).toFixed(2) : null;
+  const totHeel  = (dip.total_heel_L!=null) ? (dip.total_heel_L/1e6).toFixed(2) : null;
+  const tgEl = document.getElementById('total-gross'); if (tgEl) tgEl.textContent = totGross ?? '–';
+  const thEl = document.getElementById('total-heel');  if (thEl) thEl.textContent = totHeel ?? '–';
+  // Per-depot: show net with gross−heel subline
+  const netWithHeel = (net, gross, heel) => {
+    if (net==null) return '–';
+    const netStr = fmtL(net);
+    if (gross!=null && heel!=null) {
+      const g = (gross/1e6).toFixed(2), hh = (heel/1e3).toFixed(0);
+      return `${netStr} <span style="font-size:10px;color:var(--dim);font-weight:400">(${g}M − ${hh}k heel)</span>`;
+    }
+    return netStr;
+  };
+  document.getElementById('tab').innerHTML = netWithHeel(dip.tabubil_L, dip.tabubil_gross_L, dip.tabubil_heel_L);
+  document.getElementById('kiu').innerHTML = netWithHeel(dip.kiunga_L,  dip.kiunga_gross_L,  dip.kiunga_heel_L);
+  document.getElementById('mine').innerHTML= netWithHeel(dip.mine_L,    dip.mine_gross_L,    dip.mine_heel_L);
+  document.getElementById('dip-sub').textContent = dip.report_date ? ('Report ' + dip.report_date + ' · net = gross − heel (unusable @ tank bottom)') : (dip.error || 'no dip data');
   const dTag = document.getElementById('depot-tag');
   if(total_fuel_ml==null) rag(dTag,'r');
   else if(total_fuel_ml>=15) rag(dTag,'g');
@@ -536,6 +586,28 @@ function render(data){
   if (dip.kiunga_river_trend && h.kiunga_river_source !== 'VDV') {
     const kSub = document.getElementById('kiunga-sub');
     kSub.textContent = 'AM TLS Dip · ' + (dip.report_date||'') + ' · ' + dip.kiunga_river_trend;
+  }
+
+  // Camp Food Stocks — weekly xlsx headline (worst-site days cover) + 3-site strip
+  const food = data.food || {};
+  const fTag = document.getElementById('food-tag');
+  const fDaysEl = document.getElementById('food-days');
+  const fmtDays = (d) => d==null ? '–' : Math.round(d) + 'd';
+  fDaysEl.textContent = food.headline_days!=null ? Math.round(food.headline_days) : '–';
+  document.getElementById('food-tabubil').textContent = fmtDays(safe(food,'sites','Tabubil','days'));
+  document.getElementById('food-bige').textContent    = fmtDays(safe(food,'sites','Bige','days'));
+  document.getElementById('food-kiunga').textContent  = fmtDays(safe(food,'sites','Kiunga','days'));
+  const fSub = document.getElementById('food-sub');
+  if (food.error) {
+    fSub.textContent = food.error;
+    rag(fTag,'a');
+  } else {
+    const worst = food.headline_site ? ' · worst: ' + food.headline_site : '';
+    fSub.textContent = 'Weekly xlsx · ' + (food.report_date || 'no date') + worst;
+    if (food.rag === 'red') rag(fTag,'r');
+    else if (food.rag === 'amber') rag(fTag,'a');
+    else if (food.rag === 'green') rag(fTag,'g');
+    else rag(fTag,'a');
   }
 }
 
