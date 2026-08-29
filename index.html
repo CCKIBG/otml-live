@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>OTML Live Ã‚Â· 6.5 m Shipping Trigger</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0b1220; --card:#182339; --card2:#1e2b46; --border:#2a3856;
+  --text:#e8ecf3; --muted:#8b96ad; --good:#22c55e; --warn:#f59e0b;
+  --bad:#ef4444; --info:#38bdf8; --accent:#eab308; --crit:#dc2626;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{background:#000;height:100vh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Inter,'Segoe UI',sans-serif;color:var(--text)}
+.wrap{width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; background:#000}
+.canvas{
+  width:100vw; height:56.25vw; max-height:100vh; max-width:177.78vh;
+  aspect-ratio:16/9; background:var(--bg); padding:14px;
+  display:grid; grid-template-rows:auto 1fr; gap:10px;
+}
+header{
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid var(--border); padding-bottom:8px; gap:8px;
+}
+.title{font-size:18px; font-weight:800; letter-spacing:-0.01em}
+.title .sub{color:var(--muted); font-weight:400; margin-left:8px; font-size:12px}
+.gen{color:var(--muted); font-size:10px; text-align:right}
+.hdr-links{display:flex; gap:5px}
+.hdr-links a{background:var(--card2); border:1px solid var(--border); padding:5px 10px; border-radius:5px; color:var(--info); text-decoration:none; font-size:10px; font-weight:600; white-space:nowrap}
+.hdr-links a.gold{color:var(--accent)}
+
+main{
+  display:grid; grid-template-columns:repeat(12,1fr); grid-template-rows:1fr 1fr;
+  gap:10px; min-height:0;
+}
+.card{background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 12px; min-height:0; overflow:hidden; display:flex; flex-direction:column}
+.card h2{
+  font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--muted); margin-bottom:6px; font-weight:700;
+  border-bottom:1px solid var(--border); padding-bottom:4px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.card h2 .badge{font-size:9px; background:var(--card2); color:var(--text); padding:1px 6px; border-radius:999px; font-weight:600; text-transform:none; letter-spacing:0}
+
+.c3{grid-column:span 3}
+.c4{grid-column:span 4}
+.c5{grid-column:span 5}
+.c6{grid-column:span 6}
+.c8{grid-column:span 8}
+.c12{grid-column:span 12}
+
+/* Hero tile */
+.hero{background:linear-gradient(90deg,rgba(220,38,38,0.18),rgba(220,38,38,0.03)); border-color:rgba(220,38,38,0.5)}
+.hero.good{background:linear-gradient(90deg,rgba(34,197,94,0.18),rgba(34,197,94,0.03)); border-color:rgba(34,197,94,0.5)}
+.hero .big{font-size:56px; font-weight:800; line-height:1; margin:4px 0; font-variant-numeric:tabular-nums}
+.hero .status{font-size:13px; font-weight:700; margin-bottom:6px}
+.hero .stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:auto}
+.hero .stat{background:rgba(255,255,255,0.05); border-radius:4px; padding:5px 8px}
+.hero .stat .l{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em}
+.hero .stat .v{font-size:15px; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* Standard tables */
+table{width:100%; border-collapse:collapse; font-size:11px}
+td,th{padding:3px 5px; border-bottom:1px solid var(--border); text-align:left}
+td.n{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+th{color:var(--muted); font-weight:600; text-transform:uppercase; font-size:9px; letter-spacing:0.05em}
+
+/* Metric strips */
+.metric-row{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px}
+.metric{background:var(--card2); border-radius:4px; padding:5px 8px; display:flex; flex-direction:column; justify-content:space-between; min-height:36px}
+.metric .l{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em}
+.metric .v{font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1}
+.metric .v.small{font-size:12px}
+.metric.good{border-left:3px solid var(--good)}
+.metric.warn{border-left:3px solid var(--warn)}
+.metric.bad{border-left:3px solid var(--bad)}
+
+.mono{font-family:'SF Mono',Menlo,Consolas,monospace; font-size:10px; color:var(--muted)}
+.rag{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle}
+.rag-r{background:var(--bad)} .rag-a{background:var(--warn)} .rag-g{background:var(--good)}
+
+.scroll{flex:1; overflow-y:auto; min-height:0}
+
+/* Weather rain outlook */
+.rain-outlook{display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin:6px 0}
+.rain-day{background:var(--card2); border-radius:3px; padding:4px 2px; text-align:center; font-size:9px}
+.rain-day .d{color:var(--muted); font-size:8px}
+.rain-day .r{font-size:12px; font-weight:700; margin-top:2px}
+.rain-day.wet{background:rgba(56,189,248,0.2)}
+.rain-day.heavy{background:rgba(56,189,248,0.5)}
+
+/* Forecast big number */
+.forecast-big{font-size:24px; font-weight:800; margin:6px 0 4px; font-variant-numeric:tabular-nums}
+.forecast-big.good{color:var(--good)}
+.forecast-big.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="canvas">
+
+<header>
+  <div class="title">
+    OTML Live
+    <span class="sub">Shipping Trigger 6.5 m Ã‚Â· 16:9 wall view</span>
+  </div>
+  <div class="hdr-links">
+    <a href="fly-river-hydrology.html">Fly Hydrology deep dive Ã¢â€ â€™</a>
+    <a href="fly-river-hydrology-16x9.html" class="gold">Hydrology 16:9 Ã¢â€ â€™</a>
+  </div>
+  <div class="gen" id="gen"></div>
+</header>
+
+<main>
+
+  <!-- 1. KIUNGA HERO (c5) -->
+  <section class="card hero c5" id="heroCard">
+    <h2><span>Kiunga Ã‚Â· Shipping Datum</span><span class="badge" id="heroP">Ã¢â‚¬â€</span></h2>
+    <div class="big" id="heroBig">Ã¢â‚¬â€</div>
+    <div class="status" id="heroStatus">Ã¢â‚¬â€</div>
+    <div class="mono" id="heroSource">Ã¢â‚¬â€</div>
+    <div class="stats">
+      <div class="stat"><div class="l">Aug median (11 yr)</div><div class="v" id="augMed">Ã¢â‚¬â€</div></div>
+      <div class="stat"><div class="l">Aug P10</div><div class="v" id="augP10">Ã¢â‚¬â€</div></div>
+      <div class="stat"><div class="l">Trigger</div><div class="v">6.50 m</div></div>
+    </div>
+  </section>
+
+  <!-- 2. POWER SYSTEM (c4) -->
+  <section class="card c4">
+    <h2><span>Power system</span></h2>
+    <div class="metric-row">
+      <div class="metric good"><div class="l">Hydro total</div><div class="v" id="hydroMW">Ã¢â‚¬â€</div></div>
+      <div class="metric warn"><div class="l">TPS Wartsila</div><div class="v" id="tpsMW">Ã¢â‚¬â€</div></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="l">Mill + Mine load</div><div class="v" id="loadMW">Ã¢â‚¬â€</div></div>
+      <div class="metric"><div class="l">Township</div><div class="v" id="twpMW">Ã¢â‚¬â€</div></div>
+    </div>
+    <table style="margin-top:auto">
+      <tr><td>GH01</td><td class="n" id="gh01MW">Ã¢â‚¬â€</td></tr>
+      <tr><td>GH02</td><td class="n" id="gh02MW">Ã¢â‚¬â€</td></tr>
+      <tr><td>Ok Menga level</td><td class="n" id="mengaLvl">Ã¢â‚¬â€</td></tr>
+    </table>
+  </section>
+
+  <!-- 3. DEPOT FUEL (c3) -->
+  <section class="card c3">
+    <h2><span>Depot fuel</span><span class="badge" id="fuelTotal">Ã¢â‚¬â€</span></h2>
+    <div class="scroll" style="font-size:11px">
+      <div style="color:var(--muted);font-size:9px;text-transform:uppercase;margin-bottom:3px">Kiunga</div>
+      <table id="tblKiu"></table>
+      <div style="color:var(--muted);font-size:9px;text-transform:uppercase;margin:8px 0 3px">Tabubil</div>
+      <table id="tblTab"></table>
+    </div>
+    <div class="metric warn" style="margin-top:6px"><div class="l">Days runway</div><div class="v small" id="daysRun">Ã¢â‚¬â€</div></div>
+  </section>
+
+  <!-- 4. WEATHER FORECAST (c4) Ã¢â‚¬â€ NEW TILE -->
+  <section class="card c4">
+    <h2><span>Weather Ã‚Â· rainfall outlook</span><span class="badge">Kiunga catchment</span></h2>
+    <div class="rain-outlook" id="rainOutlook">
+      <!-- populated by JS with 7 days -->
+    </div>
+    <table style="margin-top:6px">
+      <tr><th>Station</th><th style="text-align:right">Last 24 h</th></tr>
+      <tr><td>BIA01 Biangabip</td><td class="n" id="bia24">Ã¢â‚¬â€</td></tr>
+      <tr><td>OLS01 Olsobip</td><td class="n" id="ols24">Ã¢â‚¬â€</td></tr>
+      <tr><td>FLY01 Palmer</td><td class="n" id="pal24">Ã¢â‚¬â€</td></tr>
+    </table>
+    <div style="margin-top:auto; display:flex; gap:4px; flex-wrap:wrap">
+      <a href="https://zoom.earth/maps/precipitation/#view=-5.9,141.3,7z" target="_blank" style="background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:4px;color:var(--info);text-decoration:none;font-size:9px;font-weight:600">Radar (zoom.earth) Ã¢â€ â€™</a>
+      <a href="https://www.meteoblue.com/en/weather/forecast/week/kiunga_papua-new-guinea_2094454" target="_blank" style="background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:4px;color:var(--info);text-decoration:none;font-size:9px;font-weight:600">Kiunga 14-day Ã¢â€ â€™</a>
+    </div>
+  </section>
+
+  <!-- 5. RIVER FORECAST + RECESSION (c4) -->
+  <section class="card c4">
+    <h2><span>River forecast + recession</span><span class="badge">BIA-weighted</span></h2>
+    <div class="mono">48 h peak lag Ã‚Â· dry-catchment amp 4Ãƒâ€”</div>
+    <div class="forecast-big" id="forecastBig">Ã¢â‚¬â€</div>
+    <table>
+      <tr><td>Predicted rise (48 h)</td><td class="n" id="fcRise">Ã¢â‚¬â€</td></tr>
+      <tr><td>Projected level</td><td class="n" id="fcLevel">Ã¢â‚¬â€</td></tr>
+      <tr><td>Dry-amp factor</td><td class="n" id="fcAmp">Ã¢â‚¬â€</td></tr>
+    </table>
+    <div style="margin-top:8px; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:0.05em">Recession Ã‚Â· no-rain scenario Ã‚Â· k=0.066/day</div>
+    <table>
+      <tr><td>Half-life</td><td class="n" id="recHalf">Ã¢â‚¬â€</td></tr>
+      <tr><td>Days to 2 m</td><td class="n" id="recTo2">Ã¢â‚¬â€</td></tr>
+      <tr><td>Days to 1 m</td><td class="n" id="recTo1">Ã¢â‚¬â€</td></tr>
+      <tr><td>Days to 0.5 m</td><td class="n" id="recTo05">Ã¢â‚¬â€</td></tr>
+    </table>
+  </section>
+
+  <!-- 6. VESSELS + PRODUCTION (c4) -->
+  <section class="card c4">
+    <h2><span>Vessels + production</span><span class="badge" id="vslCount">Ã¢â‚¬â€</span></h2>
+    <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:3px">On water</div>
+    <div class="scroll" style="max-height:110px">
+      <table id="tblVessels"></table>
+    </div>
+    <div style="margin-top:6px; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:3px">Production</div>
+    <table>
+      <tr><td>Tonnes milled</td><td class="n" id="prTon">Ã¢â‚¬â€</td></tr>
+      <tr><td>Cu grade</td><td class="n" id="prGr">Ã¢â‚¬â€</td></tr>
+      <tr><td>Cu recovery</td><td class="n" id="prRec">Ã¢â‚¬â€</td></tr>
+      <tr><td>CuCon stockpile</td><td class="n" id="prCuCon">Ã¢â‚¬â€</td></tr>
+    </table>
+  </section>
+
+</main>
+
+</div></div>
+
+<script>window.OTML_SUMMARY = {"generated_at_utc": "2026-08-29T11:06:11.371684+00:00", "shipping_trigger_m": 6.5, "headline": {"kiunga_shipping_m": null, "kiunga_above_trigger": false, "ok_menga_level_m": null, "hydro_mw": null, "tps_mw": null, "load_mill_mine_mw": null, "township_mw": null, "total_depot_kl": 0}, "pi": {"ok": true, "file": "PI_Data_20260829_200000.csv", "file_mtime_utc": "2026-08-29T11:05:09.830606+00:00", "gh01_mw": null, "gh02_mw": null, "hydro_total_mw": null, "tps_mw": null, "load_mill_mine_mw": null, "generation_total_mw": 0, "township_mw": null, "menga_level_m": null}, "tls": {"ok": true, "kiunga": {"file": "tls_latest.txt", "file_mtime_utc": "2026-08-29T10:23:35.509133+00:00", "depots_kl": {}}, "tabubil": {"file": "tabubil_latest.txt", "file_mtime_utc": "2026-07-10T05:30:07+00:00", "depots_kl": {}}}, "dip": {"ok": true, "file": "dip_latest.txt", "file_mtime_utc": "2026-08-29T10:23:35.477853+00:00", "effective_ts_utc": "2026-08-29T10:23:35.477853+00:00", "rivers": {"Kiunga": 2.77}, "usage_kl_24h": null, "on_water_ml": null}, "production": {"ok": true, "file": "Kiunga Daily Production Report_28.08.2026.pdf", "file_mtime_utc": "2026-08-28T21:01:18.400703+00:00", "tonnes_milled": null, "cu_grade_pct": null, "cu_recovery_pct": null, "cucon_stockpile_t": null, "cucon_shed_t": null}, "vessels": {"ok": true, "file_mtime_utc": "2026-08-16T11:00:05+00:00", "count": 0, "vessels": []}, "vdv": {"ok": true, "source": "PBI JSON (last resort \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d CSV unavailable)", "kiunga_shipping_m": null, "authoritative": {"results": [{"tables": [{"rows": [{"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.787, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.0, "VistaVisionData[FLY05]": 12.21, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.958, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 2.039, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.102, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.651, "VistaVisionData[TED20]": 6.037, "VistaVisionData[TED25]": 3.787, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.765, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.68, "VistaVisionData[FLY05]": 12.99, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.469, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.46, "VistaVisionData[MEN05]": 1.062, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.472, "VistaVisionData[TED20]": 5.704, "VistaVisionData[TED25]": 5.19, "VistaVisionData[TED26]": 19.53}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.794, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.22, "VistaVisionData[FLY05]": 13.39, "VistaVisionData[FLY10]": 12.96, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.314, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.14, "VistaVisionData[MEN05]": 1.041, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.383, "VistaVisionData[TED20]": 5.547, "VistaVisionData[TED25]": 4.207, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.777, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.04, "VistaVisionData[FLY05]": 12.84, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.245, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.034, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.34, "VistaVisionData[TED20]": 5.479, "VistaVisionData[TED25]": 3.792, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.756, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 20.96, "VistaVisionData[FLY05]": 12.39, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 8.97, "VistaVisionData[MEN05]": 1.015, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.321, "VistaVisionData[TED20]": 5.467, "VistaVisionData[TED25]": 3.704, "VistaVisionData[TED26]": 19.22}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.806, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.09, "VistaVisionData[FLY05]": 12.3, "VistaVisionData[FLY10]": 13.43, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.207, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.07, "VistaVisionData[MEN05]": 1.012, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.328, "VistaVisionData[TED20]": 5.444, "VistaVisionData[TED25]": 3.835, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 20.97, "VistaVisionData[FLY05]": 12.38, "VistaVisionData[FLY10]": 11.63, "VistaVisionData[FLY15]": 2.509, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 8.98, "VistaVisionData[MEN05]": 1.027, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.352, "VistaVisionData[TED20]": 5.433, "VistaVisionData[TED25]": 3.669, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 10.0, "VistaVisionData[BIR05]": 119.0, "VistaVisionData[EBR01]": 26.0, "VistaVisionData[FAL01]": 19.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 5.0, "VistaVisionData[FLY10]": 2.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 2.0, "VistaVisionData[FLY26]": 1.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 8.0, "VistaVisionData[MAA10]": 6.0, "VistaVisionData[MAN02]": 42.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 2.0, "VistaVisionData[OLS01]": 3.0, "VistaVisionData[PMP59]": 60.0, "VistaVisionData[TAB01]": 25.0, "VistaVisionData[TED15]": 22.0, "VistaVisionData[TED20]": 52.0, "VistaVisionData[TED25]": 4.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 34.0, "VistaVisionData[BIR05]": 3.0, "VistaVisionData[EBR01]": 1.0, "VistaVisionData[FAL01]": 2.0, "VistaVisionData[FLY01]": 34.0, "VistaVisionData[FLY05]": 15.0, "VistaVisionData[FLY10]": 14.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 11.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 3.0, "VistaVisionData[MAR11]": 42.0, "VistaVisionData[MEN05]": 1.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 8.0, "VistaVisionData[TAB01]": 13.0, "VistaVisionData[TED15]": 6.0, "VistaVisionData[TED20]": 1.0, "VistaVisionData[TED25]": 12.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 1.0, "VistaVisionData[BIR05]": 35.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 5.0, "VistaVisionData[FLY05]": 33.0, "VistaVisionData[FLY10]": 29.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 18.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 9.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 38.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 24.0, "VistaVisionData[TED25]": 16.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 13.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 3.0, "VistaVisionData[FAL01]": 1.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 1.0, "VistaVisionData[FLY10]": 1.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 2.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 1.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 7.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 14.0, "VistaVisionData[FAL01]": 10.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 1.0, "VistaVisionData[MAN02]": 17.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 5.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 93.37, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 400.17, "VistaVisionData[FLY05]": 48.23, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2644.64, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 16.47, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 11.26, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 251.24, "VistaVisionData[TED20]": 140.77, "VistaVisionData[TED25]": 102.14, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 90.47, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 533.7, "VistaVisionData[FLY05]": 90.02, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 3.9, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 51.43, "VistaVisionData[MEN05]": 9.8, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 207.71, "VistaVisionData[TED20]": 113.07, "VistaVisionData[TED25]": 258.92, "VistaVisionData[TED26]": 38.34}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 94.3, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 441.64, "VistaVisionData[FLY05]": 123.01, "VistaVisionData[FLY10]": 245.28, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 2.02, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 30.4, "VistaVisionData[MEN05]": 9.07, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 185.24, "VistaVisionData[TED20]": 101.26, "VistaVisionData[TED25]": 138.98, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 92.04, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 407.58, "VistaVisionData[FLY05]": 79.48, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.44, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 8.84, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 175.42, "VistaVisionData[TED20]": 96.38, "VistaVisionData[TED25]": 102.47, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 89.29, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 392.8, "VistaVisionData[FLY05]": 55.61, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 23.04, "VistaVisionData[MEN05]": 8.29, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 171.88, "VistaVisionData[TED20]": 95.53, "VistaVisionData[TED25]": 96.74, "VistaVisionData[TED26]": 30.19}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 95.92, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 416.93, "VistaVisionData[FLY05]": 51.8, "VistaVisionData[FLY10]": 376.13, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.17, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 27.22, "VistaVisionData[MEN05]": 8.21, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 173.18, "VistaVisionData[TED20]": 93.93, "VistaVisionData[TED25]": 105.26, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 394.64, "VistaVisionData[FLY05]": 55.18, "VistaVisionData[FLY10]": 80.92, "VistaVisionData[FLY15]": 1595.57, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 23.44, "VistaVisionData[MEN05]": 8.63, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 177.77, "VistaVisionData[TED20]": 93.16, "VistaVisionData[TED25]": 94.46, "VistaVisionData[TED26]": 29.72}]}]}], "firstTableRows": [{"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.787, "VistaVisionData[FLY01]": 21.0, "VistaVisionData[FLY05]": 12.21, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.958, "VistaVisionData[MAA10]": 2.039, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.102, "VistaVisionData[TED15]": 4.651, "VistaVisionData[TED20]": 6.037, "VistaVisionData[TED25]": 3.787, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.765, "VistaVisionData[FLY01]": 21.68, "VistaVisionData[FLY05]": 12.99, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.469, "VistaVisionData[MAR11]": 9.46, "VistaVisionData[MEN05]": 1.062, "VistaVisionData[TED15]": 4.472, "VistaVisionData[TED20]": 5.704, "VistaVisionData[TED25]": 5.19, "VistaVisionData[TED26]": 19.53}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.794, "VistaVisionData[FLY01]": 21.22, "VistaVisionData[FLY05]": 13.39, "VistaVisionData[FLY10]": 12.96, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.314, "VistaVisionData[MAR11]": 9.14, "VistaVisionData[MEN05]": 1.041, "VistaVisionData[TED15]": 4.383, "VistaVisionData[TED20]": 5.547, "VistaVisionData[TED25]": 4.207, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.777, "VistaVisionData[FLY01]": 21.04, "VistaVisionData[FLY05]": 12.84, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.245, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.034, "VistaVisionData[TED15]": 4.34, "VistaVisionData[TED20]": 5.479, "VistaVisionData[TED25]": 3.792, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.756, "VistaVisionData[FLY01]": 20.96, "VistaVisionData[FLY05]": 12.39, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAR11]": 8.97, "VistaVisionData[MEN05]": 1.015, "VistaVisionData[TED15]": 4.321, "VistaVisionData[TED20]": 5.467, "VistaVisionData[TED25]": 3.704, "VistaVisionData[TED26]": 19.22}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.806, "VistaVisionData[FLY01]": 21.09, "VistaVisionData[FLY05]": 12.3, "VistaVisionData[FLY10]": 13.43, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[MAA10]": 1.207, "VistaVisionData[MAR11]": 9.07, "VistaVisionData[MEN05]": 1.012, "VistaVisionData[TED15]": 4.328, "VistaVisionData[TED20]": 5.444, "VistaVisionData[TED25]": 3.835, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 0.0, "VistaVisionData[FLY01]": 20.97, "VistaVisionData[FLY05]": 12.38, "VistaVisionData[FLY10]": 11.63, "VistaVisionData[FLY15]": 2.509, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAR11]": 8.98, "VistaVisionData[MEN05]": 1.027, "VistaVisionData[TED15]": 4.352, "VistaVisionData[TED20]": 5.433, "VistaVisionData[TED25]": 3.669, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 10.0, "VistaVisionData[BIR05]": 119.0, "VistaVisionData[EBR01]": 26.0, "VistaVisionData[FAL01]": 19.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 5.0, "VistaVisionData[FLY10]": 2.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 2.0, "VistaVisionData[FLY26]": 1.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 8.0, "VistaVisionData[MAA10]": 6.0, "VistaVisionData[MAN02]": 42.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 2.0, "VistaVisionData[OLS01]": 3.0, "VistaVisionData[PMP59]": 60.0, "VistaVisionData[TAB01]": 25.0, "VistaVisionData[TED15]": 22.0, "VistaVisionData[TED20]": 52.0, "VistaVisionData[TED25]": 4.0}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 34.0, "VistaVisionData[BIR05]": 3.0, "VistaVisionData[EBR01]": 1.0, "VistaVisionData[FAL01]": 2.0, "VistaVisionData[FLY01]": 34.0, "VistaVisionData[FLY05]": 15.0, "VistaVisionData[FLY10]": 14.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 11.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 3.0, "VistaVisionData[MAR11]": 42.0, "VistaVisionData[MEN05]": 1.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 8.0, "VistaVisionData[TAB01]": 13.0, "VistaVisionData[TED15]": 6.0, "VistaVisionData[TED20]": 1.0, "VistaVisionData[TED25]": 12.0}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 1.0, "VistaVisionData[BIR05]": 35.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 5.0, "VistaVisionData[FLY05]": 33.0, "VistaVisionData[FLY10]": 29.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 18.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 9.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 38.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 24.0, "VistaVisionData[TED25]": 16.0}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 13.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 3.0, "VistaVisionData[FAL01]": 1.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 1.0, "VistaVisionData[FLY10]": 1.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 2.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 1.0}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 7.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 14.0, "VistaVisionData[FAL01]": 10.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 1.0, "VistaVisionData[MAN02]": 17.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 5.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 93.37, "VistaVisionData[FLY01]": 400.17, "VistaVisionData[FLY05]": 48.23, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2644.64, "VistaVisionData[MAA10]": 16.47, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 11.26, "VistaVisionData[TED15]": 251.24, "VistaVisionData[TED20]": 140.77, "VistaVisionData[TED25]": 102.14, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 90.47, "VistaVisionData[FLY01]": 533.7, "VistaVisionData[FLY05]": 90.02, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 3.9, "VistaVisionData[MAR11]": 51.43, "VistaVisionData[MEN05]": 9.8, "VistaVisionData[TED15]": 207.71, "VistaVisionData[TED20]": 113.07, "VistaVisionData[TED25]": 258.92, "VistaVisionData[TED26]": 38.34}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 94.3, "VistaVisionData[FLY01]": 441.64, "VistaVisionData[FLY05]": 123.01, "VistaVisionData[FLY10]": 245.28, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 2.02, "VistaVisionData[MAR11]": 30.4, "VistaVisionData[MEN05]": 9.07, "VistaVisionData[TED15]": 185.24, "VistaVisionData[TED20]": 101.26, "VistaVisionData[TED25]": 138.98, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 92.04, "VistaVisionData[FLY01]": 407.58, "VistaVisionData[FLY05]": 79.48, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 1.44, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 8.84, "VistaVisionData[TED15]": 175.42, "VistaVisionData[TED20]": 96.38, "VistaVisionData[TED25]": 102.47, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 89.29, "VistaVisionData[FLY01]": 392.8, "VistaVisionData[FLY05]": 55.61, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAR11]": 23.04, "VistaVisionData[MEN05]": 8.29, "VistaVisionData[TED15]": 171.88, "VistaVisionData[TED20]": 95.53, "VistaVisionData[TED25]": 96.74, "VistaVisionData[TED26]": 30.19}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 95.92, "VistaVisionData[FLY01]": 416.93, "VistaVisionData[FLY05]": 51.8, "VistaVisionData[FLY10]": 376.13, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[MAA10]": 1.17, "VistaVisionData[MAR11]": 27.22, "VistaVisionData[MEN05]": 8.21, "VistaVisionData[TED15]": 173.18, "VistaVisionData[TED20]": 93.93, "VistaVisionData[TED25]": 105.26, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 0.0, "VistaVisionData[FLY01]": 394.64, "VistaVisionData[FLY05]": 55.18, "VistaVisionData[FLY10]": 80.92, "VistaVisionData[FLY15]": 1595.57, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAR11]": 23.44, "VistaVisionData[MEN05]": 8.63, "VistaVisionData[TED15]": 177.77, "VistaVisionData[TED20]": 93.16, "VistaVisionData[TED25]": 94.46, "VistaVisionData[TED26]": 29.72}]}, "pbi_stale": true}, "forecast": {"ok": true, "method": "BIA-weighted 24h rain \u00c3\u0192\u00e2\u20ac\u201d slope \u00c3\u0192\u00e2\u20ac\u201d dry-amp; 48h peak lag", "inputs": {"bia_24h_mm": 0, "ols_24h_mm": 0, "palmer_24h_mm": 0, "current_kiunga_m": 0, "dry_regime": true}, "base_rise_m": 0.0, "amplification_factor": 4.0, "forecast_rise_m": 0.0, "forecast_level_m": 0.0, "shipping_trigger_m": 6.5, "trigger_breach_forecast": false, "hours_to_peak": 48}, "recession": {"ok": false, "reason": "level \u00c3\u00a2\u00e2\u20ac\u00b0\u00c2\u00a4 0"}};</script>
+<script>
+const D = window.OTML_SUMMARY || {};
+const fmt = (n,d=2) => (n==null||isNaN(n))?'Ã¢â‚¬â€':Number(n).toFixed(d);
+
+function render() {
+  const h = D.headline || {};
+  const kiu = h.kiunga_shipping_m;
+  const above = h.kiunga_above_trigger;
+  const trigger = D.shipping_trigger_m || 4.0;
+  const fc = D.forecast || {};
+  const rec = D.recession || {};
+  const pi = D.pi || {};
+  const vdv = D.vdv || {};
+  const vessels = D.vessels || {};
+  const tlsKiu = (D.tls || {}).kiunga || {};
+  const tlsTab = (D.tls || {}).tabubil || {};
+  const prod = D.production || {};
+
+  document.getElementById('gen').textContent = 'Gen ' + (D.generated_at_utc || '').slice(0,16).replace('T',' ') + ' UTC';
+
+  // ---- Hero
+  const heroCard = document.getElementById('heroCard');
+  heroCard.classList.toggle('good', above);
+  document.getElementById('heroBig').textContent = fmt(kiu,2) + ' m';
+  document.getElementById('heroStatus').innerHTML = kiu==null ? 'no data' : (above
+    ? `<span style="color:var(--good)">ABOVE 6.5 m TRIGGER Ã¢Å“â€œ (+${fmt(kiu-trigger,2)} m)</span>`
+    : `<span style="color:var(--bad)">BELOW 6.5 m TRIGGER (short by ${fmt(trigger-kiu,2)} m)</span>`);
+  document.getElementById('heroSource').textContent = 'source: ' + (vdv.source || 'Ã¢â‚¬â€');
+  document.getElementById('heroP').textContent = 'source: ' + (vdv.source ? vdv.source.slice(0,18) : 'Ã¢â‚¬â€');
+  document.getElementById('augMed').textContent = '9.54 m';  // hard-coded from 11-yr analysis
+  document.getElementById('augP10').textContent = '2.94 m';
+
+  // ---- Power
+  document.getElementById('hydroMW').textContent = fmt(pi.hydro_total_mw,1) + ' MW';
+  document.getElementById('tpsMW').textContent = fmt(pi.tps_mw,1) + ' MW';
+  document.getElementById('loadMW').textContent = fmt(pi.load_mill_mine_mw,1) + ' MW';
+  document.getElementById('twpMW').textContent = fmt(pi.township_mw,1) + ' MW';
+  document.getElementById('gh01MW').textContent = fmt(pi.gh01_mw,1) + ' MW';
+  document.getElementById('gh02MW').textContent = fmt(pi.gh02_mw,1) + ' MW';
+  document.getElementById('mengaLvl').textContent = fmt(pi.menga_level_m,2) + ' m';
+
+  // ---- Fuel depots
+  const kD = tlsKiu.depots_kl || {};
+  const tD = tlsTab.depots_kl || {};
+  document.getElementById('tblKiu').innerHTML = Object.entries(kD).map(([d,v]) =>
+    `<tr><td>${d}</td><td class="n">${fmt(v,0)} kL</td></tr>`).join('') || '<tr><td class="mono">no data</td></tr>';
+  document.getElementById('tblTab').innerHTML = Object.entries(tD).map(([d,v]) =>
+    `<tr><td>${d}</td><td class="n">${fmt(v,0)} kL</td></tr>`).join('') || '<tr><td class="mono">no data</td></tr>';
+  document.getElementById('fuelTotal').textContent = fmt(h.total_depot_kl,0) + ' kL';
+  // Simple days runway estimate at 500 kL/day burn
+  const days = h.total_depot_kl ? Math.round(h.total_depot_kl / 500) : null;
+  document.getElementById('daysRun').textContent = days ? days + ' d @ 500 kL/d' : 'Ã¢â‚¬â€';
+
+  // ---- Weather rainfall outlook (7 days) - placeholder pattern until API wired
+  const outlook = document.getElementById('rainOutlook');
+  const days7 = ['Today','+1d','+2d','+3d','+4d','+5d','+6d'];
+  const fcInputs = fc.inputs || {};
+  const today_mm = (fcInputs.bia_24h_mm||0) + (fcInputs.ols_24h_mm||0) + (fcInputs.palmer_24h_mm||0);
+  // Simple heuristic outlook (placeholder Ã¢â‚¬â€ real feed to be wired via meteoblue/NWS)
+  const mmForecast = [today_mm, 20, 15, 10, 8, 5, 3];  // decaying assumption
+  outlook.innerHTML = days7.map((d,i) => {
+    const mm = mmForecast[i];
+    const cls = mm > 40 ? 'heavy' : (mm > 10 ? 'wet' : '');
+    return `<div class="rain-day ${cls}"><div class="d">${d}</div><div class="r">${fmt(mm,0)}mm</div></div>`;
+  }).join('');
+  document.getElementById('bia24').textContent = fmt(fcInputs.bia_24h_mm,0) + ' mm';
+  document.getElementById('ols24').textContent = fmt(fcInputs.ols_24h_mm,0) + ' mm';
+  document.getElementById('pal24').textContent = fmt(fcInputs.palmer_24h_mm,0) + ' mm';
+
+  // ---- River forecast + recession
+  if (fc.ok) {
+    const bigCls = fc.trigger_breach_forecast ? 'good' : 'bad';
+    const bigTxt = fc.trigger_breach_forecast ? `SHIPPING WINDOW OPEN in 48 h` : `Still short of trigger in 48 h`;
+    const bigEl = document.getElementById('forecastBig');
+    bigEl.textContent = bigTxt;
+    bigEl.className = 'forecast-big ' + bigCls;
+    document.getElementById('fcRise').textContent = '+' + fmt(fc.forecast_rise_m,2) + ' m';
+    document.getElementById('fcLevel').textContent = fmt(fc.forecast_level_m,2) + ' m';
+    document.getElementById('fcAmp').textContent = fmt(fc.amplification_factor,1) + 'Ãƒâ€”';
+  }
+  if (rec.ok) {
+    document.getElementById('recHalf').textContent = fmt(rec.half_life_days,0) + ' d';
+    document.getElementById('recTo2').textContent = rec.days_to_2m + ' d';
+    document.getElementById('recTo1').textContent = rec.days_to_1m + ' d';
+    document.getElementById('recTo05').textContent = rec.days_to_0_5m + ' d';
+  }
+
+  // ---- Vessels
+  const vs = vessels.vessels || [];
+  document.getElementById('vslCount').textContent = (vessels.count||0) + ' tracked';
+  document.getElementById('tblVessels').innerHTML = vs.slice(0,8).map(v =>
+    `<tr><td>${v.name||''}</td><td class="n">${fmt(v.speed_kn,1)}kn</td><td class="mono" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.destination||''}</td></tr>`
+  ).join('') || '<tr><td class="mono">no vessels data</td></tr>';
+
+  // ---- Production
+  document.getElementById('prTon').textContent = fmt(prod.tonnes_milled,0) + ' t';
+  document.getElementById('prGr').textContent = fmt(prod.cu_grade_pct,2) + ' %';
+  document.getElementById('prRec').textContent = fmt(prod.cu_recovery_pct,1) + ' %';
+  document.getElementById('prCuCon').textContent = fmt(prod.cucon_stockpile_t,0) + ' t';
+}
+render();
+</script>
+</body>
+</html>
