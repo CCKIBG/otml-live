@@ -2,645 +2,319 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>OTML Live — Kiunga Ops</title>
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>OTML Live Â· 6.5 m Shipping Trigger</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#0b1220; --card:#111a2e; --card2:#0e1729; --line:#1e2b4a;
-  --text:#eef2ff; --muted:#94a3b8; --dim:#64748b;
-  --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#38bdf8;
-  --accent:#a78bfa;
+  --bg:#0b1220; --card:#182339; --card2:#1e2b46; --border:#2a3856;
+  --text:#e8ecf3; --muted:#8b96ad; --good:#22c55e; --warn:#f59e0b;
+  --bad:#ef4444; --info:#38bdf8; --accent:#eab308; --crit:#dc2626;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;padding:12px 12px 40px;max-width:520px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-h1{font-size:18px;font-weight:700;letter-spacing:.3px}
-.stamp{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-.stamp .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:middle}
-.stamp.stale .dot{background:var(--warn)}
-.stamp.dead .dot{background:var(--bad)}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{background:#000;height:100vh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Inter,'Segoe UI',sans-serif;color:var(--text)}
+.wrap{width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; background:#000}
+.canvas{
+  width:100vw; height:56.25vw; max-height:100vh; max-width:177.78vh;
+  aspect-ratio:16/9; background:var(--bg); padding:14px;
+  display:grid; grid-template-rows:auto 1fr; gap:10px;
+}
+header{
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid var(--border); padding-bottom:8px; gap:8px;
+}
+.title{font-size:18px; font-weight:800; letter-spacing:-0.01em}
+.title .sub{color:var(--muted); font-weight:400; margin-left:8px; font-size:12px}
+.gen{color:var(--muted); font-size:10px; text-align:right}
+.hdr-links{display:flex; gap:5px}
+.hdr-links a{background:var(--card2); border:1px solid var(--border); padding:5px 10px; border-radius:5px; color:var(--info); text-decoration:none; font-size:10px; font-weight:600; white-space:nowrap}
+.hdr-links a.gold{color:var(--accent)}
 
-.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;margin-bottom:10px}
-.tile h2{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
-.tile .row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;font-size:14px}
-.tile .row .k{color:var(--muted)}
-.tile .row .v{font-weight:600;font-variant-numeric:tabular-nums}
-.tile .big{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px}
-.tile .big .num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
-.tile .big .unit{font-size:14px;color:var(--muted)}
-.tile .sub{font-size:12px;color:var(--dim);margin-top:6px}
+main{
+  display:grid; grid-template-columns:repeat(12,1fr); grid-template-rows:1fr 1fr;
+  gap:10px; min-height:0;
+}
+.card{background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 12px; min-height:0; overflow:hidden; display:flex; flex-direction:column}
+.card h2{
+  font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--muted); margin-bottom:6px; font-weight:700;
+  border-bottom:1px solid var(--border); padding-bottom:4px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.card h2 .badge{font-size:9px; background:var(--card2); color:var(--text); padding:1px 6px; border-radius:999px; font-weight:600; text-transform:none; letter-spacing:0}
 
-.tile.hero .num{font-size:34px}
-.tile.hero{background:linear-gradient(180deg,#132043,#0f1a36)}
+.c3{grid-column:span 3}
+.c4{grid-column:span 4}
+.c5{grid-column:span 5}
+.c6{grid-column:span 6}
+.c8{grid-column:span 8}
+.c12{grid-column:span 12}
 
-/* Pipeline Health — 4-cell freshness grid */
-.health-grid{display:grid;grid-template-columns:repeat(6, 1fr);gap:4px;margin-top:6px}
-.health-cell{text-align:center;padding:6px 2px;border-radius:6px;background:rgba(255,255,255,.03)}
-.health-cell.ok{background:rgba(34,197,94,.12)}
-.health-cell.warn{background:rgba(245,158,11,.12)}
-.health-cell.stale{background:rgba(239,68,68,.12)}
-.health-k{font-size:10px;color:var(--muted);letter-spacing:.6px;font-weight:600}
-.health-v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+/* Hero tile */
+.hero{background:linear-gradient(90deg,rgba(220,38,38,0.18),rgba(220,38,38,0.03)); border-color:rgba(220,38,38,0.5)}
+.hero.good{background:linear-gradient(90deg,rgba(34,197,94,0.18),rgba(34,197,94,0.03)); border-color:rgba(34,197,94,0.5)}
+.hero .big{font-size:56px; font-weight:800; line-height:1; margin:4px 0; font-variant-numeric:tabular-nums}
+.hero .status{font-size:13px; font-weight:700; margin-bottom:6px}
+.hero .stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:auto}
+.hero .stat{background:rgba(255,255,255,0.05); border-radius:4px; padding:5px 8px}
+.hero .stat .l{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em}
+.hero .stat .v{font-size:15px; font-weight:700; font-variant-numeric:tabular-nums}
 
-/* Forecast hero — 4-cell grid: NOW | +12h | +24h | +48h */
-.forecast-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:4px;margin:6px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.forecast-cell{text-align:center;padding:6px 2px;border-radius:6px;background:rgba(255,255,255,.03)}
-.forecast-cell.current{background:rgba(56,189,248,.10)}
-.forecast-label{font-size:10px;color:var(--muted);letter-spacing:.6px;font-weight:600;margin-bottom:2px}
-.forecast-num{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
-.forecast-unit{font-size:9px;color:var(--muted);margin-top:-2px}
+/* Standard tables */
+table{width:100%; border-collapse:collapse; font-size:11px}
+td,th{padding:3px 5px; border-bottom:1px solid var(--border); text-align:left}
+td.n{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+th{color:var(--muted); font-weight:600; text-transform:uppercase; font-size:9px; letter-spacing:0.05em}
 
-/* Power System hero — 3-cell grid: Hydro | TPS | Load */
-.power-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.power-cell{text-align:center;padding:4px 2px}
-.power-cell.load{background:rgba(56,189,248,.08);border-radius:8px}
-.power-label{font-size:10px;color:var(--muted);letter-spacing:.6px;font-weight:600;margin-bottom:2px}
-.power-num{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
-.power-unit{font-size:10px;color:var(--muted);margin-top:-2px}
+/* Metric strips */
+.metric-row{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px}
+.metric{background:var(--card2); border-radius:4px; padding:5px 8px; display:flex; flex-direction:column; justify-content:space-between; min-height:36px}
+.metric .l{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em}
+.metric .v{font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1}
+.metric .v.small{font-size:12px}
+.metric.good{border-left:3px solid var(--good)}
+.metric.warn{border-left:3px solid var(--warn)}
+.metric.bad{border-left:3px solid var(--bad)}
 
-/* Depot expandable row for Kiunga tank detail */
-.depot-detail{margin:2px 0;list-style:none}
-.depot-detail summary{display:flex;align-items:baseline;justify-content:space-between;padding:4px 0;font-size:14px;cursor:pointer;list-style:none}
-.depot-detail summary::-webkit-details-marker{display:none}
-.depot-detail .chev{color:var(--muted);font-size:12px;transition:transform .2s;margin-left:6px}
-.depot-detail[open] .chev{transform:rotate(180deg)}
-.depot-detail .detail-inner{padding:6px 8px 4px;background:rgba(255,255,255,.02);border-radius:8px;margin-top:4px}
-.depot-detail .detail-inner table{width:100%;font-size:12px;border-collapse:collapse}
-.depot-detail .detail-inner th{text-align:left;color:var(--muted);font-weight:500;padding:4px 0;border-bottom:1px solid var(--line)}
-.depot-detail .detail-inner td{padding:5px 0;border-bottom:1px solid #0e1526;font-variant-numeric:tabular-nums}
-.depot-detail .detail-inner td.n{text-align:right}
-.depot-detail .detail-inner tr:last-child td{border-bottom:none}
+.mono{font-family:'SF Mono',Menlo,Consolas,monospace; font-size:10px; color:var(--muted)}
+.rag{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle}
+.rag-r{background:var(--bad)} .rag-a{background:var(--warn)} .rag-g{background:var(--good)}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.grid .tile{margin-bottom:0}
+.scroll{flex:1; overflow-y:auto; min-height:0}
 
-.tanks{margin-top:8px}
-.tanks table{width:100%;font-size:12px;border-collapse:collapse}
-.tanks th{text-align:left;color:var(--muted);font-weight:500;padding:4px 0;border-bottom:1px solid var(--line)}
-.tanks td{padding:5px 0;border-bottom:1px solid #0e1526;font-variant-numeric:tabular-nums}
-.tanks td.n{text-align:right}
-.tanks tr:last-child td{border-bottom:none}
+/* Weather rain outlook */
+.rain-outlook{display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin:6px 0}
+.rain-day{background:var(--card2); border-radius:3px; padding:4px 2px; text-align:center; font-size:9px}
+.rain-day .d{color:var(--muted); font-size:8px}
+.rain-day .r{font-size:12px; font-weight:700; margin-top:2px}
+.rain-day.wet{background:rgba(56,189,248,0.2)}
+.rain-day.heavy{background:rgba(56,189,248,0.5)}
 
-.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:#1e293b;color:var(--muted);margin-left:6px;font-weight:600;letter-spacing:.4px}
-.tag.ok{background:rgba(34,197,94,.15);color:var(--ok)}
-.tag.warn{background:rgba(245,158,11,.15);color:var(--warn)}
-.tag.bad{background:rgba(239,68,68,.15);color:var(--bad)}
-.tag.info{background:rgba(56,189,248,.15);color:var(--info)}
-
-.err{font-size:11px;color:var(--bad);margin-top:4px}
-.footer{margin-top:16px;text-align:center;font-size:11px;color:var(--dim)}
-.footer a{color:var(--muted)}
-.refresh{position:sticky;top:0;background:var(--bg);z-index:10;display:flex;gap:6px;padding:6px 0 10px}
-.refresh button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:13px;font-weight:600;padding:8px;border-radius:10px;cursor:pointer}
-.refresh button:active{background:#1a2440}
-.rag{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
-.rag.g{background:var(--ok)} .rag.a{background:var(--warn)} .rag.r{background:var(--bad)}
+/* Forecast big number */
+.forecast-big{font-size:24px; font-weight:800; margin:6px 0 4px; font-variant-numeric:tabular-nums}
+.forecast-big.good{color:var(--good)}
+.forecast-big.bad{color:var(--bad)}
 </style>
 </head>
 <body>
+<div class="wrap"><div class="canvas">
 
 <header>
-  <h1>OTML Live · Kiunga</h1>
-  <div class="stamp" id="stamp"><span class="dot"></span><span id="stamp-text">Loading…</span></div>
+  <div class="title">
+    OTML Live
+    <span class="sub">Shipping Trigger 6.5 m Â· 16:9 wall view</span>
+  </div>
+  <div class="hdr-links">
+    <a href="fly-river-hydrology.html">Fly Hydrology deep dive â†’</a>
+    <a href="fly-river-hydrology-16x9.html" class="gold">Hydrology 16:9 â†’</a>
+  </div>
+  <div class="gen" id="gen"></div>
 </header>
 
-<div class="refresh">
-  <button onclick="location.reload()">↻ Refresh</button>
-</div>
+<main>
 
-<div class="tile" id="health-tile" style="padding:10px 12px 8px">
-  <h2>Pipeline Health <span id="health-tag" class="tag"></span></h2>
-  <div class="health-grid">
-    <div class="health-cell"><div class="health-k">PI Data</div><div class="health-v" id="h-pi">–</div></div>
-    <div class="health-cell"><div class="health-k">TLS-4</div><div class="health-v" id="h-tls">–</div></div>
-    <div class="health-cell"><div class="health-k">Dip</div><div class="health-v" id="h-dip">–</div></div>
-    <div class="health-cell"><div class="health-k">Prod PDF</div><div class="health-v" id="h-prod">–</div></div>
-    <div class="health-cell"><div class="health-k">VDV</div><div class="health-v" id="h-vdv">–</div></div>
-    <div class="health-cell"><div class="health-k">Food (wk)</div><div class="health-v" id="h-food">–</div></div>
-  </div>
-  <div id="food-stale-banner" style="display:none;margin-top:8px;padding:6px 8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);border-radius:6px;font-size:11px;color:var(--warn);font-weight:600"></div>
-</div>
-
-<div class="tile hero" id="hydro-tile">
-  <h2>Power System <span id="hydro-tag" class="tag"></span></h2>
-  <div class="power-grid">
-    <div class="power-cell">
-      <div class="power-label">HYDRO</div>
-      <div class="power-num" id="hydro-mw">–</div>
-      <div class="power-unit">MW</div>
+  <!-- 1. KIUNGA HERO (c5) -->
+  <section class="card hero c5" id="heroCard">
+    <h2><span>Kiunga Â· Shipping Datum</span><span class="badge" id="heroP">â€”</span></h2>
+    <div class="big" id="heroBig">â€”</div>
+    <div class="status" id="heroStatus">â€”</div>
+    <div class="mono" id="heroSource">â€”</div>
+    <div class="stats">
+      <div class="stat"><div class="l">Aug median (11 yr)</div><div class="v" id="augMed">â€”</div></div>
+      <div class="stat"><div class="l">Aug P10</div><div class="v" id="augP10">â€”</div></div>
+      <div class="stat"><div class="l">Trigger</div><div class="v">6.50 m</div></div>
     </div>
-    <div class="power-cell">
-      <div class="power-label">TPS</div>
-      <div class="power-num" id="tps-mw">–</div>
-      <div class="power-unit">MW</div>
+  </section>
+
+  <!-- 2. POWER SYSTEM (c4) -->
+  <section class="card c4">
+    <h2><span>Power system</span></h2>
+    <div class="metric-row">
+      <div class="metric good"><div class="l">Hydro total</div><div class="v" id="hydroMW">â€”</div></div>
+      <div class="metric warn"><div class="l">TPS Wartsila</div><div class="v" id="tpsMW">â€”</div></div>
     </div>
-    <div class="power-cell load">
-      <div class="power-label">MILL+MINE</div>
-      <div class="power-num" id="load-mw">–</div>
-      <div class="power-unit">MW</div>
+    <div class="metric-row">
+      <div class="metric"><div class="l">Mill + Mine load</div><div class="v" id="loadMW">â€”</div></div>
+      <div class="metric"><div class="l">Township</div><div class="v" id="twpMW">â€”</div></div>
     </div>
-  </div>
-  <div class="row"><span class="k">GH01</span><span class="v" id="gh01">–</span></div>
-  <div class="row"><span class="k">GH02</span><span class="v" id="gh02">–</span></div>
-  <div class="row"><span class="k">Yuk Creek</span><span class="v" id="yuk">–</span></div>
-  <div class="row"><span class="k">Township</span><span class="v" id="township">–</span></div>
-  <div class="sub" id="pi-sub">–</div>
-</div>
+    <table style="margin-top:auto">
+      <tr><td>GH01</td><td class="n" id="gh01MW">â€”</td></tr>
+      <tr><td>GH02</td><td class="n" id="gh02MW">â€”</td></tr>
+      <tr><td>Ok Menga level</td><td class="n" id="mengaLvl">â€”</td></tr>
+    </table>
+  </section>
 
-<div class="grid">
-  <div class="tile" id="menga-tile">
-    <h2>Ok Menga <span id="menga-tag" class="tag"></span></h2>
-    <div class="big"><span class="num" id="menga">–</span><span class="unit">m</span></div>
-    <div class="sub">Level Estimate (PI)</div>
-  </div>
-  <div class="tile" id="kiunga-tile">
-    <h2>Kiunga River <span id="kiunga-tag" class="tag"></span></h2>
-    <div class="big"><span class="num" id="kiunga">–</span><span class="unit">m</span></div>
-    <div class="sub" id="kiunga-sub">AM TLS Dip 0830</div>
-  </div>
-</div>
-
-<div class="tile" id="forecast-tile">
-  <h2>Kiunga River Forecast <span id="forecast-tag" class="tag"></span></h2>
-  <div class="forecast-grid">
-    <div class="forecast-cell current"><div class="forecast-label">NOW</div><div class="forecast-num" id="fc-now">–</div><div class="forecast-unit">m</div></div>
-    <div class="forecast-cell"><div class="forecast-label">+12h</div><div class="forecast-num" id="fc-12h">–</div><div class="forecast-unit">m</div></div>
-    <div class="forecast-cell"><div class="forecast-label">+24h</div><div class="forecast-num" id="fc-24h">–</div><div class="forecast-unit">m</div></div>
-    <div class="forecast-cell"><div class="forecast-label">+48h</div><div class="forecast-num" id="fc-48h">–</div><div class="forecast-unit">m</div></div>
-  </div>
-  <div class="row"><span class="k">Trend</span><span class="v" id="fc-trend">–</span></div>
-  <div class="row"><span class="k">Olsobip rain 24h</span><span class="v" id="fc-ols">–</span></div>
-  <div class="row"><span class="k">Palmer rain 24h</span><span class="v" id="fc-plm">–</span></div>
-  <div class="row"><span class="k">Palmer level Δ 12h</span><span class="v" id="fc-plm-d">–</span></div>
-  <div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
-    <span class="k">☔ Live radar</span>
-    <span class="v" style="font-size:11px">
-      <a href="https://zoom.earth/#view=-5.5,141.4,9z/map=precipitation/model=icon/overlays=wind" target="_blank" rel="noopener" style="color:#8fb0d8;text-decoration:none;margin-left:6px">Region</a>
-      <a href="https://zoom.earth/#view=-5.35,141.45,11z/map=precipitation/model=icon/overlays=wind" target="_blank" rel="noopener" style="color:#8fb0d8;text-decoration:none;margin-left:6px">Olsobip</a>
-      <a href="https://zoom.earth/#view=-5.6,141.5,11z/map=precipitation/model=icon/overlays=wind" target="_blank" rel="noopener" style="color:#8fb0d8;text-decoration:none;margin-left:6px">Palmer</a>
-      <a href="https://zoom.earth/#view=-5.23,141.14,11z/map=precipitation/model=icon/overlays=wind" target="_blank" rel="noopener" style="color:#8fb0d8;text-decoration:none;margin-left:6px">Ok Menga</a>
-    </span>
-  </div>
-  <div class="sub" id="fc-sub">Olsobip → Kiunga 24h lag rule + Palmer support</div>
-</div>
-
-<div class="tile" id="prod-tile">
-  <h2>Kiunga Production &amp; CuCon Shed <span id="prod-tag" class="tag"></span></h2>
-  <div class="big"><span class="num" id="shed-t">–</span><span class="unit">t in shed / 80,000 t cap</span></div>
-  <div class="row"><span class="k">Days to 80 kt cap</span><span class="v" id="shed-days" style="font-size:16px">–</span></div>
-  <div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
-    <span class="k">Cu concentrate / day</span><span class="v" id="prod-cu">–</span>
-  </div>
-  <div class="row"><span class="k">MTD production</span><span class="v" id="prod-mtd">–</span></div>
-  <div class="row"><span class="k">Slurry hrs (24h)</span><span class="v" id="prod-slurry">–</span></div>
-  <div class="row"><span class="k">Barges loaded today</span><span class="v" id="prod-barges">–</span></div>
-  <div class="row"><span class="k">Vessel loading</span><span class="v" id="prod-vessel">–</span></div>
-  <div class="sub" id="prod-sub">Awaiting PAD flow wiring for Kiunga Daily Production Report</div>
-</div>
-
-<div class="tile" id="depot-tile">
-  <h2>Depot Balances — AM TLS Dip <span id="depot-tag" class="tag"></span></h2>
-  <div class="big"><span class="num" id="total-fuel">–</span><span class="unit">ML net</span></div>
-  <div class="sub" id="depot-heel-note" style="margin-top:-4px">Gross <span id="total-gross">–</span> ML − heel <span id="total-heel">–</span> ML</div>
-  <details class="depot-detail">
-    <summary><span class="k">Tabubil <span id="tab-trend" class="tag"></span></span><span class="v" id="tab">–</span><span class="chev">▾</span></summary>
-    <div class="detail-inner">
-      <div class="sub" style="margin:6px 0">Tabubil Tank Farm — TLS-4 · <span id="tab-tank-total">–</span> ML · <span id="tab-tls-sub">–</span></div>
-      <table id="tab-tank-table">
-        <thead><tr><th>Tank</th><th class="n">Fuel (L)</th><th class="n">Height (mm)</th></tr></thead>
-        <tbody></tbody>
-      </table>
+  <!-- 3. DEPOT FUEL (c3) -->
+  <section class="card c3">
+    <h2><span>Depot fuel</span><span class="badge" id="fuelTotal">â€”</span></h2>
+    <div class="scroll" style="font-size:11px">
+      <div style="color:var(--muted);font-size:9px;text-transform:uppercase;margin-bottom:3px">Kiunga</div>
+      <table id="tblKiu"></table>
+      <div style="color:var(--muted);font-size:9px;text-transform:uppercase;margin:8px 0 3px">Tabubil</div>
+      <table id="tblTab"></table>
     </div>
-  </details>
-  <details class="depot-detail">
-    <summary><span class="k">Kiunga <span id="kiu-trend" class="tag"></span></span><span class="v" id="kiu">–</span><span class="chev">▾</span></summary>
-    <div class="detail-inner">
-      <div class="sub" style="margin:6px 0">Kiunga Tank Farm — TLS-4 · <span id="tank-total">–</span> ML · <span id="tls-sub">–</span></div>
-      <table id="tank-table">
-        <thead><tr><th>Tank</th><th class="n">Fuel (L)</th><th class="n">Height (mm)</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="metric warn" style="margin-top:6px"><div class="l">Days runway</div><div class="v small" id="daysRun">â€”</div></div>
+  </section>
+
+  <!-- 4. WEATHER FORECAST (c4) â€” NEW TILE -->
+  <section class="card c4">
+    <h2><span>Weather Â· rainfall outlook</span><span class="badge">Kiunga catchment</span></h2>
+    <div class="rain-outlook" id="rainOutlook">
+      <!-- populated by JS with 7 days -->
     </div>
-  </details>
-  <div class="row"><span class="k">Mine <span id="mine-trend" class="tag"></span></span><span class="v" id="mine">–</span></div>
-  <div class="sub" id="dip-sub">–</div>
-</div>
+    <table style="margin-top:6px">
+      <tr><th>Station</th><th style="text-align:right">Last 24 h</th></tr>
+      <tr><td>BIA01 Biangabip</td><td class="n" id="bia24">â€”</td></tr>
+      <tr><td>OLS01 Olsobip</td><td class="n" id="ols24">â€”</td></tr>
+      <tr><td>FLY01 Palmer</td><td class="n" id="pal24">â€”</td></tr>
+    </table>
+    <div style="margin-top:auto; display:flex; gap:4px; flex-wrap:wrap">
+      <a href="https://zoom.earth/maps/precipitation/#view=-5.9,141.3,7z" target="_blank" style="background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:4px;color:var(--info);text-decoration:none;font-size:9px;font-weight:600">Radar (zoom.earth) â†’</a>
+      <a href="https://www.meteoblue.com/en/weather/forecast/week/kiunga_papua-new-guinea_2094454" target="_blank" style="background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:4px;color:var(--info);text-decoration:none;font-size:9px;font-weight:600">Kiunga 14-day â†’</a>
+    </div>
+  </section>
 
-<div class="tile" id="usage-tile">
-  <h2>24h Diesel Consumption <span id="usage-tag" class="tag"></span></h2>
-  <div class="big"><span class="num" id="usage-total">–</span><span class="unit">kL / day</span></div>
-  <div class="row"><span class="k">Kiunga (KUFL)</span><span class="v" id="usage-kiu">–</span></div>
-  <div class="row"><span class="k">Tabubil (TBFL)</span><span class="v" id="usage-tab">–</span></div>
-  <div class="row"><span class="k">Mine (MNFL)</span><span class="v" id="usage-mine">–</span></div>
-  <div class="row"><span class="k">6-day rolling avg</span><span class="v" id="usage-roll">–</span></div>
-  <div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
-    <span class="k">Days remaining (rolling)</span><span class="v" id="days-rolling" style="font-size:16px">–</span>
-  </div>
-  <div class="row"><span class="k">Days remaining (yest actual)</span><span class="v" id="days-actual">–</span></div>
-  <div class="sub" id="usage-sub">MD directive 580 kL/day cap</div>
-</div>
+  <!-- 5. RIVER FORECAST + RECESSION (c4) -->
+  <section class="card c4">
+    <h2><span>River forecast + recession</span><span class="badge">BIA-weighted</span></h2>
+    <div class="mono">48 h peak lag Â· dry-catchment amp 4Ã—</div>
+    <div class="forecast-big" id="forecastBig">â€”</div>
+    <table>
+      <tr><td>Predicted rise (48 h)</td><td class="n" id="fcRise">â€”</td></tr>
+      <tr><td>Projected level</td><td class="n" id="fcLevel">â€”</td></tr>
+      <tr><td>Dry-amp factor</td><td class="n" id="fcAmp">â€”</td></tr>
+    </table>
+    <div style="margin-top:8px; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:0.05em">Recession Â· no-rain scenario Â· k=0.066/day</div>
+    <table>
+      <tr><td>Half-life</td><td class="n" id="recHalf">â€”</td></tr>
+      <tr><td>Days to 2 m</td><td class="n" id="recTo2">â€”</td></tr>
+      <tr><td>Days to 1 m</td><td class="n" id="recTo1">â€”</td></tr>
+      <tr><td>Days to 0.5 m</td><td class="n" id="recTo05">â€”</td></tr>
+    </table>
+  </section>
 
-<div class="tile" id="shipping-tile">
-  <h2>Shipping — MarineTraffic <span id="shipping-tag" class="tag"></span></h2>
-  <div class="big"><span class="num" id="shipping-count">–</span><span class="unit">vessels tracked</span></div>
-  <div id="shipping-groups"></div>
-  <div class="sub" id="shipping-sub">–</div>
-</div>
+  <!-- 6. VESSELS + PRODUCTION (c4) -->
+  <section class="card c4">
+    <h2><span>Vessels + production</span><span class="badge" id="vslCount">â€”</span></h2>
+    <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:3px">On water</div>
+    <div class="scroll" style="max-height:110px">
+      <table id="tblVessels"></table>
+    </div>
+    <div style="margin-top:6px; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:3px">Production</div>
+    <table>
+      <tr><td>Tonnes milled</td><td class="n" id="prTon">â€”</td></tr>
+      <tr><td>Cu grade</td><td class="n" id="prGr">â€”</td></tr>
+      <tr><td>Cu recovery</td><td class="n" id="prRec">â€”</td></tr>
+      <tr><td>CuCon stockpile</td><td class="n" id="prCuCon">â€”</td></tr>
+    </table>
+  </section>
 
-<div class="tile" id="food-tile">
-  <h2>Camp Food Stocks <span id="food-tag" class="tag"></span></h2>
-  <div class="big"><span class="num" id="food-days">–</span><span class="unit">days cover (worst site)</span></div>
-  <div class="row"><span class="k">Tabubil</span><span class="v" id="food-tabubil">–</span></div>
-  <div class="row"><span class="k">Bige</span><span class="v" id="food-bige">–</span></div>
-  <div class="row"><span class="k">Kiunga</span><span class="v" id="food-kiunga">–</span></div>
-  <div class="sub" id="food-sub">Weekly xlsx from Arthur Kobal · updates Wednesdays</div>
-</div>
+</main>
 
-<div class="tile" id="onwater-tile">
-  <h2>On Water — Awaiting Ullage</h2>
-  <div class="big"><span class="num" id="onwater-ml">–</span><span class="unit">ML diesel</span></div>
-  <div class="row"><span class="k">Vessel</span><span class="v" id="onwater-vessel">–</span></div>
-  <div class="row"><span class="k">Voyage</span><span class="v" id="onwater-id">–</span></div>
-  <div class="sub">Excluded from depot totals until discharged</div>
-</div>
+</div></div>
 
-<div class="footer">
-  Reads <code>latest_summary.json</code> alongside this page. Refresh with ↻ or pull-down. Auto-refresh every 10 min.
-</div>
-
-<!-- Data file: parser writes latest_summary.js which sets window.LATEST_DATA -->
-<script>window.LATEST_DATA = {"generated_at": "2026-08-29T20:29:20+10:00", "root": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data", "pi": {"source_file": "PI_Data_20260829_190000.csv", "timestamp": "2026-08-29 20:00:00", "menga_level_m": 1.551, "gh01_mw": 15.447, "gh02_mw": 24.214, "yuk_creek_mw": -0.105, "total_gen_mw": 39.441, "total_load_mw": 34.876, "row_count": 3601}, "tls": {"timestamp": null, "source_file": "tls_latest.txt", "farm": "Tabubil", "tank_count": 3, "tanks": [{"tank": 1, "fuel_L": 207600, "fuel_tc_L": 207449, "ullage_L": 2096003, "fuel_height_mm": 650.21, "water_height_mm": 0.0, "temp_C": 24.57}, {"tank": 2, "fuel_L": 201842, "fuel_tc_L": 201701, "ullage_L": 2095749, "fuel_height_mm": 633.4, "water_height_mm": 0.0, "temp_C": 24.22}, {"tank": 3, "fuel_L": 1451711, "fuel_tc_L": 1441407, "ullage_L": 6168621, "fuel_height_mm": 2019.35, "water_height_mm": 0.0, "temp_C": 24.32}], "kiunga_total_L": 1861153, "kiunga_total_ML": 1.861, "total_L": 1861153, "total_ML": 1.861}, "tabubil_tls": {"timestamp": null, "source_file": "tabubil_latest.txt", "farm": "Tabubil", "tank_count": 3, "tanks": [{"tank": 1, "fuel_L": 860583, "fuel_tc_L": 859893, "ullage_L": 1443020, "fuel_height_mm": 2695.39, "water_height_mm": 0.0, "temp_C": 25.46}, {"tank": 2, "fuel_L": 1936733, "fuel_tc_L": 1935008, "ullage_L": 360858, "fuel_height_mm": 6077.6, "water_height_mm": 0.0, "temp_C": 26.55}, {"tank": 3, "fuel_L": 6471170, "fuel_tc_L": 6413883, "ullage_L": 1149162, "fuel_height_mm": 9001.5, "water_height_mm": 0.0, "temp_C": 26.48}], "kiunga_total_L": 9268486, "kiunga_total_ML": 9.268, "total_L": 9268486, "total_ML": 9.268}, "dip": {"source_file": "dip_latest.txt", "tabubil_L": 1202999, "tabubil_gross_L": 1961789, "tabubil_heel_L": 758790, "kiunga_L": null, "kiunga_gross_L": null, "kiunga_heel_L": null, "mine_L": 482653, "mine_gross_L": 532653, "mine_heel_L": 50000, "total_heel_L": 808790, "tabubil_trend": "decreasing", "kiunga_trend": null, "mine_trend": "SFL", "total_prior_L": 4232721, "total_current_L": 2532054, "kiunga_river_m": 2.77, "ok_menga_m": 1.81, "kiunga_river_trend": "Slightly Increasing", "ok_menga_trend": "Slightly Increasing", "kiunga_24h_L": 27511, "tabubil_24h_L": 20766, "mine_24h_L": 53218, "total_24h_L": 101495, "rolling_avg_kL_day": 290, "on_water_vessel": "Fly Challenger", "on_water_id": "V147N", "on_water_ML": 1.9, "report_date": "29-08-26", "report_date_source": "body"}, "production": {"source_file": "Kiunga Daily Production Report_28.08.2026.pdf", "report_date": "28-08-26", "os_tonnes_wmt": 19611, "os_moisture_pct": 9.47, "os_cu_grade_pct": 24.4, "prod_day_wmt": 808, "prod_day_cu_grade_pct": 24.0, "prod_mtd_wmt": 31533, "barge_day_count": 0.0, "cs_tonnes_wmt": 60863, "river_0600_m": 2.46, "safety": "Nil significant safety incidents/accidents past 24hrs", "cargo_on_feeders_wmt": 8637, "source": "pdf", "shed_storage_t": 60863, "copper_t_day": 808, "days_to_80kt": 23.7, "shed_cap_t": 80000}, "vessels": {"count": 18, "refreshed_at": "2026-08-16T04:00:07", "source": "Power BI (via PA Cloud)", "vessels": [{"name": "O.T.IDEAAL", "lat": -27.378681, "lon": 153.16559, "speed": 0.0, "status": "5", "location": "Other", "activity": null, "role": "Support"}, {"name": "RAGGIANA ARROW", "lat": -9.4639, "lon": 147.13237, "speed": 1.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Support"}, {"name": "JOHNNY TRAVELLER", "lat": -9.46695, "lon": 147.14185, "speed": 0.0, "status": "1", "location": "Port Moresby", "activity": "At POM", "role": "Support"}, {"name": "FLY ALLIANCE", "lat": -7.351667, "lon": 141.26334, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY PROSPERITY", "lat": -7.348333, "lon": 141.25833, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY WARRIOR", "lat": -6.135, "lon": 141.30499, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "FLY CHALLENGER", "lat": -7.35, "lon": 141.25333, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "FLY RESILIENCE", "lat": -6.125, "lon": 141.29834, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "KIUNGA CHIEF", "lat": -6.135, "lon": 141.29333, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Loading concentrate", "role": "CuCon carrier"}, {"name": "FLY ENTERPRISE", "lat": -6.136667, "lon": 141.29167, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "Discharging fuel", "role": "Fuel feeder"}, {"name": "FLY VALIANT", "lat": -7.595, "lon": 141.39999, "speed": 0.0, "status": "0", "location": "Waiting on river", "activity": "Anchored", "role": "Fuel feeder"}, {"name": "ELIMBARI", "lat": -6.158333, "lon": 141.24167, "speed": 0.0, "status": "0", "location": "Kiunga wharf", "activity": "At wharf", "role": "Passenger/support"}, {"name": "GILUWE", "lat": -6.61, "lon": 140.845, "speed": 0.0, "status": "0", "location": "Other", "activity": null, "role": "Passenger/support"}, {"name": "AIRD HILLS", "lat": -6.618333, "lon": 140.855, "speed": 0.0, "status": "0", "location": "Other", "activity": null, "role": "Support"}, {"name": "BBC GDANSK", "lat": -17.317738, "lon": 152.45499, "speed": 79.0, "status": "0", "location": "Other", "activity": null, "role": "Other"}, {"name": "HIRI CHIEF", "lat": -8.745463, "lon": 148.56738, "speed": 76.0, "status": "0", "location": "Other", "activity": null, "role": "Other"}, {"name": "FLY EXPLORER", "lat": null, "lon": null, "speed": null, "status": "", "location": "Unknown position", "activity": null, "role": "Other"}, {"name": "TAMANOU", "lat": null, "lon": null, "speed": null, "status": "", "location": "Unknown position", "activity": null, "role": "Other"}], "groups": {"Other": ["O.T.IDEAAL", "GILUWE", "AIRD HILLS", "BBC GDANSK", "HIRI CHIEF"], "Port Moresby": ["RAGGIANA ARROW", "JOHNNY TRAVELLER"], "Waiting on river": ["FLY ALLIANCE", "FLY PROSPERITY", "FLY CHALLENGER", "FLY VALIANT"], "Kiunga wharf": ["FLY WARRIOR", "FLY RESILIENCE", "KIUNGA CHIEF", "FLY ENTERPRISE", "ELIMBARI"], "Unknown position": ["FLY EXPLORER", "TAMANOU"]}}, "food": {"source_file": "2026-08-09 Operational Status Weeekly Report (Food Stock Levels).xlsx", "report_date": null, "sites": {"Tabubil": {"days": 72.0, "source_sheet": "WE05072026"}, "Bige": {"days": 46.0, "source_sheet": "WE05072026"}, "Kiunga": {"days": 72.0, "source_sheet": "WE05072026"}}, "headline_days": 46.0, "headline_site": "Bige", "rag": "amber", "notes": [], "age_days": 29.7, "is_stale": true, "stale_note": "Weekly food xlsx not received \u2014 last was 30 days ago (2026-08-09 Operational Status Weeekly Report (Food Stock Levels).xlsx)"}, "vdv_reconciliation": {"log_file": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\VDV\\vdv_source_reconciliation.csv", "formula": "diff_m = csv_m - pbi_m ; pbi_adjusted = pbi_raw + mean_offset_m", "rows_logged": 1012, "pbi_live_rows": 484, "pbi_live_now": false, "stations": {"kiunga": {"n": 118, "mean_offset_m": -0.8681, "stdev_m": 0.9875, "min_m": -10.598, "max_m": -0.1, "last_diff_m": -0.58, "stable": false, "recommended_pa_offset_m": null}, "menga": {"n": 118, "mean_offset_m": 0.0027, "stdev_m": 0.0535, "min_m": -0.11, "max_m": 0.136, "last_diff_m": -0.062, "stable": false, "recommended_pa_offset_m": null}, "palmer": {"n": 118, "mean_offset_m": -0.2222, "stdev_m": 1.4334, "min_m": -1.57, "max_m": 14.88, "last_diff_m": -0.22, "stable": false, "recommended_pa_offset_m": null}}, "ready_to_calibrate_pa": false, "note": "PBI feed reading all-zero \u2014 row logged but excluded from offset mean; waiting on live PA Cloud data before calibrating."}, "vdv": {"source_file": "vdv_20260829_203022.csv", "vdv_timestamp": "2026-08-29 19:00:00", "kiunga_shipping_m": 5.4220002288818, "kiunga_ohd_m": 15.76, "kiunga_flow_m3s": 253.5, "kiunga_rain_mm": 0.0, "ok_menga_m": 2.545, "ok_menga_flow_m3s": 141.3, "palmer_m": 23.41, "palmer_rain_mm": 0.0, "olsobip_rain_mm": 0.0, "olsobip_rain_12h_mm": 1.0, "olsobip_rain_24h_mm": 9.0, "palmer_rain_12h_mm": 0, "palmer_rain_24h_mm": 14.0, "kiunga_rain_24h_mm": 0.0, "kiunga_delta_24h_m": 4.24, "kiunga_delta_12h_m": 2.45, "palmer_delta_12h_m": null, "palmer_delta_24h_m": 1.05, "ok_menga_delta_24h_m": 0.218, "state": "fetched"}, "forecast": {"available": true, "current_m": 5.42, "trend": "falling", "trigger": "Post-peak decay model: k=0.16/day, elevated 5.42m above base 3.5m", "forecast_12h_m": 5.27, "forecast_24h_m": 5.11, "forecast_48h_m": 4.81, "expected_rise_m": -0.31, "confidence": "medium", "model": "linear_reservoir", "decay_rate_m_per_day": -0.31}, "headline": {"hydro_mw": 39.56, "tps_mw": 0.0, "total_load_mw": 34.876, "mill_mine_mw": 34.876, "township_mw": 4.57, "total_gen_mw": 39.441, "menga_level_m": 2.545, "menga_source": "VDV", "kiunga_river_m": 5.4220002288818, "kiunga_river_source": "VDV", "kiunga_river_flow_m3s": 253.5, "palmer_river_m": 23.41, "olsobip_rain_mm": 0.0, "kiunga_tank_ML": 1.861, "total_fuel_ML": 2.532, "days_remaining": 8.7, "days_remaining_actual": 24.9, "cucon_shed_t": 60863, "cu_t_day": 808, "shed_days_to_80kt": 23.7}, "health": {"pi_csv_hours": 0.4, "pi_csv_file": "PI_Data_20260829_190000.csv", "tls_hours": 0.1, "dip_hours": 0.1, "prod_pdf_hours": 13.5, "prod_pdf_file": "Kiunga Daily Production Report_28.08.2026.pdf", "vdv_hours": 311.5, "vdv_state": "fetched", "overall": "stale"}};</script>
-
+<script>window.OTML_SUMMARY = {"generated_at_utc": "2026-08-29T10:47:57.257119+00:00", "shipping_trigger_m": 6.5, "headline": {"kiunga_shipping_m": null, "kiunga_above_trigger": false, "ok_menga_level_m": null, "hydro_mw": null, "tps_mw": null, "load_mill_mine_mw": null, "township_mw": null, "total_depot_kl": 0}, "pi": {"ok": true, "file": "PI_Data_20260829_190000.csv", "file_mtime_utc": "2026-08-29T10:05:09.859741+00:00", "gh01_mw": null, "gh02_mw": null, "hydro_total_mw": null, "tps_mw": null, "load_mill_mine_mw": null, "generation_total_mw": 0, "township_mw": null, "menga_level_m": null}, "tls": {"ok": true, "kiunga": {"file": "tls_latest.txt", "file_mtime_utc": "2026-08-29T10:23:35.509133+00:00", "depots_kl": {}}, "tabubil": {"file": "tabubil_latest.txt", "file_mtime_utc": "2026-07-10T05:30:07+00:00", "depots_kl": {}}}, "dip": {"ok": true, "file": "dip_latest.txt", "file_mtime_utc": "2026-08-29T10:23:35.477853+00:00", "effective_ts_utc": "2026-08-29T10:23:35.477853+00:00", "rivers": {"Kiunga": 2.77}, "usage_kl_24h": null, "on_water_ml": null}, "production": {"ok": true, "file": "Kiunga Daily Production Report_28.08.2026.pdf", "file_mtime_utc": "2026-08-28T21:01:18.400703+00:00", "tonnes_milled": null, "cu_grade_pct": null, "cu_recovery_pct": null, "cucon_stockpile_t": null, "cucon_shed_t": null}, "vessels": {"ok": true, "file_mtime_utc": "2026-08-16T11:00:05+00:00", "count": 0, "vessels": []}, "vdv": {"ok": true, "source": "PBI JSON (last resort \u00e2\u20ac\u201d CSV unavailable)", "kiunga_shipping_m": null, "authoritative": {"results": [{"tables": [{"rows": [{"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.787, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.0, "VistaVisionData[FLY05]": 12.21, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.958, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 2.039, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.102, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.651, "VistaVisionData[TED20]": 6.037, "VistaVisionData[TED25]": 3.787, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.765, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.68, "VistaVisionData[FLY05]": 12.99, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.469, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.46, "VistaVisionData[MEN05]": 1.062, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.472, "VistaVisionData[TED20]": 5.704, "VistaVisionData[TED25]": 5.19, "VistaVisionData[TED26]": 19.53}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.794, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.22, "VistaVisionData[FLY05]": 13.39, "VistaVisionData[FLY10]": 12.96, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.314, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.14, "VistaVisionData[MEN05]": 1.041, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.383, "VistaVisionData[TED20]": 5.547, "VistaVisionData[TED25]": 4.207, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.777, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.04, "VistaVisionData[FLY05]": 12.84, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.245, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.034, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.34, "VistaVisionData[TED20]": 5.479, "VistaVisionData[TED25]": 3.792, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.756, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 20.96, "VistaVisionData[FLY05]": 12.39, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 8.97, "VistaVisionData[MEN05]": 1.015, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.321, "VistaVisionData[TED20]": 5.467, "VistaVisionData[TED25]": 3.704, "VistaVisionData[TED26]": 19.22}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 2.806, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 21.09, "VistaVisionData[FLY05]": 12.3, "VistaVisionData[FLY10]": 13.43, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.207, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 9.07, "VistaVisionData[MEN05]": 1.012, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.328, "VistaVisionData[TED20]": 5.444, "VistaVisionData[TED25]": 3.835, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 20.97, "VistaVisionData[FLY05]": 12.38, "VistaVisionData[FLY10]": 11.63, "VistaVisionData[FLY15]": 2.509, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 8.98, "VistaVisionData[MEN05]": 1.027, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 4.352, "VistaVisionData[TED20]": 5.433, "VistaVisionData[TED25]": 3.669, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 10.0, "VistaVisionData[BIR05]": 119.0, "VistaVisionData[EBR01]": 26.0, "VistaVisionData[FAL01]": 19.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 5.0, "VistaVisionData[FLY10]": 2.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 2.0, "VistaVisionData[FLY26]": 1.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 8.0, "VistaVisionData[MAA10]": 6.0, "VistaVisionData[MAN02]": 42.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 2.0, "VistaVisionData[OLS01]": 3.0, "VistaVisionData[PMP59]": 60.0, "VistaVisionData[TAB01]": 25.0, "VistaVisionData[TED15]": 22.0, "VistaVisionData[TED20]": 52.0, "VistaVisionData[TED25]": 4.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 34.0, "VistaVisionData[BIR05]": 3.0, "VistaVisionData[EBR01]": 1.0, "VistaVisionData[FAL01]": 2.0, "VistaVisionData[FLY01]": 34.0, "VistaVisionData[FLY05]": 15.0, "VistaVisionData[FLY10]": 14.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 11.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 3.0, "VistaVisionData[MAR11]": 42.0, "VistaVisionData[MEN05]": 1.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 8.0, "VistaVisionData[TAB01]": 13.0, "VistaVisionData[TED15]": 6.0, "VistaVisionData[TED20]": 1.0, "VistaVisionData[TED25]": 12.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 1.0, "VistaVisionData[BIR05]": 35.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 5.0, "VistaVisionData[FLY05]": 33.0, "VistaVisionData[FLY10]": 29.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 18.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 9.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 38.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 24.0, "VistaVisionData[TED25]": 16.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 13.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 3.0, "VistaVisionData[FAL01]": 1.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 1.0, "VistaVisionData[FLY10]": 1.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 2.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 1.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 7.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 14.0, "VistaVisionData[FAL01]": 10.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 1.0, "VistaVisionData[MAN02]": 17.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 5.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0, "VistaVisionData[TED26]": null}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 93.37, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 400.17, "VistaVisionData[FLY05]": 48.23, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2644.64, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 16.47, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 11.26, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 251.24, "VistaVisionData[TED20]": 140.77, "VistaVisionData[TED25]": 102.14, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 90.47, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 533.7, "VistaVisionData[FLY05]": 90.02, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 3.9, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 51.43, "VistaVisionData[MEN05]": 9.8, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 207.71, "VistaVisionData[TED20]": 113.07, "VistaVisionData[TED25]": 258.92, "VistaVisionData[TED26]": 38.34}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 94.3, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 441.64, "VistaVisionData[FLY05]": 123.01, "VistaVisionData[FLY10]": 245.28, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 2.02, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 30.4, "VistaVisionData[MEN05]": 9.07, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 185.24, "VistaVisionData[TED20]": 101.26, "VistaVisionData[TED25]": 138.98, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 92.04, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 407.58, "VistaVisionData[FLY05]": 79.48, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.44, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 8.84, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 175.42, "VistaVisionData[TED20]": 96.38, "VistaVisionData[TED25]": 102.47, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 89.29, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 392.8, "VistaVisionData[FLY05]": 55.61, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 23.04, "VistaVisionData[MEN05]": 8.29, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 171.88, "VistaVisionData[TED20]": 95.53, "VistaVisionData[TED25]": 96.74, "VistaVisionData[TED26]": 30.19}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 95.92, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 416.93, "VistaVisionData[FLY05]": 51.8, "VistaVisionData[FLY10]": 376.13, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.17, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 27.22, "VistaVisionData[MEN05]": 8.21, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 173.18, "VistaVisionData[TED20]": 93.93, "VistaVisionData[TED25]": 105.26, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIA01]": null, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": null, "VistaVisionData[FAL01]": null, "VistaVisionData[FLY01]": 394.64, "VistaVisionData[FLY05]": 55.18, "VistaVisionData[FLY10]": 80.92, "VistaVisionData[FLY15]": 1595.57, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[KUM01]": null, "VistaVisionData[KWP01]": null, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAN02]": null, "VistaVisionData[MAR11]": 23.44, "VistaVisionData[MEN05]": 8.63, "VistaVisionData[OLS01]": null, "VistaVisionData[PMP59]": null, "VistaVisionData[TAB01]": null, "VistaVisionData[TED15]": 177.77, "VistaVisionData[TED20]": 93.16, "VistaVisionData[TED25]": 94.46, "VistaVisionData[TED26]": 29.72}]}]}], "firstTableRows": [{"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.787, "VistaVisionData[FLY01]": 21.0, "VistaVisionData[FLY05]": 12.21, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.958, "VistaVisionData[MAA10]": 2.039, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.102, "VistaVisionData[TED15]": 4.651, "VistaVisionData[TED20]": 6.037, "VistaVisionData[TED25]": 3.787, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.765, "VistaVisionData[FLY01]": 21.68, "VistaVisionData[FLY05]": 12.99, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.469, "VistaVisionData[MAR11]": 9.46, "VistaVisionData[MEN05]": 1.062, "VistaVisionData[TED15]": 4.472, "VistaVisionData[TED20]": 5.704, "VistaVisionData[TED25]": 5.19, "VistaVisionData[TED26]": 19.53}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.794, "VistaVisionData[FLY01]": 21.22, "VistaVisionData[FLY05]": 13.39, "VistaVisionData[FLY10]": 12.96, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.314, "VistaVisionData[MAR11]": 9.14, "VistaVisionData[MEN05]": 1.041, "VistaVisionData[TED15]": 4.383, "VistaVisionData[TED20]": 5.547, "VistaVisionData[TED25]": 4.207, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.777, "VistaVisionData[FLY01]": 21.04, "VistaVisionData[FLY05]": 12.84, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.507, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.245, "VistaVisionData[MAR11]": 9.02, "VistaVisionData[MEN05]": 1.034, "VistaVisionData[TED15]": 4.34, "VistaVisionData[TED20]": 5.479, "VistaVisionData[TED25]": 3.792, "VistaVisionData[TED26]": 19.18}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.756, "VistaVisionData[FLY01]": 20.96, "VistaVisionData[FLY05]": 12.39, "VistaVisionData[FLY10]": 12.75, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.664, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAR11]": 8.97, "VistaVisionData[MEN05]": 1.015, "VistaVisionData[TED15]": 4.321, "VistaVisionData[TED20]": 5.467, "VistaVisionData[TED25]": 3.704, "VistaVisionData[TED26]": 19.22}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 2.806, "VistaVisionData[FLY01]": 21.09, "VistaVisionData[FLY05]": 12.3, "VistaVisionData[FLY10]": 13.43, "VistaVisionData[FLY15]": 2.508, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.956, "VistaVisionData[MAA10]": 1.207, "VistaVisionData[MAR11]": 9.07, "VistaVisionData[MEN05]": 1.012, "VistaVisionData[TED15]": 4.328, "VistaVisionData[TED20]": 5.444, "VistaVisionData[TED25]": 3.835, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "RiverLevel", "VistaVisionData[BIR05]": 0.0, "VistaVisionData[FLY01]": 20.97, "VistaVisionData[FLY05]": 12.38, "VistaVisionData[FLY10]": 11.63, "VistaVisionData[FLY15]": 2.509, "VistaVisionData[FLY17]": 3.663, "VistaVisionData[FLY26]": 0.957, "VistaVisionData[MAA10]": 1.211, "VistaVisionData[MAR11]": 8.98, "VistaVisionData[MEN05]": 1.027, "VistaVisionData[TED15]": 4.352, "VistaVisionData[TED20]": 5.433, "VistaVisionData[TED25]": 3.669, "VistaVisionData[TED26]": 19.2}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 10.0, "VistaVisionData[BIR05]": 119.0, "VistaVisionData[EBR01]": 26.0, "VistaVisionData[FAL01]": 19.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 5.0, "VistaVisionData[FLY10]": 2.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 2.0, "VistaVisionData[FLY26]": 1.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 8.0, "VistaVisionData[MAA10]": 6.0, "VistaVisionData[MAN02]": 42.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 2.0, "VistaVisionData[OLS01]": 3.0, "VistaVisionData[PMP59]": 60.0, "VistaVisionData[TAB01]": 25.0, "VistaVisionData[TED15]": 22.0, "VistaVisionData[TED20]": 52.0, "VistaVisionData[TED25]": 4.0}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 34.0, "VistaVisionData[BIR05]": 3.0, "VistaVisionData[EBR01]": 1.0, "VistaVisionData[FAL01]": 2.0, "VistaVisionData[FLY01]": 34.0, "VistaVisionData[FLY05]": 15.0, "VistaVisionData[FLY10]": 14.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 11.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 3.0, "VistaVisionData[MAR11]": 42.0, "VistaVisionData[MEN05]": 1.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 8.0, "VistaVisionData[TAB01]": 13.0, "VistaVisionData[TED15]": 6.0, "VistaVisionData[TED20]": 1.0, "VistaVisionData[TED25]": 12.0}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 0.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 1.0, "VistaVisionData[BIR05]": 35.0, "VistaVisionData[EBR01]": 0.0, "VistaVisionData[FAL01]": 0.0, "VistaVisionData[FLY01]": 5.0, "VistaVisionData[FLY05]": 33.0, "VistaVisionData[FLY10]": 29.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 18.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 9.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 38.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 24.0, "VistaVisionData[TED25]": 16.0}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 13.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 3.0, "VistaVisionData[FAL01]": 1.0, "VistaVisionData[FLY01]": 2.0, "VistaVisionData[FLY05]": 1.0, "VistaVisionData[FLY10]": 1.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 2.0, "VistaVisionData[MAA10]": 0.0, "VistaVisionData[MAN02]": 0.0, "VistaVisionData[MAR11]": 2.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 0.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 0.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 1.0}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "Rainfall", "VistaVisionData[BIA01]": 7.0, "VistaVisionData[BIR05]": 0.0, "VistaVisionData[EBR01]": 14.0, "VistaVisionData[FAL01]": 10.0, "VistaVisionData[FLY01]": 0.0, "VistaVisionData[FLY05]": 0.0, "VistaVisionData[FLY10]": 0.0, "VistaVisionData[FLY15]": 0.0, "VistaVisionData[FLY17]": 0.0, "VistaVisionData[FLY26]": 0.0, "VistaVisionData[KUM01]": 0.0, "VistaVisionData[KWP01]": 0.0, "VistaVisionData[MAA10]": 1.0, "VistaVisionData[MAN02]": 17.0, "VistaVisionData[MAR11]": 0.0, "VistaVisionData[MEN05]": 0.0, "VistaVisionData[OLS01]": 1.0, "VistaVisionData[PMP59]": 0.0, "VistaVisionData[TAB01]": 5.0, "VistaVisionData[TED15]": 0.0, "VistaVisionData[TED20]": 0.0, "VistaVisionData[TED25]": 0.0}, {"VistaVisionData[Date]": "2026-08-10T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 93.37, "VistaVisionData[FLY01]": 400.17, "VistaVisionData[FLY05]": 48.23, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2644.64, "VistaVisionData[MAA10]": 16.47, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 11.26, "VistaVisionData[TED15]": 251.24, "VistaVisionData[TED20]": 140.77, "VistaVisionData[TED25]": 102.14, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-11T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 90.47, "VistaVisionData[FLY01]": 533.7, "VistaVisionData[FLY05]": 90.02, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 3.9, "VistaVisionData[MAR11]": 51.43, "VistaVisionData[MEN05]": 9.8, "VistaVisionData[TED15]": 207.71, "VistaVisionData[TED20]": 113.07, "VistaVisionData[TED25]": 258.92, "VistaVisionData[TED26]": 38.34}, {"VistaVisionData[Date]": "2026-08-12T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 94.3, "VistaVisionData[FLY01]": 441.64, "VistaVisionData[FLY05]": 123.01, "VistaVisionData[FLY10]": 245.28, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 2.02, "VistaVisionData[MAR11]": 30.4, "VistaVisionData[MEN05]": 9.07, "VistaVisionData[TED15]": 185.24, "VistaVisionData[TED20]": 101.26, "VistaVisionData[TED25]": 138.98, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-13T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 92.04, "VistaVisionData[FLY01]": 407.58, "VistaVisionData[FLY05]": 79.48, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1594.5, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 1.44, "VistaVisionData[MAR11]": 25.08, "VistaVisionData[MEN05]": 8.84, "VistaVisionData[TED15]": 175.42, "VistaVisionData[TED20]": 96.38, "VistaVisionData[TED25]": 102.47, "VistaVisionData[TED26]": 29.26}, {"VistaVisionData[Date]": "2026-08-14T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 89.29, "VistaVisionData[FLY01]": 392.8, "VistaVisionData[FLY05]": 55.61, "VistaVisionData[FLY10]": 215.25, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1129.19, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAR11]": 23.04, "VistaVisionData[MEN05]": 8.29, "VistaVisionData[TED15]": 171.88, "VistaVisionData[TED20]": 95.53, "VistaVisionData[TED25]": 96.74, "VistaVisionData[TED26]": 30.19}, {"VistaVisionData[Date]": "2026-08-15T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 95.92, "VistaVisionData[FLY01]": 416.93, "VistaVisionData[FLY05]": 51.8, "VistaVisionData[FLY10]": 376.13, "VistaVisionData[FLY15]": 1595.04, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2641.91, "VistaVisionData[MAA10]": 1.17, "VistaVisionData[MAR11]": 27.22, "VistaVisionData[MEN05]": 8.21, "VistaVisionData[TED15]": 173.18, "VistaVisionData[TED20]": 93.93, "VistaVisionData[TED25]": 105.26, "VistaVisionData[TED26]": 29.72}, {"VistaVisionData[Date]": "2026-08-16T00:00:00", "VistaVisionData[Category]": "FlowRate", "VistaVisionData[BIR05]": 0.0, "VistaVisionData[FLY01]": 394.64, "VistaVisionData[FLY05]": 55.18, "VistaVisionData[FLY10]": 80.92, "VistaVisionData[FLY15]": 1595.57, "VistaVisionData[FLY17]": 1128.86, "VistaVisionData[FLY26]": 2643.28, "VistaVisionData[MAA10]": 1.2, "VistaVisionData[MAR11]": 23.44, "VistaVisionData[MEN05]": 8.63, "VistaVisionData[TED15]": 177.77, "VistaVisionData[TED20]": 93.16, "VistaVisionData[TED25]": 94.46, "VistaVisionData[TED26]": 29.72}]}, "pbi_stale": true}, "forecast": {"ok": true, "method": "BIA-weighted 24h rain \u00c3\u2014 slope \u00c3\u2014 dry-amp; 48h peak lag", "inputs": {"bia_24h_mm": 0, "ols_24h_mm": 0, "palmer_24h_mm": 0, "current_kiunga_m": 0, "dry_regime": true}, "base_rise_m": 0.0, "amplification_factor": 4.0, "forecast_rise_m": 0.0, "forecast_level_m": 0.0, "shipping_trigger_m": 6.5, "trigger_breach_forecast": false, "hours_to_peak": 48}, "recession": {"ok": false, "reason": "level \u00e2\u2030\u00a4 0"}};</script>
 <script>
-const JSON_URL = 'latest_summary.json'; // fallback only
+const D = window.OTML_SUMMARY || {};
+const fmt = (n,d=2) => (n==null||isNaN(n))?'â€”':Number(n).toFixed(d);
 
-function fmtL(n){ if(n==null) return '–'; return n.toLocaleString() + ' L'; }
-function fmtN(n, dp=2, unit=''){ if(n==null) return '–'; return Number(n).toFixed(dp) + (unit?(' '+unit):''); }
-function fmtML(l){ if(l==null) return '–'; return (l/1_000_000).toFixed(2) + ' ML'; }
-function safe(o, ...ks){ return ks.reduce((x,k)=>x==null?null:x[k], o); }
-function ago(iso){
-  if(!iso) return 'n/a';
-  const t = new Date(iso);
-  const s = Math.round((Date.now() - t)/1000);
-  if(s<60) return s+'s ago';
-  if(s<3600) return Math.round(s/60)+'m ago';
-  if(s<86400) return Math.round(s/3600)+'h ago';
-  return Math.round(s/86400)+'d ago';
+function render() {
+  const h = D.headline || {};
+  const kiu = h.kiunga_shipping_m;
+  const above = h.kiunga_above_trigger;
+  const trigger = D.shipping_trigger_m || 4.0;
+  const fc = D.forecast || {};
+  const rec = D.recession || {};
+  const pi = D.pi || {};
+  const vdv = D.vdv || {};
+  const vessels = D.vessels || {};
+  const tlsKiu = (D.tls || {}).kiunga || {};
+  const tlsTab = (D.tls || {}).tabubil || {};
+  const prod = D.production || {};
+
+  document.getElementById('gen').textContent = 'Gen ' + (D.generated_at_utc || '').slice(0,16).replace('T',' ') + ' UTC';
+
+  // ---- Hero
+  const heroCard = document.getElementById('heroCard');
+  heroCard.classList.toggle('good', above);
+  document.getElementById('heroBig').textContent = fmt(kiu,2) + ' m';
+  document.getElementById('heroStatus').innerHTML = kiu==null ? 'no data' : (above
+    ? `<span style="color:var(--good)">ABOVE 6.5 m TRIGGER âœ“ (+${fmt(kiu-trigger,2)} m)</span>`
+    : `<span style="color:var(--bad)">BELOW 6.5 m TRIGGER (short by ${fmt(trigger-kiu,2)} m)</span>`);
+  document.getElementById('heroSource').textContent = 'source: ' + (vdv.source || 'â€”');
+  document.getElementById('heroP').textContent = 'source: ' + (vdv.source ? vdv.source.slice(0,18) : 'â€”');
+  document.getElementById('augMed').textContent = '9.54 m';  // hard-coded from 11-yr analysis
+  document.getElementById('augP10').textContent = '2.94 m';
+
+  // ---- Power
+  document.getElementById('hydroMW').textContent = fmt(pi.hydro_total_mw,1) + ' MW';
+  document.getElementById('tpsMW').textContent = fmt(pi.tps_mw,1) + ' MW';
+  document.getElementById('loadMW').textContent = fmt(pi.load_mill_mine_mw,1) + ' MW';
+  document.getElementById('twpMW').textContent = fmt(pi.township_mw,1) + ' MW';
+  document.getElementById('gh01MW').textContent = fmt(pi.gh01_mw,1) + ' MW';
+  document.getElementById('gh02MW').textContent = fmt(pi.gh02_mw,1) + ' MW';
+  document.getElementById('mengaLvl').textContent = fmt(pi.menga_level_m,2) + ' m';
+
+  // ---- Fuel depots
+  const kD = tlsKiu.depots_kl || {};
+  const tD = tlsTab.depots_kl || {};
+  document.getElementById('tblKiu').innerHTML = Object.entries(kD).map(([d,v]) =>
+    `<tr><td>${d}</td><td class="n">${fmt(v,0)} kL</td></tr>`).join('') || '<tr><td class="mono">no data</td></tr>';
+  document.getElementById('tblTab').innerHTML = Object.entries(tD).map(([d,v]) =>
+    `<tr><td>${d}</td><td class="n">${fmt(v,0)} kL</td></tr>`).join('') || '<tr><td class="mono">no data</td></tr>';
+  document.getElementById('fuelTotal').textContent = fmt(h.total_depot_kl,0) + ' kL';
+  // Simple days runway estimate at 500 kL/day burn
+  const days = h.total_depot_kl ? Math.round(h.total_depot_kl / 500) : null;
+  document.getElementById('daysRun').textContent = days ? days + ' d @ 500 kL/d' : 'â€”';
+
+  // ---- Weather rainfall outlook (7 days) - placeholder pattern until API wired
+  const outlook = document.getElementById('rainOutlook');
+  const days7 = ['Today','+1d','+2d','+3d','+4d','+5d','+6d'];
+  const fcInputs = fc.inputs || {};
+  const today_mm = (fcInputs.bia_24h_mm||0) + (fcInputs.ols_24h_mm||0) + (fcInputs.palmer_24h_mm||0);
+  // Simple heuristic outlook (placeholder â€” real feed to be wired via meteoblue/NWS)
+  const mmForecast = [today_mm, 20, 15, 10, 8, 5, 3];  // decaying assumption
+  outlook.innerHTML = days7.map((d,i) => {
+    const mm = mmForecast[i];
+    const cls = mm > 40 ? 'heavy' : (mm > 10 ? 'wet' : '');
+    return `<div class="rain-day ${cls}"><div class="d">${d}</div><div class="r">${fmt(mm,0)}mm</div></div>`;
+  }).join('');
+  document.getElementById('bia24').textContent = fmt(fcInputs.bia_24h_mm,0) + ' mm';
+  document.getElementById('ols24').textContent = fmt(fcInputs.ols_24h_mm,0) + ' mm';
+  document.getElementById('pal24').textContent = fmt(fcInputs.palmer_24h_mm,0) + ' mm';
+
+  // ---- River forecast + recession
+  if (fc.ok) {
+    const bigCls = fc.trigger_breach_forecast ? 'good' : 'bad';
+    const bigTxt = fc.trigger_breach_forecast ? `SHIPPING WINDOW OPEN in 48 h` : `Still short of trigger in 48 h`;
+    const bigEl = document.getElementById('forecastBig');
+    bigEl.textContent = bigTxt;
+    bigEl.className = 'forecast-big ' + bigCls;
+    document.getElementById('fcRise').textContent = '+' + fmt(fc.forecast_rise_m,2) + ' m';
+    document.getElementById('fcLevel').textContent = fmt(fc.forecast_level_m,2) + ' m';
+    document.getElementById('fcAmp').textContent = fmt(fc.amplification_factor,1) + 'Ã—';
+  }
+  if (rec.ok) {
+    document.getElementById('recHalf').textContent = fmt(rec.half_life_days,0) + ' d';
+    document.getElementById('recTo2').textContent = rec.days_to_2m + ' d';
+    document.getElementById('recTo1').textContent = rec.days_to_1m + ' d';
+    document.getElementById('recTo05').textContent = rec.days_to_0_5m + ' d';
+  }
+
+  // ---- Vessels
+  const vs = vessels.vessels || [];
+  document.getElementById('vslCount').textContent = (vessels.count||0) + ' tracked';
+  document.getElementById('tblVessels').innerHTML = vs.slice(0,8).map(v =>
+    `<tr><td>${v.name||''}</td><td class="n">${fmt(v.speed_kn,1)}kn</td><td class="mono" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.destination||''}</td></tr>`
+  ).join('') || '<tr><td class="mono">no vessels data</td></tr>';
+
+  // ---- Production
+  document.getElementById('prTon').textContent = fmt(prod.tonnes_milled,0) + ' t';
+  document.getElementById('prGr').textContent = fmt(prod.cu_grade_pct,2) + ' %';
+  document.getElementById('prRec').textContent = fmt(prod.cu_recovery_pct,1) + ' %';
+  document.getElementById('prCuCon').textContent = fmt(prod.cucon_stockpile_t,0) + ' t';
 }
-function rag(el, level){ // 'g'|'a'|'r' — no-op if element missing
-  if (!el) return;
-  el.className = 'tag ' + (level==='g'?'ok':level==='a'?'warn':'bad');
-  el.textContent = level==='g'?'OK':level==='a'?'WATCH':'CRITICAL';
-}
-
-function render(data){
-  // Stamp
-  const stamp = document.getElementById('stamp');
-  const st = document.getElementById('stamp-text');
-  const gen = data.generated_at;
-  st.textContent = 'Updated ' + ago(gen);
-  const age = (Date.now() - new Date(gen))/60000;
-  stamp.className = 'stamp' + (age>90?' dead':age>65?' stale':'');
-
-  // Pipeline Health
-  const health = data.health || {};
-  const cellClass = (h) => (h==null?'stale':h>48?'stale':h>26?'warn':'ok');
-  const cellVal = (h) => h==null ? '–' : h < 1 ? Math.round(h*60) + 'm' : h < 24 ? h + 'h' : Math.round(h/24) + 'd';
-  const setCell = (id, hours) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = cellVal(hours);
-    const parent = el.closest('.health-cell');
-    if (parent) parent.className = 'health-cell ' + cellClass(hours);
-  };
-  setCell('h-pi', health.pi_csv_hours);
-  setCell('h-tls', health.tls_hours);
-  setCell('h-dip', health.dip_hours);
-  setCell('h-prod', health.prod_pdf_hours);
-  setCell('h-vdv', health.vdv_hours);
-  // Food (weekly xlsx) — convert days -> hours for setCell; treat >8d as stale
-  const foodAge = data.food && data.food.age_days;
-  const foodHours = (foodAge != null) ? foodAge * 24 : null;
-  const foodCellEl = document.getElementById('h-food');
-  if (foodCellEl) {
-    foodCellEl.textContent = foodAge == null ? '–' : (foodAge < 1 ? Math.round(foodAge*24) + 'h' : Math.round(foodAge) + 'd');
-    const parent = foodCellEl.closest('.health-cell');
-    if (parent) {
-      // Weekly cadence: <7d ok, 7-8d warn, >8d stale
-      const cls = foodAge == null ? 'stale' : foodAge > 8 ? 'stale' : foodAge > 7 ? 'warn' : 'ok';
-      parent.className = 'health-cell ' + cls;
-    }
-  }
-  // Stale-food banner at top of Pipeline Health tile
-  const banner = document.getElementById('food-stale-banner');
-  if (banner) {
-    if (data.food && data.food.is_stale && data.food.stale_note) {
-      banner.textContent = '⚠ ' + data.food.stale_note;
-      banner.style.display = 'block';
-    } else {
-      banner.style.display = 'none';
-    }
-  }
-  const hTag = document.getElementById('health-tag');
-  const ov = health.overall;
-  if (ov==='ok') rag(hTag,'g');
-  else if (ov==='warn') rag(hTag,'a');
-  else rag(hTag,'r');
-
-  // Power system (Hydro / TPS / Load)
-  const pi = data.pi || {};
-  const h = data.headline || {};
-  const hydro = h.hydro_mw;
-  document.getElementById('hydro-mw').textContent = fmtN(hydro,1);
-  document.getElementById('tps-mw').textContent = fmtN(h.tps_mw,1);
-  document.getElementById('load-mw').textContent = fmtN(h.total_load_mw,1);
-  document.getElementById('gh01').textContent = fmtN(pi.gh01_mw,2,'MW');
-  document.getElementById('gh02').textContent = fmtN(pi.gh02_mw,2,'MW');
-  document.getElementById('yuk').textContent = fmtN(pi.yuk_creek_mw,2,'MW');
-  const townshipEl = document.getElementById('township');
-  if (townshipEl) townshipEl.textContent = fmtN(h.township_mw,2,'MW');
-  document.getElementById('pi-sub').textContent = pi.source_file ? (pi.source_file + ' · ' + (pi.timestamp||'')) : (pi.error || 'no PI data');
-  const hydroTag = document.getElementById('hydro-tag');
-  if(hydro==null) rag(hydroTag,'r');
-  else if(hydro>=25) rag(hydroTag,'g');
-  else if(hydro>=15) rag(hydroTag,'a');
-  else rag(hydroTag,'r');
-
-  // Menga
-  const menga = h.menga_level_m;
-  document.getElementById('menga').textContent = fmtN(menga,2);
-  const mSub = document.querySelector('#menga-tile .sub');
-  if (mSub) mSub.textContent = 'Source: ' + (h.menga_source || 'PI');
-  const mTag = document.getElementById('menga-tag');
-  if(menga==null) rag(mTag,'r');
-  else if(menga>=1.6) rag(mTag,'g');
-  else if(menga>=1.3) rag(mTag,'a');
-  else rag(mTag,'r');
-
-  // Kiunga river
-  const kr = h.kiunga_river_m;
-  document.getElementById('kiunga').textContent = fmtN(kr,2);
-  const krSource = h.kiunga_river_source || 'AM TLS Dip';
-  const krFlow = h.kiunga_river_flow_m3s;
-  const krFlowStr = krFlow!=null ? (' · ' + Math.round(krFlow).toLocaleString() + ' m³/s') : '';
-  document.getElementById('kiunga-sub').textContent = krSource + krFlowStr;
-  const kTag = document.getElementById('kiunga-tag');
-  if(kr==null) rag(kTag,'r');
-  else if(kr>=5.0) rag(kTag,'g');
-  else if(kr>=4.0) rag(kTag,'a');
-  else rag(kTag,'r');
-
-  // Kiunga River Forecast
-  const fc = data.forecast || {};
-  const vdv = data.vdv || {};
-  const fcTag = document.getElementById('forecast-tag');
-  if (fc.available) {
-    document.getElementById('fc-now').textContent = fmtN(fc.current_m,2);
-    document.getElementById('fc-12h').textContent = fmtN(fc.forecast_12h_m,2);
-    document.getElementById('fc-24h').textContent = fmtN(fc.forecast_24h_m,2);
-    document.getElementById('fc-48h').textContent = fmtN(fc.forecast_48h_m,2);
-    const trendIcon = fc.trend==='rising'?'▲ Rising':fc.trend==='falling'?'▼ Falling':'– Stable';
-    document.getElementById('fc-trend').textContent = trendIcon + (fc.expected_rise_m!=null ? ' (' + (fc.expected_rise_m>=0?'+':'') + fc.expected_rise_m + 'm/24h)' : '');
-    document.getElementById('fc-ols').textContent = vdv.olsobip_rain_24h_mm!=null ? (vdv.olsobip_rain_24h_mm + ' mm') : '–';
-    document.getElementById('fc-plm').textContent = vdv.palmer_rain_24h_mm!=null ? (vdv.palmer_rain_24h_mm + ' mm') : '–';
-    document.getElementById('fc-plm-d').textContent = vdv.palmer_delta_12h_m!=null ? ((vdv.palmer_delta_12h_m>=0?'+':'') + vdv.palmer_delta_12h_m + ' m') : '–';
-    document.getElementById('fc-sub').textContent = fc.trigger + ' · ' + (fc.confidence||'medium') + ' confidence';
-    // RAG based on trend: rising = green (good for shipping), stable = amber, falling = red
-    if (fc.trend==='rising') rag(fcTag,'g');
-    else if (fc.trend==='stable') rag(fcTag,'a');
-    else rag(fcTag,'r');
-  } else {
-    document.getElementById('fc-sub').textContent = fc.reason || 'Forecast unavailable';
-    rag(fcTag,'r');
-  }
-
-  // Tanks (now rendered inside the expandable Kiunga row in Depot Balances tile)
-  const tls = data.tls || {};
-  const tanks = tls.tanks || [];
-  const tbody = document.querySelector('#tank-table tbody');
-  if (tbody) {
-    tbody.innerHTML = '';
-    tanks.forEach(t => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>Tank ${t.tank}</td><td class="n">${t.fuel_L?.toLocaleString()||'–'}</td><td class="n">${t.fuel_height_mm?.toFixed(0)||'–'}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-  const total_ml = tls.total_ML || tls.kiunga_total_ML;
-  const tankTotalEl = document.getElementById('tank-total');
-  if (tankTotalEl) tankTotalEl.textContent = fmtN(total_ml,2);
-  const tlsSubEl = document.getElementById('tls-sub');
-  if (tlsSubEl) tlsSubEl.textContent = tls.timestamp ? ('Sampled ' + tls.timestamp) : (tls.error || 'no TLS data');
-
-  // Tabubil tanks (separate TLS-4 email — same schema)
-  const tabTls = data.tabubil_tls || {};
-  const tabTanks = tabTls.tanks || [];
-  const tabTbody = document.querySelector('#tab-tank-table tbody');
-  if (tabTbody) {
-    tabTbody.innerHTML = '';
-    tabTanks.forEach(t => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>Tank ${t.tank}</td><td class="n">${t.fuel_L?.toLocaleString()||'–'}</td><td class="n">${t.fuel_height_mm?.toFixed(0)||'–'}</td>`;
-      tabTbody.appendChild(tr);
-    });
-  }
-  const tabTankTotalEl = document.getElementById('tab-tank-total');
-  if (tabTankTotalEl) tabTankTotalEl.textContent = fmtN(tabTls.total_ML,2);
-  const tabTlsSubEl = document.getElementById('tab-tls-sub');
-  if (tabTlsSubEl) tabTlsSubEl.textContent = tabTls.timestamp ? ('Sampled ' + tabTls.timestamp) : (tabTls.error || 'no TLS data');
-
-  // Depot balances
-  const dip = data.dip || {};
-  const total_fuel_ml = h.total_fuel_ML;
-  document.getElementById('total-fuel').textContent = fmtN(total_fuel_ml,2);
-  // Gross + heel breakdown
-  const totGross = (dip.total_prior_L!=null) ? (dip.total_prior_L/1e6).toFixed(2) : null;
-  const totHeel  = (dip.total_heel_L!=null) ? (dip.total_heel_L/1e6).toFixed(2) : null;
-  const tgEl = document.getElementById('total-gross'); if (tgEl) tgEl.textContent = totGross ?? '–';
-  const thEl = document.getElementById('total-heel');  if (thEl) thEl.textContent = totHeel ?? '–';
-  // Per-depot: show net with gross−heel subline
-  const netWithHeel = (net, gross, heel) => {
-    if (net==null) return '–';
-    const netStr = fmtL(net);
-    if (gross!=null && heel!=null) {
-      const g = (gross/1e6).toFixed(2), hh = (heel/1e3).toFixed(0);
-      return `${netStr} <span style="font-size:10px;color:var(--dim);font-weight:400">(${g}M − ${hh}k heel)</span>`;
-    }
-    return netStr;
-  };
-  document.getElementById('tab').innerHTML = netWithHeel(dip.tabubil_L, dip.tabubil_gross_L, dip.tabubil_heel_L);
-  document.getElementById('kiu').innerHTML = netWithHeel(dip.kiunga_L,  dip.kiunga_gross_L,  dip.kiunga_heel_L);
-  document.getElementById('mine').innerHTML= netWithHeel(dip.mine_L,    dip.mine_gross_L,    dip.mine_heel_L);
-  document.getElementById('dip-sub').textContent = dip.report_date ? ('Report ' + dip.report_date + ' · net = gross − heel (unusable @ tank bottom)') : (dip.error || 'no dip data');
-  const dTag = document.getElementById('depot-tag');
-  if(total_fuel_ml==null) rag(dTag,'r');
-  else if(total_fuel_ml>=15) rag(dTag,'g');
-  else if(total_fuel_ml>=10) rag(dTag,'a');
-  else rag(dTag,'r');
-
-  // Depot trends
-  const trendTag = (id, trend) => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    if(!trend) { el.textContent=''; el.className='tag'; return; }
-    if(trend==='increasing') { el.textContent='▲'; el.className='tag ok'; }
-    else if(trend==='decreasing') { el.textContent='▼'; el.className='tag warn'; }
-    else if(trend==='SFL') { el.textContent='SFL'; el.className='tag bad'; }
-    else { el.textContent=trend.substring(0,8); el.className='tag'; }
-  };
-  trendTag('tab-trend', dip.tabubil_trend);
-  trendTag('kiu-trend', dip.kiunga_trend);
-  trendTag('mine-trend', dip.mine_trend);
-
-  // 24h consumption + days remaining
-  const total_24h = dip.total_24h_L;
-  const total_kL = total_24h ? Math.round(total_24h/1000) : null;
-  document.getElementById('usage-total').textContent = total_kL!=null ? total_kL : '–';
-  document.getElementById('usage-kiu').textContent = fmtL(dip.kiunga_24h_L);
-  document.getElementById('usage-tab').textContent = fmtL(dip.tabubil_24h_L);
-  document.getElementById('usage-mine').textContent = fmtL(dip.mine_24h_L);
-  document.getElementById('usage-roll').textContent = dip.rolling_avg_kL_day ? (dip.rolling_avg_kL_day + ' kL/day') : '–';
-  document.getElementById('days-rolling').textContent = h.days_remaining!=null ? (h.days_remaining + ' days') : '–';
-  document.getElementById('days-actual').textContent  = h.days_remaining_actual!=null ? (h.days_remaining_actual + ' days') : '–';
-  const uTag = document.getElementById('usage-tag');
-  const dr = h.days_remaining;
-  if(dr==null) rag(uTag,'r');
-  else if(dr>=60) rag(uTag,'g');
-  else if(dr>=30) rag(uTag,'a');
-  else rag(uTag,'r');
-
-  // On water
-  document.getElementById('onwater-ml').textContent = fmtN(dip.on_water_ML,1);
-  document.getElementById('onwater-vessel').textContent = dip.on_water_vessel || '–';
-  document.getElementById('onwater-id').textContent = dip.on_water_id || '–';
-
-  // Shipping tile — MarineTraffic vessel groups
-  const vs = data.vessels || {};
-  const shippingCountEl = document.getElementById('shipping-count');
-  const shippingGroupsEl = document.getElementById('shipping-groups');
-  const shippingSubEl = document.getElementById('shipping-sub');
-  const shippingTagEl = document.getElementById('shipping-tag');
-  if (shippingCountEl) shippingCountEl.textContent = vs.count != null ? vs.count : '–';
-  if (shippingSubEl) shippingSubEl.textContent = vs.error ? vs.error : (vs.refreshed_at ? ('Refreshed ' + vs.refreshed_at) : '–');
-  if (shippingGroupsEl) {
-    shippingGroupsEl.innerHTML = '';
-    const groups = vs.groups || {};
-    // Preferred order for display
-    const order = ['Kiunga wharf','Waiting on river','In transit — Fly River','Fly River mouth','Departing Kiunga','Port Moresby','Other','Unknown position'];
-    const seen = new Set();
-    const render = (loc, names) => {
-      if (!names || !names.length) return;
-      const div = document.createElement('div');
-      div.className = 'row';
-      div.innerHTML = `<span class="k">${loc} <span class="tag" style="background:#0e2036;color:#8fb0d8">${names.length}</span></span><span class="v" style="font-size:11px;text-align:right">${names.slice(0,5).join(', ')}${names.length>5?' +'+(names.length-5)+' more':''}</span>`;
-      shippingGroupsEl.appendChild(div);
-    };
-    order.forEach(loc => { if (groups[loc]) { render(loc, groups[loc]); seen.add(loc); } });
-    // Any groups not in preferred order
-    Object.keys(groups).forEach(loc => { if (!seen.has(loc)) render(loc, groups[loc]); });
-    // RAG: green if any at Kiunga wharf, amber if any waiting on river, else neutral
-    if (shippingTagEl) {
-      shippingTagEl.className = 'tag';
-      if (groups['Kiunga wharf']?.length) shippingTagEl.textContent = 'ACTIVE', shippingTagEl.classList.add('g');
-      else if (groups['Waiting on river']?.length) shippingTagEl.textContent = 'WAITING', shippingTagEl.classList.add('a');
-      else shippingTagEl.textContent = '';
-    }
-  }
-
-  // Production + CuCon shed (from PDF report)
-  const prod = data.production || {};
-  const pTag = document.getElementById('prod-tag');
-  // Shed hero: current tonnes + days-to-80kt
-  const shedT = prod.shed_storage_t;
-  document.getElementById('shed-t').textContent = shedT!=null ? shedT.toLocaleString() : '–';
-  const shedDays = prod.days_to_80kt;
-  document.getElementById('shed-days').textContent = shedDays!=null ? (shedDays + ' days') : '–';
-  // Daily production
-  const cuDay = prod.copper_t_day;
-  const cuGrade = prod.prod_day_cu_grade_pct;
-  document.getElementById('prod-cu').textContent = cuDay!=null
-    ? (cuDay.toLocaleString() + ' t' + (cuGrade!=null ? (' @ ' + cuGrade + '% Cu') : ''))
-    : '–';
-  // MTD production
-  document.getElementById('prod-mtd').textContent = prod.prod_mtd_wmt!=null ? (prod.prod_mtd_wmt.toLocaleString() + ' t') : '–';
-  // Slurry + barges + vessel
-  document.getElementById('prod-slurry').textContent = prod.kiunga_slurry_hrs!=null ? (prod.kiunga_slurry_hrs + ' hrs / 24h') : '–';
-  document.getElementById('prod-barges').textContent = prod.barge_day_count!=null ? prod.barge_day_count : '–';
-  const vessel = prod.vessel_loading;
-  const lot = prod.vessel_lot;
-  const wmt = prod.vessel_wmt;
-  document.getElementById('prod-vessel').textContent = vessel
-    ? (vessel + (lot ? (' (LOT ' + lot + ')') : '') + (wmt ? (' · ' + wmt.toLocaleString() + ' t') : ''))
-    : '–';
-  const prodSub = document.getElementById('prod-sub');
-  if(prod.error) { prodSub.textContent = prod.note || prod.error; rag(pTag,'r'); }
-  else if(prod.report_date) { prodSub.textContent = 'Report ' + prod.report_date + (prod.source==='pdf' ? ' · PDF' : ''); }
-  // RAG on shed capacity: green > 30 days, amber 10-30, red < 10
-  if (shedDays==null) rag(pTag,'a');
-  else if (shedDays < 10) rag(pTag,'r');
-  else if (shedDays < 30) rag(pTag,'a');
-  else rag(pTag,'g');
-
-  // Kiunga River tile — append trend if we have it, but preserve the source label chosen above
-  if (dip.kiunga_river_trend && h.kiunga_river_source !== 'VDV') {
-    const kSub = document.getElementById('kiunga-sub');
-    kSub.textContent = 'AM TLS Dip · ' + (dip.report_date||'') + ' · ' + dip.kiunga_river_trend;
-  }
-
-  // Camp Food Stocks — weekly xlsx headline (worst-site days cover) + 3-site strip
-  const food = data.food || {};
-  const fTag = document.getElementById('food-tag');
-  const fDaysEl = document.getElementById('food-days');
-  const fmtDays = (d) => d==null ? '–' : Math.round(d) + 'd';
-  fDaysEl.textContent = food.headline_days!=null ? Math.round(food.headline_days) : '–';
-  document.getElementById('food-tabubil').textContent = fmtDays(safe(food,'sites','Tabubil','days'));
-  document.getElementById('food-bige').textContent    = fmtDays(safe(food,'sites','Bige','days'));
-  document.getElementById('food-kiunga').textContent  = fmtDays(safe(food,'sites','Kiunga','days'));
-  const fSub = document.getElementById('food-sub');
-  if (food.error) {
-    fSub.textContent = food.error;
-    rag(fTag,'a');
-  } else {
-    const worst = food.headline_site ? ' · worst: ' + food.headline_site : '';
-    fSub.textContent = 'Weekly xlsx · ' + (food.report_date || 'no date') + worst;
-    if (food.rag === 'red') rag(fTag,'r');
-    else if (food.rag === 'amber') rag(fTag,'a');
-    else if (food.rag === 'green') rag(fTag,'g');
-    else rag(fTag,'a');
-  }
-}
-
-function showError(msg){
-  document.getElementById('stamp-text').textContent = 'ERROR loading data';
-  document.getElementById('stamp').classList.add('dead');
-  const err = document.createElement('div');
-  err.className = 'err';
-  err.textContent = msg;
-  document.body.appendChild(err);
-}
-
-async function load(){
-  // Path 1: use window.LATEST_DATA from the <script src="latest_summary.js"> loaded at top
-  if (window.LATEST_DATA) {
-    render(window.LATEST_DATA);
-    return;
-  }
-  // Path 2: try fetch() — works when served over http(s)://, fails on file://
-  try {
-    const r = await fetch(JSON_URL + '?cb=' + Date.now(), {cache:'no-store'});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    render(data);
-  } catch(e) {
-    showError('Could not load latest_summary.js or latest_summary.json — run parse-otml-data.py to regenerate');
-  }
-}
-load();
-// Refresh strategy: <script src> is cached until page reload, so location.reload() on the ↻ button
-// is what actually pulls fresh data. setInterval does a full reload every 10 min.
-setInterval(() => location.reload(), 10*60*1000);
+render();
 </script>
-
 </body>
 </html>
