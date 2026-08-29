@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>Fly River Hydrology · 16:9 wall view</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0b1220; --card:#182339; --card2:#1e2b46; --border:#2a3856;
+  --text:#e8ecf3; --muted:#8b96ad; --good:#22c55e; --warn:#f59e0b;
+  --bad:#ef4444; --info:#38bdf8; --accent:#eab308; --crit:#dc2626;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{background:#000;height:100vh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Inter,'Segoe UI',sans-serif;color:var(--text)}
+
+/* 16:9 canvas that scales to viewport */
+.wrap{
+  width:100vw; height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  background:#000;
+}
+.canvas{
+  width:100vw; height:56.25vw; max-height:100vh; max-width:177.78vh;
+  aspect-ratio:16/9;
+  background:var(--bg);
+  padding:18px;
+  display:grid;
+  grid-template-rows:auto 1fr;
+  gap:12px;
+}
+
+/* Header strip */
+header{
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid var(--border); padding-bottom:10px;
+}
+header .title{font-size:20px; font-weight:800; letter-spacing:-0.01em}
+header .title .sub{color:var(--muted); font-weight:400; margin-left:10px; font-size:13px}
+header .gen{color:var(--muted); font-size:11px; text-align:right}
+
+/* Main grid: 12 cols, tight */
+main{
+  display:grid; grid-template-columns:repeat(12,1fr);
+  grid-template-rows: 1fr 1fr;
+  gap:12px; min-height:0;
+}
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:6px; padding:10px 12px; min-height:0; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.card h2{
+  font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--muted); margin-bottom:6px; font-weight:700;
+  border-bottom:1px solid var(--border); padding-bottom:4px;
+}
+.card h2 .badge{
+  font-size:9px; background:var(--card2); color:var(--text);
+  padding:1px 6px; border-radius:999px; margin-left:6px; font-weight:600;
+  text-transform:none; letter-spacing:0;
+}
+
+/* Column spans */
+.c3{grid-column:span 3} .c4{grid-column:span 4} .c5{grid-column:span 5}
+.c6{grid-column:span 6} .c7{grid-column:span 7} .c8{grid-column:span 8}
+.c9{grid-column:span 9} .c12{grid-column:span 12}
+.r2{grid-row:span 2}
+
+/* Headline */
+.hero{
+  background:linear-gradient(90deg,rgba(220,38,38,0.18),rgba(220,38,38,0.03));
+  border-color:rgba(220,38,38,0.5);
+}
+.hero.good{
+  background:linear-gradient(90deg,rgba(34,197,94,0.18),rgba(34,197,94,0.03));
+  border-color:rgba(34,197,94,0.5);
+}
+.hero .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.hero .big{font-size:44px;font-weight:800;line-height:1;margin-top:4px;font-variant-numeric:tabular-nums}
+.hero .sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+/* Compact table */
+table{width:100%; border-collapse:collapse; font-size:11px}
+td,th{padding:3px 5px; border-bottom:1px solid var(--border); text-align:left}
+td.n{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+th{color:var(--muted); font-weight:600; text-transform:uppercase; font-size:9px; letter-spacing:0.05em}
+
+.rag{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.rag-r{background:var(--bad)} .rag-a{background:var(--warn)} .rag-g{background:var(--good)}
+
+.pill{display:inline-block;padding:1px 6px;border-radius:999px;font-size:9px;font-weight:600;background:var(--card2);color:var(--text)}
+.pill.crit{background:rgba(220,38,38,0.3);color:#fca5a5}
+.pill.warn{background:rgba(245,158,11,0.3);color:#fcd34d}
+.pill.good{background:rgba(34,197,94,0.3);color:#86efac}
+
+/* Chart container fills card */
+.chart-wrap{flex:1; min-height:0; position:relative}
+canvas{max-width:100% !important; max-height:100% !important}
+
+/* Small stat blocks */
+.stat-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+.stat{background:var(--card2); border-radius:4px; padding:6px 8px; flex:1; min-width:60px}
+.stat .lbl{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em}
+.stat .val{font-size:16px; font-weight:700; font-variant-numeric:tabular-nums}
+.stat .val.small{font-size:13px}
+
+/* Key finding line */
+.kf-line{font-size:11px; line-height:1.6; color:var(--text); padding:3px 0; border-bottom:1px dotted var(--border)}
+.kf-line b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="canvas">
+
+<header>
+  <div class="title">
+    Fly River Hydrology
+    <span class="sub">11-year deep dive · wall-display view · 6.5 m shipping trigger</span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <a href="fly-river-hydrology.html" style="background:#182339;border:1px solid var(--border);padding:6px 10px;border-radius:5px;color:var(--info);text-decoration:none;font-size:10px;font-weight:600">Full detail view →</a>
+    <a href="index.html" style="background:#182339;border:1px solid var(--border);padding:6px 10px;border-radius:5px;color:var(--accent);text-decoration:none;font-size:10px;font-weight:600">OTML Live ↩</a>
+    <div class="gen" id="gen"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Hero: current Kiunga status -->
+  <section class="card hero c4" id="heroCard">
+    <div class="lbl">Kiunga Shipping Datum</div>
+    <div class="big" id="kiungaBig">—</div>
+    <div class="sub" id="kiungaSub">—</div>
+    <div class="stat-row">
+      <div class="stat"><div class="lbl">P (Aug)</div><div class="val small" id="pAug">—</div></div>
+      <div class="stat"><div class="lbl">Aug median</div><div class="val small" id="augMed">—</div></div>
+      <div class="stat"><div class="lbl">Aug P10</div><div class="val small" id="augP10">—</div></div>
+    </div>
+  </section>
+
+  <!-- Station status matrix -->
+  <section class="card c4">
+    <h2>Current system status <span class="badge">medians · sensor filtered</span></h2>
+    <div style="overflow-y:auto;flex:1;min-height:0">
+      <table id="statusTbl"></table>
+    </div>
+  </section>
+
+  <!-- Forecast + recession -->
+  <section class="card c4">
+    <h2>Forecast + recession</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="lbl">Rain-rise (BIA)</div><div class="val small">0.007 m/mm</div></div>
+      <div class="stat"><div class="lbl">Dry-amp</div><div class="val small">4×</div></div>
+      <div class="stat"><div class="lbl">Peak lag</div><div class="val small">48 h</div></div>
+    </div>
+    <div style="margin-top:8px">
+      <div class="lbl" style="font-size:10px;color:var(--muted);text-transform:uppercase">Recession · no rain scenario (from 1.21 m)</div>
+      <table style="margin-top:4px">
+        <tr><td>Half-life</td><td class="n">10.5 d</td></tr>
+        <tr><td>Days to 0.6 m</td><td class="n">10 d</td></tr>
+        <tr><td>Days to 0.36 m</td><td class="n">17 d</td></tr>
+        <tr><td>Days to 0.12 m</td><td class="n">35 d</td></tr>
+      </table>
+      <div class="lbl" style="font-size:9px;margin-top:6px;color:var(--muted)">Fitted k = 0.066/day (N=14 recession segments, IQR 0.051–0.088)</div>
+    </div>
+  </section>
+
+  <!-- Live event chart -->
+  <section class="card c8">
+    <h2>Live event · 27-29 Aug 2026 <span class="badge good">BIA-driven, 164 mm at Biangabip</span></h2>
+    <div class="chart-wrap">
+      <canvas id="eventChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Key findings -->
+  <section class="card c4">
+    <h2>Key findings <span class="badge">from 608 k data points</span></h2>
+    <div style="flex:1; overflow-y:auto; min-height:0">
+      <div class="kf-line"><b>Lag times (peak):</b> BIA 34 h · OLS 29 h · Palmer 31 h · Combined 48 h (r=0.56)</div>
+      <div class="kf-line"><b>First rise lag:</b> 5-16 h after peak rain intensity (leading edge, surface flow)</div>
+      <div class="kf-line"><b>Mainstem routing:</b> Kiunga → Kuambit 4 h (r=0.91); Manda/Obo ~7 d</div>
+      <div class="kf-line"><b>Recession:</b> k=0.066/day, half-life 10.5 d (2.4× slower than prior heuristic)</div>
+      <div class="kf-line"><b>Sensitivity:</b> ~0.7 m/100 mm rain — but <b>4× in dry catchment</b> (validated 28 Aug event: 7.8× amplification)</div>
+      <div class="kf-line"><b>Aug 2026:</b> Kiunga 1.21 m = P1.9 (bottom 2 % of Augusts across 11 years). Manda P1.5 · Kuambit P3.0 · Obo P15.7</div>
+      <div class="kf-line"><b>Kiunga catchment weighting:</b> BIA drives 77 %, OLS 6 %, Palmer 17 %</div>
+    </div>
+  </section>
+
+</main>
+
+</div>
+</div>
+
+<script>
+// Inline the bundle
+</script>
+<script>window.HYDRO = {"current_status":{"BIA_rain":{"column":"BIA01 - Biangabip: Rain_Tot[mm]","latest_ts":"2026-08-29T16:00:00","latest_value":0.0,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":0.0,"latest_value_raw_last_reading":1.0,"current_month":8,"month_median_all_years":0.0,"month_p10":0.0,"month_p90":0.0,"percentile_rank_pct":100.0,"years_of_data_for_month":9},"OLS_rain":{"column":"OLS01 - Olsobip: Rain10Minute[mm]","latest_ts":"2026-08-29T16:00:00","latest_value":0.0,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":0.0,"latest_value_raw_last_reading":0.0,"current_month":8,"month_median_all_years":0.0,"month_p10":0.0,"month_p90":0.0,"percentile_rank_pct":100.0,"years_of_data_for_month":12},"FLY01_rain":{"column":"FLY01 - Palmer River: Rain10Minute[mm]","latest_ts":"2026-08-29T05:00:00","latest_value":0.0,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":0.0,"latest_value_raw_last_reading":0.0,"current_month":8,"month_median_all_years":0.0,"month_p10":0.0,"month_p90":0.0,"percentile_rank_pct":99.64,"years_of_data_for_month":9},"FLY01_lvl":{"column":"FLY01 - Palmer River: StreamLevel[m]","latest_ts":"2026-08-29T05:00:00","latest_value":20.755,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":21.53,"latest_value_raw_last_reading":23.41,"current_month":8,"month_median_all_years":22.915,"month_p10":20.764,"month_p90":25.731,"percentile_rank_pct":9.85,"years_of_data_for_month":11},"KIU_ship":{"column":"FLY05 - Kiunga: StreamLevel_ShippingDatum[m]","latest_ts":"2026-08-29T16:00:00","latest_value":1.212,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":2.202,"latest_value_raw_last_reading":5.022,"current_month":8,"month_median_all_years":9.542,"month_p10":2.942,"month_p90":10.882,"percentile_rank_pct":1.86,"years_of_data_for_month":7},"KIU_ohd":{"column":"FLY05 - Kiunga: StreamLevel_OHD_Datum[m]","latest_ts":"2026-08-29T16:00:00","latest_value":11.55,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":12.54,"latest_value_raw_last_reading":15.36,"current_month":8,"month_median_all_years":19.88,"month_p10":13.28,"month_p90":21.22,"percentile_rank_pct":1.86,"years_of_data_for_month":7},"MAN_lvl":{"column":"FLY17 - Manda: StreamLevel[m]","latest_ts":"2026-08-29T16:00:00","latest_value":0.452,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":0.474,"latest_value_raw_last_reading":0.696,"current_month":8,"month_median_all_years":8.4,"month_p10":3.663,"month_p90":9.64,"percentile_rank_pct":1.52,"years_of_data_for_month":9},"KUA_lvl":{"column":"FLY10 - Kuambit: StreamLevel[m]","latest_ts":"2026-08-29T16:00:00","latest_value":10.87,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":11.8,"latest_value_raw_last_reading":14.44,"current_month":8,"month_median_all_years":17.335,"month_p10":12.2,"month_p90":20.51,"percentile_rank_pct":3.05,"years_of_data_for_month":5},"KUI_flow":{"column":"FLY26 - Kuima: StreamFlowRate[m3/s]","latest_ts":"2026-08-29T16:00:00","latest_value":2673.0,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":1320.0,"latest_value_raw_last_reading":1005.0,"current_month":8,"month_median_all_years":6193.695,"month_p10":2674.0,"month_p90":7179.9995,"percentile_rank_pct":3.94,"years_of_data_for_month":9},"OBO_lvl":{"column":"FLY15 - Obo: StreamLevel[m]","latest_ts":"2026-08-29T16:00:00","latest_value":2.507,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":-0.176,"latest_value_raw_last_reading":-0.154,"current_month":8,"month_median_all_years":5.1305,"month_p10":2.507,"month_p90":6.0568,"percentile_rank_pct":15.65,"years_of_data_for_month":9},"AIA_lvl":{"column":"FLY19 - Aiambak: StreamLevel[m]","latest_ts":"2026-08-29T16:00:00","latest_value":0.4555,"latest_value_desc":"median of most recent 7 daily-median values (robust to sensor spikes)","latest_value_24h_median":0.593,"latest_value_raw_last_reading":0.728,"current_month":8,"month_median_all_years":0.4703,"month_p10":-0.1278,"month_p90":1.7571,"percentile_rank_pct":50.0,"years_of_data_for_month":1}},"seasonal":{"Kiunga_ShippingDatum":{"monthly_stats":{"1":{"median":8.002,"p10":5.672,"p90":9.932,"mean":7.947,"n_days":217},"2":{"median":8.242,"p10":5.372,"p90":10.192,"mean":7.984,"n_days":198},"3":{"median":7.892,"p10":5.972,"p90":9.642,"mean":7.834,"n_days":217},"4":{"median":8.852,"p10":6.392,"p90":10.252,"mean":8.524,"n_days":210},"5":{"median":9.582,"p10":6.712,"p90":11.032,"mean":9.249,"n_days":207},"6":{"median":9.002,"p10":5.682,"p90":10.382,"mean":8.435,"n_days":208},"7":{"median":9.702,"p10":5.432,"p90":11.192,"mean":8.981,"n_days":217},"8":{"median":9.532,"p10":2.852,"p90":10.882,"mean":8.155,"n_days":215},"9":{"median":9.852,"p10":7.292,"p90":11.102,"mean":9.466,"n_days":180},"10":{"median":9.012,"p10":6.692,"p90":10.142,"mean":8.67,"n_days":209},"11":{"median":7.732,"p10":5.342,"p90":9.092,"mean":7.421,"n_days":210},"12":{"median":7.842,"p10":5.072,"p90":9.862,"mean":7.675,"n_days":217}},"yearly_monthly_means":{"2019":{"10":7.382,"11":6.722,"12":4.302},"2020":{"1":6.832,"2":7.502,"3":8.192,"4":8.792,"5":10.142,"6":9.782,"7":10.082,"8":9.882,"9":10.082,"10":9.442,"11":7.802,"12":7.822},"2021":{"1":9.842,"2":7.882,"3":9.012,"4":9.272,"5":9.562,"6":8.582,"7":8.912,"8":9.427,"9":10.312,"10":8.597,"11":8.092,"12":7.572},"2022":{"1":7.332,"2":5.642,"3":7.322,"4":6.772,"5":6.552,"6":8.062,"7":11.032,"8":9.942,"9":9.002,"10":9.592,"11":7.812,"12":8.132},"2023":{"1":7.472,"2":9.232,"3":6.432,"4":8.492,"5":9.442,"6":7.502,"7":8.797,"8":5.812,"9":8.652,"10":8.222,"11":5.952,"12":7.072},"2024":{"1":8.312,"2":8.807,"3":8.627,"4":10.152,"5":10.972,"6":10.552,"7":9.762,"8":10.102,"9":9.362,"10":8.882,"11":7.732,"12":9.607},"2025":{"1":8.922,"2":8.312,"3":9.002,"4":9.672,"5":9.152,"6":9.252,"7":10.147,"8":10.512,"9":10.702,"10":9.262,"11":8.552,"12":9.427},"2026":{"1":7.007,"2":9.512,"3":7.112,"4":7.302,"5":9.292,"6":5.302,"7":4.902,"8":1.912}},"method_note":"MEDIAN (was mean); values filtered 0 \u2264 x \u2264 30 m to drop sensor spikes"},"Manda":{"monthly_stats":{"1":{"median":7.822,"p10":6.58,"p90":9.08,"mean":7.859,"n_days":248},"2":{"median":7.631,"p10":6.427,"p90":9.27,"mean":7.831,"n_days":226},"3":{"median":8.27,"p10":7.16,"p90":9.01,"mean":8.209,"n_days":247},"4":{"median":8.41,"p10":7.525,"p90":9.59,"mean":8.598,"n_days":243},"5":{"median":9.0,"p10":7.135,"p90":10.02,"mean":8.839,"n_days":248},"6":{"median":9.04,"p10":6.35,"p90":10.01,"mean":8.564,"n_days":240},"7":{"median":8.84,"p10":5.231,"p90":9.87,"mean":8.315,"n_days":248},"8":{"median":8.43,"p10":3.664,"p90":9.64,"mean":8.025,"n_days":263},"9":{"median":8.76,"p10":4.409,"p90":9.95,"mean":7.858,"n_days":240},"10":{"median":8.389,"p10":4.628,"p90":9.67,"mean":7.968,"n_days":248},"11":{"median":8.42,"p10":5.785,"p90":9.25,"mean":7.869,"n_days":240},"12":{"median":8.17,"p10":4.669,"p90":8.98,"mean":7.344,"n_days":248}},"yearly_monthly_means":{"2018":{"4":19.21,"8":7.731,"9":3.918,"10":4.376,"11":6.041,"12":5.274},"2019":{"1":7.504,"2":6.976,"3":8.22,"4":8.63,"5":9.16,"6":9.33,"7":9.27,"8":8.19,"9":6.203,"10":7.808,"11":7.542,"12":4.468},"2020":{"1":6.118,"2":6.385,"3":6.918,"4":8.2,"5":9.2,"6":9.4,"7":9.31,"8":9.58,"9":9.08,"10":9.25,"11":9.08,"12":8.3},"2021":{"1":8.88,"2":9.4,"3":8.9,"4":9.41,"5":8.98,"6":8.77,"7":8.11,"8":8.14,"9":8.6,"10":9.48,"11":8.55,"12":8.55},"2022":{"1":7.728,"2":7.012,"3":7.783,"4":7.027,"5":6.957,"6":6.393,"7":8.02,"8":9.59,"9":8.99,"10":6.475,"11":8.36,"12":8.14},"2023":{"1":7.992,"2":8.64,"3":8.57,"4":8.09,"5":8.61,"6":8.27,"7":7.786,"8":6.174,"9":6.941,"10":7.53,"11":6.281,"12":6.44},"2024":{"1":7.171,"2":7.578,"3":8.44,"4":9.25,"5":10.35,"6":10.16,"7":9.66,"8":9.19,"9":9.35,"10":9.01,"11":8.46,"12":8.57},"2025":{"1":9.08,"2":9.21,"3":9.01,"4":9.63,"5":9.81,"6":9.72,"7":9.89,"8":9.41,"9":10.06,"10":9.97,"11":9.28,"12":9.01},"2026":{"1":8.65,"2":7.591,"3":8.17,"4":8.05,"5":7.811,"6":6.943,"7":4.793,"8":3.663}},"method_note":"MEDIAN (was mean); values filtered 0 \u2264 x \u2264 30 m to drop sensor spikes"},"Kuambit":{"monthly_stats":{"1":{"median":17.27,"p10":15.01,"p90":18.66,"mean":17.078,"n_days":119},"2":{"median":18.18,"p10":16.254,"p90":19.25,"mean":17.947,"n_days":113},"3":{"median":17.18,"p10":15.45,"p90":19.475,"mean":17.215,"n_days":117},"4":{"median":17.97,"p10":15.71,"p90":19.73,"mean":17.762,"n_days":106},"5":{"median":18.39,"p10":17.17,"p90":19.14,"mean":18.229,"n_days":93},"6":{"median":17.03,"p10":14.07,"p90":18.783,"mean":16.789,"n_days":90},"7":{"median":17.285,"p10":13.13,"p90":20.533,"mean":17.136,"n_days":91},"8":{"median":17.37,"p10":11.62,"p90":20.51,"mean":16.565,"n_days":131},"9":{"median":18.43,"p10":16.65,"p90":20.21,"mean":18.51,"n_days":120},"10":{"median":18.15,"p10":14.94,"p90":18.97,"mean":17.606,"n_days":124},"11":{"median":16.998,"p10":14.12,"p90":18.08,"mean":16.65,"n_days":120},"12":{"median":17.28,"p10":14.94,"p90":18.8,"mean":17.015,"n_days":124}},"yearly_monthly_means":{"2022":{"8":17.54,"9":17.97,"10":18.52,"11":16.87,"12":17.38},"2023":{"1":16.41,"2":18.225,"3":15.77,"4":17.49,"5":18.61,"6":16.72,"7":17.39,"8":14.61,"9":17.41,"10":17.19,"11":15.22,"12":16.23},"2024":{"1":17.46,"2":18.61,"3":18.74,"4":20.14,"8":19.09,"9":18.527,"10":17.925,"11":17.054,"12":17.934},"2025":{"1":18.05,"2":17.71,"3":17.99,"4":18.728,"5":18.254,"6":18.543,"7":20.34,"8":20.445,"9":20.06,"10":18.29,"11":17.74,"12":18.43},"2026":{"1":15.66,"2":18.08,"3":16.53,"4":16.32,"5":18.4,"6":15.21,"7":14.23,"8":12.75}},"method_note":"MEDIAN (was mean); values filtered 0 \u2264 x \u2264 30 m to drop sensor spikes"},"Obo":{"monthly_stats":{"1":{"median":5.005,"p10":3.491,"p90":5.974,"mean":4.881,"n_days":248},"2":{"median":4.573,"p10":3.68,"p90":6.377,"mean":4.935,"n_days":226},"3":{"median":5.37,"p10":4.467,"p90":6.251,"mean":5.336,"n_days":248},"4":{"median":5.508,"p10":4.417,"p90":6.926,"mean":5.66,"n_days":240},"5":{"median":6.218,"p10":3.648,"p90":7.55,"mean":5.79,"n_days":248},"6":{"median":5.991,"p10":3.101,"p90":6.955,"mean":5.464,"n_days":240},"7":{"median":5.296,"p10":2.508,"p90":6.825,"mean":5.119,"n_days":248},"8":{"median":5.147,"p10":2.507,"p90":6.069,"mean":4.751,"n_days":262},"9":{"median":5.135,"p10":3.299,"p90":6.064,"mean":4.789,"n_days":239},"10":{"median":5.167,"p10":3.977,"p90":6.336,"mean":5.034,"n_days":248},"11":{"median":4.729,"p10":2.931,"p90":6.106,"mean":4.6,"n_days":240},"12":{"median":5.042,"p10":2.148,"p90":5.875,"mean":4.378,"n_days":243}},"yearly_monthly_means":{"2018":{"8":4.043,"9":4.043,"10":4.043,"11":2.904,"12":2.274},"2019":{"1":4.17,"2":4.187,"3":5.126,"4":5.709,"5":6.271,"6":6.007,"7":5.629,"8":4.592,"9":3.391,"10":4.131,"11":4.208,"12":2.261},"2020":{"1":3.377,"2":3.643,"3":4.203,"4":5.365,"5":6.138,"6":6.126,"7":5.579,"8":5.623,"9":5.34,"10":5.454,"11":5.478,"12":5.109},"2021":{"1":5.978,"2":6.488,"3":6.124,"4":6.732,"5":6.393,"6":6.238,"7":5.068,"8":5.106,"9":5.021,"10":5.778,"11":5.149,"12":5.4},"2022":{"1":4.809,"2":4.323,"3":4.822,"4":4.399,"5":4.199,"6":3.464,"7":4.776,"8":5.59,"9":5.329,"10":5.241,"11":4.857,"12":4.91},"2023":{"1":5.154,"2":5.98,"3":5.667,"4":5.165,"5":5.345,"6":5.001,"7":4.355,"8":3.134,"9":3.448,"10":4.001,"11":3.311,"12":3.487},"2024":{"1":4.381,"2":4.432,"3":5.45,"4":6.3,"5":7.702,"6":7.13,"7":6.194,"8":5.4,"9":5.449,"10":5.123,"11":4.553,"12":5.288},"2025":{"1":5.78,"2":6.044,"3":6.132,"4":7.044,"5":7.374,"6":6.86,"7":7.28,"8":6.399,"9":6.541,"10":6.749,"11":6.233,"12":5.929},"2026":{"1":5.694,"2":4.605,"3":5.348,"4":5.219,"5":2.986,"6":2.59,"7":2.507,"8":2.507}},"method_note":"MEDIAN (was mean); values filtered 0 \u2264 x \u2264 30 m to drop sensor spikes"},"Aiambak":{"monthly_stats":{"8":{"median":0.483,"p10":0.339,"p90":0.835,"mean":1.348,"n_days":9}},"yearly_monthly_means":{"2026":{"8":0.483}},"method_note":"MEDIAN (was mean); values filtered 0 \u2264 x \u2264 30 m to drop sensor spikes"}},"lag_correlations":{"BIA01_rain__to__Kiunga_ShippingDatum_level":{"lag_hours":34,"pearson_r":0.2997,"n_pairs":59910},"BIA01_rain__to__Manda_level":{"lag_hours":157,"pearson_r":0.0838,"n_pairs":70463},"BIA01_rain__to__Kuambit_level":{"lag_hours":53,"pearson_r":0.2851,"n_pairs":32153},"BIA01_rain__to__Kuima_flow_level":{"lag_hours":71,"pearson_r":0.1067,"n_pairs":62293},"BIA01_rain__to__Obo_level":{"lag_hours":116,"pearson_r":0.1051,"n_pairs":70079},"BIA01_rain__to__Aiambak_level":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"OLS01_rain__to__Kiunga_ShippingDatum_level":{"lag_hours":29,"pearson_r":0.2852,"n_pairs":59910},"OLS01_rain__to__Manda_level":{"lag_hours":157,"pearson_r":0.1025,"n_pairs":70463},"OLS01_rain__to__Kuambit_level":{"lag_hours":30,"pearson_r":0.2899,"n_pairs":32153},"OLS01_rain__to__Kuima_flow_level":{"lag_hours":74,"pearson_r":0.0931,"n_pairs":62293},"OLS01_rain__to__Obo_level":{"lag_hours":168,"pearson_r":0.1143,"n_pairs":70079},"OLS01_rain__to__Aiambak_level":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"FLY01_Palmer_rain__to__Kiunga_ShippingDatum_level":{"lag_hours":31,"pearson_r":0.2861,"n_pairs":59910},"FLY01_Palmer_rain__to__Manda_level":{"lag_hours":168,"pearson_r":0.1156,"n_pairs":70407},"FLY01_Palmer_rain__to__Kuambit_level":{"lag_hours":83,"pearson_r":0.2873,"n_pairs":32153},"FLY01_Palmer_rain__to__Kuima_flow_level":{"lag_hours":136,"pearson_r":0.1186,"n_pairs":62293},"FLY01_Palmer_rain__to__Obo_level":{"lag_hours":140,"pearson_r":0.1281,"n_pairs":70079},"FLY01_Palmer_rain__to__Aiambak_level":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"Kiunga_level__to__Manda_level":{"lag_hours":168,"pearson_r":0.6555,"n_pairs":59684},"Kiunga_level__to__Kuambit_level":{"lag_hours":4,"pearson_r":0.9102,"n_pairs":31746},"Kiunga_level__to__Kuima_flow_level":{"lag_hours":113,"pearson_r":0.5296,"n_pairs":51807},"Kiunga_level__to__Obo_level":{"lag_hours":168,"pearson_r":0.5973,"n_pairs":59379},"Kiunga_level__to__Aiambak_level":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"BIA01_rain__to__Kiunga_ShippingDatum_level__daily3d":{"lag_hours":48,"pearson_r":0.4218,"n_pairs":2506},"BIA01_rain__to__Manda_level__daily3d":{"lag_hours":144,"pearson_r":0.0876,"n_pairs":2939},"BIA01_rain__to__Kuambit_level__daily3d":{"lag_hours":48,"pearson_r":0.4066,"n_pairs":1348},"BIA01_rain__to__Kuima_flow_level__daily3d":{"lag_hours":96,"pearson_r":0.1677,"n_pairs":2673},"BIA01_rain__to__Obo_level__daily3d":{"lag_hours":120,"pearson_r":0.1625,"n_pairs":2930},"BIA01_rain__to__Aiambak_level__daily3d":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"OLS01_rain__to__Kiunga_ShippingDatum_level__daily3d":{"lag_hours":48,"pearson_r":0.4008,"n_pairs":2506},"OLS01_rain__to__Manda_level__daily3d":{"lag_hours":144,"pearson_r":0.1263,"n_pairs":2939},"OLS01_rain__to__Kuambit_level__daily3d":{"lag_hours":48,"pearson_r":0.4174,"n_pairs":1348},"OLS01_rain__to__Kuima_flow_level__daily3d":{"lag_hours":72,"pearson_r":0.158,"n_pairs":2673},"OLS01_rain__to__Obo_level__daily3d":{"lag_hours":168,"pearson_r":0.1685,"n_pairs":2930},"OLS01_rain__to__Aiambak_level__daily3d":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"FLY01_Palmer_rain__to__Kiunga_ShippingDatum_level__daily3d":{"lag_hours":48,"pearson_r":0.4385,"n_pairs":2506},"FLY01_Palmer_rain__to__Manda_level__daily3d":{"lag_hours":168,"pearson_r":0.1858,"n_pairs":2936},"FLY01_Palmer_rain__to__Kuambit_level__daily3d":{"lag_hours":72,"pearson_r":0.4493,"n_pairs":1348},"FLY01_Palmer_rain__to__Kuima_flow_level__daily3d":{"lag_hours":168,"pearson_r":0.1997,"n_pairs":2673},"FLY01_Palmer_rain__to__Obo_level__daily3d":{"lag_hours":168,"pearson_r":0.2138,"n_pairs":2930},"FLY01_Palmer_rain__to__Aiambak_level__daily3d":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"Combined_upstream_rain__to__Kiunga_ShippingDatum_level__daily3d":{"lag_hours":48,"pearson_r":0.5642,"n_pairs":2506},"Combined_upstream_rain__to__Manda_level__daily3d":{"lag_hours":144,"pearson_r":0.1509,"n_pairs":2939},"Combined_upstream_rain__to__Kuambit_level__daily3d":{"lag_hours":48,"pearson_r":0.5695,"n_pairs":1348},"Combined_upstream_rain__to__Kuima_flow_level__daily3d":{"lag_hours":96,"pearson_r":0.2323,"n_pairs":2673},"Combined_upstream_rain__to__Obo_level__daily3d":{"lag_hours":168,"pearson_r":0.2438,"n_pairs":2930},"Combined_upstream_rain__to__Aiambak_level__daily3d":{"lag_hours":null,"pearson_r":null,"n_pairs":0},"Kiunga_level__to__Manda_level__daily":{"lag_hours":168,"pearson_r":0.6618,"n_pairs":2498},"Kiunga_level__to__Kuambit_level__daily":{"lag_hours":0,"pearson_r":0.9106,"n_pairs":1337},"Kiunga_level__to__Kuima_flow_level__daily":{"lag_hours":72,"pearson_r":0.5434,"n_pairs":2245},"Kiunga_level__to__Obo_level__daily":{"lag_hours":168,"pearson_r":0.6031,"n_pairs":2493},"Kiunga_level__to__Aiambak_level__daily":{"lag_hours":null,"pearson_r":null,"n_pairs":0}},"rainfall_to_rise":{"BIA01":{"slope_m_per_mm":0.007223,"intercept_m":0.0508,"r_squared":0.0394,"N":2495},"OLS01":{"slope_m_per_mm":0.007076,"intercept_m":0.0816,"r_squared":0.0258,"N":2501},"FLY01_Palmer":{"slope_m_per_mm":0.007585,"intercept_m":0.0552,"r_squared":0.0538,"N":2492}},"recession":{"Kiunga_ShippingDatum":{"median_k_per_day":0.06587,"mean_k_per_day":0.07707,"p25_k_per_day":0.05142,"p75_k_per_day":0.08825,"median_half_life_days":10.52,"N_segments":14,"median_segment_length_days":5,"median_segment_drop_m":1.805,"criteria":"3d station-averaged rain sum <= 20 mm AND 3d-smoothed level falling AND >=5 consecutive days AND drop>=2cm"},"Manda":{"median_k_per_day":0.01444,"mean_k_per_day":0.02089,"p25_k_per_day":0.00634,"p75_k_per_day":0.02838,"median_half_life_days":48.02,"N_segments":11,"median_segment_length_days":8,"median_segment_drop_m":0.761,"criteria":"3d station-averaged rain sum <= 20 mm AND 3d-smoothed level falling AND >=5 consecutive days AND drop>=2cm"},"Kuambit":{"median_k_per_day":0.02614,"mean_k_per_day":0.02379,"p25_k_per_day":0.01955,"p75_k_per_day":0.03012,"median_half_life_days":26.52,"N_segments":9,"median_segment_length_days":7,"median_segment_drop_m":2.308,"criteria":"3d station-averaged rain sum <= 20 mm AND 3d-smoothed level falling AND >=5 consecutive days AND drop>=2cm"},"Obo":{"median_k_per_day":0.03595,"mean_k_per_day":0.03703,"p25_k_per_day":0.0161,"p75_k_per_day":0.0482,"median_half_life_days":19.28,"N_segments":10,"median_segment_length_days":6,"median_segment_drop_m":0.554,"criteria":"3d station-averaged rain sum <= 20 mm AND 3d-smoothed level falling AND >=5 consecutive days AND drop>=2cm"},"Aiambak":{"median_k_per_day":null,"median_half_life_days":null,"N_segments":0}}}; window.EVENT = {"timestamps":["2026-08-27 00:00","2026-08-27 01:00","2026-08-27 02:00","2026-08-27 03:00","2026-08-27 04:00","2026-08-27 05:00","2026-08-27 06:00","2026-08-27 07:00","2026-08-27 08:00","2026-08-27 09:00","2026-08-27 10:00","2026-08-27 11:00","2026-08-27 12:00","2026-08-27 13:00","2026-08-27 14:00","2026-08-27 15:00","2026-08-27 16:00","2026-08-27 17:00","2026-08-27 18:00","2026-08-27 19:00","2026-08-27 20:00","2026-08-27 21:00","2026-08-27 22:00","2026-08-27 23:00","2026-08-28 00:00","2026-08-28 01:00","2026-08-28 02:00","2026-08-28 03:00","2026-08-28 04:00","2026-08-28 05:00","2026-08-28 06:00","2026-08-28 07:00","2026-08-28 08:00","2026-08-28 09:00","2026-08-28 10:00","2026-08-28 11:00","2026-08-28 12:00","2026-08-28 13:00","2026-08-28 14:00","2026-08-28 15:00","2026-08-28 16:00","2026-08-28 17:00","2026-08-28 18:00","2026-08-28 19:00","2026-08-28 20:00","2026-08-28 21:00","2026-08-28 22:00","2026-08-28 23:00","2026-08-29 00:00","2026-08-29 01:00","2026-08-29 02:00","2026-08-29 03:00","2026-08-29 04:00","2026-08-29 05:00","2026-08-29 06:00","2026-08-29 07:00","2026-08-29 08:00","2026-08-29 09:00","2026-08-29 10:00","2026-08-29 11:00","2026-08-29 12:00","2026-08-29 13:00","2026-08-29 14:00","2026-08-29 15:00","2026-08-29 16:00"],"kiunga_level_m":[1.152,1.152,1.152,1.15,1.152,1.152,1.149,1.144,1.144,1.137,1.135,1.139,1.134,1.134,1.134,1.13,1.132,1.13,1.132,1.132,1.132,1.13,1.124,1.132,1.129,1.13,1.132,1.132,1.132,1.132,1.135,1.14,1.142,1.137,1.14,1.139,1.149,1.15,1.15,1.159,1.162,1.17,1.177,1.187,1.197,1.207,1.227,1.262,1.347,1.517,1.764,2.039,2.312,2.585,2.842,3.027,3.215,3.444,3.684,3.929,4.172,4.415,4.654,4.889,5.022],"bia_rain_mm_hourly":[0.0,0.0,0.0,0.0,0.0,0.0,3.0,1.0,1.0,2.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,9.0,3.0,0.0,12.0,4.0,1.0,2.0,3.0,11.0,4.0,1.0,0.0,2.0,1.0,0.0,3.0,2.0,11.0,15.0,9.0,24.0,3.0,3.0,1.0,1.0,1.0,2.0,1.0,1.0,6.0,1.0,1.0,2.0,3.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,2.0,6.0,1.0],"markers":{"rain_start":"2026-08-27 06:00","rain_peak":"2026-08-28 16:00","kiunga_first_rise":"2026-08-28 21:00","kiunga_plus1m":"2026-08-29 04:00","kiunga_plus2m_shipping_trigger":"2026-08-29 08:00","kiunga_latest":"2026-08-29 16:00"},"lags_hours":{"rain_start_to_first_rise":39,"rain_start_to_plus1m":46,"rain_peak_to_first_rise":5,"rain_peak_to_clear_rise":9,"rain_peak_to_plus1m":12,"rain_peak_to_plus2m":16},"totals":{"bia_mm":164,"ols_mm":13,"palmer_mm":37,"kiunga_rise_m_so_far":3.87,"model_prediction_m":0.5,"amplification_factor":7.8}};</script>
+<script>
+const H = window.HYDRO || {};
+const E = window.EVENT || {};
+const fmt = (n,d=2) => (n==null||isNaN(n))?'—':Number(n).toFixed(d);
+
+// Hero
+(function renderHero() {
+  const st = (H.current_status || {}).KIU_ship || {};
+  const kiu = st.latest_value;
+  document.getElementById('kiungaBig').textContent = fmt(kiu,2) + ' m';
+  const above = kiu >= 4;
+  document.getElementById('kiungaSub').textContent = above
+    ? `ABOVE 6.5 m trigger ✓ (+${fmt(kiu-4,2)} m). Latest raw reading ${fmt(st.latest_value_raw_last_reading,2)} m at ${st.latest_ts || '—'}.`
+    : `BELOW 6.5 m trigger (short by ${fmt(4-kiu,2)} m). Latest raw reading ${fmt(st.latest_value_raw_last_reading,2)} m at ${st.latest_ts || '—'}.`;
+  document.getElementById('heroCard').classList.toggle('good', above);
+  document.getElementById('pAug').textContent = 'P' + fmt(st.percentile_rank_pct,1);
+  document.getElementById('augMed').textContent = fmt(st.month_median_all_years,2) + ' m';
+  document.getElementById('augP10').textContent = fmt(st.month_p10,2) + ' m';
+})();
+
+// Status table
+(function renderStatus() {
+  const S = H.current_status || {};
+  const rows = [
+    ['KIU_ship',   'Kiunga (Ship Dat)', 'm'],
+    ['MAN_lvl',    'Manda',              'm'],
+    ['KUA_lvl',    'Kuambit',            'm'],
+    ['OBO_lvl',    'Obo',                'm'],
+    ['KUI_flow',   'Kuima',              'm³/s'],
+    ['FLY01_lvl',  'Palmer',             'm'],
+    ['AIA_lvl',    'Aiambak',            'm'],
+  ];
+  const html = ['<thead><tr><th>Station</th><th style="text-align:right">Now</th><th style="text-align:right">Aug med</th><th style="text-align:right">P</th></tr></thead><tbody>'];
+  rows.forEach(([k, label, unit]) => {
+    const s = S[k];
+    if (!s) return;
+    const p = s.percentile_rank_pct;
+    const rag = p==null?'a':(p<10?'r':(p<40?'a':'g'));
+    html.push(`<tr>
+      <td><span class="rag rag-${rag}"></span>${label}</td>
+      <td class="n">${fmt(s.latest_value, unit==='m'?2:0)}</td>
+      <td class="n">${fmt(s.month_median_all_years, unit==='m'?2:0)}</td>
+      <td class="n">${p==null?'—':'P'+fmt(p,1)}</td>
+    </tr>`);
+  });
+  html.push('</tbody>');
+  document.getElementById('statusTbl').innerHTML = html.join('');
+})();
+
+// Event chart
+(function renderEvent() {
+  if (!E || !E.timestamps) return;
+  const ctx = document.getElementById('eventChart');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: E.timestamps.map(t => t.slice(5).replace('2026-','')),
+      datasets: [
+        {
+          label:'Kiunga level (m)',
+          data: E.kiunga_level_m,
+          borderColor:'#38bdf8',
+          backgroundColor:'rgba(56,189,248,0.15)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.2,
+          yAxisID: 'y',
+          fill: true,
+        },
+        {
+          label:'BIA hourly rain (mm)',
+          data: E.bia_rain_mm_hourly,
+          type: 'bar',
+          backgroundColor:'rgba(251,191,36,0.7)',
+          yAxisID:'y1',
+        },
+        {
+          label:'6.5 m shipping trigger',
+          data: E.timestamps.map(() => 4.0),
+          borderColor:'#22c55e',
+          borderDash:[6,4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          yAxisID:'y',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: {mode:'index', intersect:false},
+      plugins: {
+        legend:{labels:{color:'#e8ecf3', font:{size:10}, boxWidth:12}},
+        tooltip:{backgroundColor:'#0b1220', borderColor:'#38bdf8', borderWidth:1}
+      },
+      scales: {
+        x:{ticks:{color:'#8b96ad', maxTicksLimit:10, font:{size:9}}, grid:{color:'#2a3856'}},
+        y:{title:{display:true, text:'Level (m)', color:'#38bdf8', font:{size:10}}, ticks:{color:'#38bdf8', font:{size:9}}, grid:{color:'#2a3856'}, min:0},
+        y1:{position:'right', title:{display:true, text:'Rain (mm/h)', color:'#f59e0b', font:{size:10}}, ticks:{color:'#f59e0b', font:{size:9}}, grid:{drawOnChartArea:false}, min:0, max:30}
+      }
+    }
+  });
+})();
+
+document.getElementById('gen').textContent = 'Generated ' + new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC · data through 2026-08-29';
+</script>
+</body>
+</html>
