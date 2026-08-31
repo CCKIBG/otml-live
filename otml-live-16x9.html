@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>OTML Live — 16:9 Wall View</title>
+<style>
+:root{--bg:#0b1220;--card:#182339;--card2:#1e2b46;--border:#2a3856;--text:#e8ecf3;--muted:#8b96ad;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--info:#38bdf8;--accent:#eab308}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;height:100vh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Inter,'Segoe UI',sans-serif;color:var(--text)}
+.wrap{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;background:#000}
+.canvas{width:100vw;height:56.25vw;max-height:100vh;max-width:177.78vh;aspect-ratio:16/9;background:var(--bg);padding:14px;display:grid;grid-template-rows:auto 1fr;gap:10px}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap;gap:8px}
+.title{font-size:18px;font-weight:800}
+.title .sub{color:var(--muted);font-weight:400;margin-left:8px;font-size:12px}
+.gen{color:var(--muted);font-size:10px}
+.hdr-links{display:flex;gap:5px}
+.hdr-links a{background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:5px;color:var(--info);text-decoration:none;font-size:10px;font-weight:600;white-space:nowrap}
+.hdr-links a.gold{color:var(--accent)}
+main{display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:1fr 1fr;gap:10px;min-height:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 12px;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.card h2{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.card h2 .badge{font-size:9px;background:var(--card2);color:var(--text);padding:1px 6px;border-radius:999px;font-weight:600;text-transform:none;letter-spacing:0}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c8{grid-column:span 8}
+.hero{background:linear-gradient(90deg,rgba(34,197,94,0.15),rgba(34,197,94,0.03));border-color:rgba(34,197,94,0.4)}
+.hero.alert{background:linear-gradient(90deg,rgba(239,68,68,0.15),rgba(239,68,68,0.03));border-color:rgba(239,68,68,0.4)}
+.hero.warn{background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(245,158,11,0.03));border-color:rgba(245,158,11,0.4)}
+.hero .big{font-size:56px;font-weight:800;line-height:1;margin:4px 0;font-variant-numeric:tabular-nums}
+.hero .status{font-size:13px;font-weight:700;margin-bottom:6px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:auto}
+.stat{background:rgba(255,255,255,0.05);border-radius:4px;padding:5px 8px}
+.stat .l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+.stat .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:11px}
+td,th{padding:3px 5px;border-bottom:1px solid var(--border);text-align:left}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.05em}
+.metric-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.metric{background:var(--card2);border-radius:4px;padding:5px 8px;display:flex;flex-direction:column;justify-content:space-between;min-height:36px}
+.metric .l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+.metric .v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.metric.good{border-left:3px solid var(--good)}.metric.warn{border-left:3px solid var(--warn)}.metric.bad{border-left:3px solid var(--bad)}
+.mono{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:10px;color:var(--muted)}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;font-size:18px;color:var(--muted)}
+.err{color:var(--bad);background:rgba(239,68,68,0.1);padding:10px;border-radius:6px;font-size:12px}
+.a-links{display:flex;gap:4px;flex-wrap:wrap;margin-top:auto}
+.a-links a{background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:4px;color:var(--info);text-decoration:none;font-size:9px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="loading">Loading OTML Live data…</div>
+<div class="wrap"><div class="canvas" id="root" style="display:none">
+<header>
+  <div class="title">OTML Live<span class="sub">16:9 wall view · Shipping Trigger 6.5 m</span></div>
+  <div class="hdr-links">
+    <a href="otml-live.html">Standard view →</a>
+    <a href="fly-river-hydrology.html" class="gold">Fly Hydrology deep dive →</a>
+    <a href="fly-river-hydrology-16x9.html" class="gold">Hydrology 16:9 →</a>
+  </div>
+  <div class="gen" id="gen"></div>
+</header>
+
+<main>
+
+<section class="card c5" id="heroCard">
+  <h2><span>Kiunga River</span><span class="badge" id="heroSrc">—</span></h2>
+  <div class="big" id="heroBig">—</div>
+  <div class="status" id="heroStatus">—</div>
+  <div class="stats">
+    <div class="stat"><div class="l">Flow rate</div><div class="v" id="kiungaFlow">—</div></div>
+    <div class="stat"><div class="l">Ok Menga</div><div class="v" id="mengaLvl">—</div></div>
+    <div class="stat"><div class="l">Palmer</div><div class="v" id="palmerLvl">—</div></div>
+  </div>
+</section>
+
+<section class="card c4">
+  <h2><span>Power system</span></h2>
+  <div class="metric-row">
+    <div class="metric good"><div class="l">Hydro total</div><div class="v" id="hydroMW">—</div></div>
+    <div class="metric warn"><div class="l">TPS Wartsila</div><div class="v" id="tpsMW">—</div></div>
+  </div>
+  <div class="metric-row">
+    <div class="metric"><div class="l">Mill + Mine</div><div class="v" id="loadMW">—</div></div>
+    <div class="metric"><div class="l">Township</div><div class="v" id="twpMW">—</div></div>
+  </div>
+  <table style="margin-top:auto">
+    <tr><td>Total generation</td><td class="n" id="genTotal">—</td></tr>
+    <tr><td>Data source</td><td class="n mono" id="powerSrc">PI</td></tr>
+  </table>
+</section>
+
+<section class="card c3">
+  <h2><span>Fuel</span><span class="badge" id="fuelTotal">—</span></h2>
+  <div class="metric bad" style="margin-bottom:6px"><div class="l">Days runway</div><div class="v" id="daysRun">—</div></div>
+  <table>
+    <tr><td>Total fuel ML</td><td class="n" id="totalFuel">—</td></tr>
+    <tr><td>Kiunga tank</td><td class="n" id="kiungaTank">—</td></tr>
+    <tr><td>Days (actual)</td><td class="n" id="daysActual">—</td></tr>
+  </table>
+</section>
+
+<section class="card c4">
+  <h2><span>Weather · rainfall</span><span class="badge">Upstream</span></h2>
+  <table>
+    <tr><th>Station</th><th style="text-align:right">24 h rain</th></tr>
+    <tr><td>OLS01 Olsobip</td><td class="n" id="olsRain">— mm</td></tr>
+    <tr><td>FLY01 Palmer (level)</td><td class="n" id="palRainLvl">—</td></tr>
+    <tr><td>BIA01 Biangabip</td><td class="n mono">via VDV</td></tr>
+  </table>
+  <div class="a-links">
+    <a href="https://zoom.earth/maps/precipitation/#view=-5.9,141.3,7z" target="_blank">Radar →</a>
+    <a href="https://www.meteoblue.com/en/weather/forecast/week/kiunga_papua-new-guinea_2094454" target="_blank">Kiunga 14-day →</a>
+  </div>
+</section>
+
+<section class="card c4">
+  <h2><span>River forecast</span><span class="badge">BIA-weighted</span></h2>
+  <div class="mono" style="margin-bottom:6px">Dry-catchment amplification · 48 h peak lag</div>
+  <table>
+    <tr><td>Current Kiunga</td><td class="n" id="fcCurrent">—</td></tr>
+    <tr><td>24h delta</td><td class="n" id="fcDelta24">—</td></tr>
+    <tr><td>12h delta</td><td class="n" id="fcDelta12">—</td></tr>
+    <tr><td>To 6.5 m trigger</td><td class="n" id="fcToTrig">—</td></tr>
+  </table>
+  <div style="margin-top:auto;font-size:10px;color:var(--muted)">Fitted recession k=0.066/day (half-life 10.5 d)</div>
+</section>
+
+<section class="card c4">
+  <h2><span>Production + CuCon</span></h2>
+  <div class="metric-row">
+    <div class="metric"><div class="l">Cu output</div><div class="v" id="cuTonDay">—</div></div>
+    <div class="metric"><div class="l">Shed to 80 kt</div><div class="v" id="daysToCap">—</div></div>
+  </div>
+  <table>
+    <tr><td>CuCon shed</td><td class="n" id="cuconShed">—</td></tr>
+  </table>
+</section>
+
+</main>
+
+</div></div>
+
+<script>
+const fmt=(n,d=2)=>(n==null||isNaN(n))?'—':Number(n).toFixed(d);
+async function load(){
+  try{
+    // Fetch the main dashboard and extract embedded summary
+    const r = await fetch('otml-live.html?t='+Date.now(),{cache:'no-store'});
+    const html = await r.text();
+    // Try multiple patterns to find the summary JS
+    let m = html.match(/window\.OTML_SUMMARY\s*=\s*({[\s\S]*?});/);
+    if(!m) m = html.match(/window\.__SUMMARY__\s*=\s*({[\s\S]*?});/);
+    if(!m) m = html.match(/const\s+summary\s*=\s*({[\s\S]*?});/);
+    if(!m) throw new Error('Summary data not found in otml-live.html');
+    const D = JSON.parse(m[1]);
+    render(D);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('root').style.display='';
+  }catch(e){
+    document.getElementById('loading').innerHTML = '<div class="err">Load error: '+e.message+'</div>';
+  }
+}
+
+function render(D){
+  const h = D.headline || D;
+  const trigger = 6.5;
+  const kiu = h.kiunga_river_m ?? h.kiunga_shipping_m ?? h.kiunga;
+  const above = kiu != null && kiu >= trigger;
+  const heroCard = document.getElementById('heroCard');
+  heroCard.className = 'card c5 hero '+(above?'':'alert');
+  document.getElementById('heroBig').textContent = fmt(kiu,2)+' m';
+  document.getElementById('heroStatus').innerHTML = kiu==null?'no data':(above
+    ? '<span style="color:var(--good)">ABOVE 6.5 m TRIGGER ✓ (+'+fmt(kiu-trigger,2)+' m)</span>'
+    : '<span style="color:var(--bad)">BELOW 6.5 m TRIGGER (short by '+fmt(trigger-kiu,2)+' m)</span>');
+  document.getElementById('heroSrc').textContent = h.kiunga_river_source || h.kiunga_source || 'VDV';
+  document.getElementById('kiungaFlow').textContent = fmt(h.kiunga_river_flow_m3s,0)+' m³/s';
+  document.getElementById('mengaLvl').textContent = fmt(h.menga_level_m,2)+' m';
+  document.getElementById('palmerLvl').textContent = fmt(h.palmer_river_m,1)+' m';
+
+  document.getElementById('hydroMW').textContent = fmt(h.hydro_mw,1)+' MW';
+  document.getElementById('tpsMW').textContent = fmt(h.tps_mw,1)+' MW';
+  document.getElementById('loadMW').textContent = fmt(h.mill_mine_mw ?? h.total_load_mw,1)+' MW';
+  document.getElementById('twpMW').textContent = fmt(h.township_mw,1)+' MW';
+  document.getElementById('genTotal').textContent = fmt(h.total_gen_mw ?? ((h.hydro_mw||0)+(h.tps_mw||0)),1)+' MW';
+
+  document.getElementById('totalFuel').textContent = fmt(h.total_fuel_ML,2)+' ML';
+  document.getElementById('fuelTotal').textContent = fmt(h.total_fuel_ML,2)+' ML';
+  document.getElementById('kiungaTank').textContent = fmt(h.kiunga_tank_ML,2)+' ML';
+  document.getElementById('daysRun').textContent = fmt(h.days_remaining,1)+' d';
+  document.getElementById('daysActual').textContent = fmt(h.days_remaining_actual,1)+' d';
+
+  document.getElementById('olsRain').textContent = fmt(h.olsobip_rain_mm,0)+' mm';
+  document.getElementById('palRainLvl').textContent = fmt(h.palmer_river_m,2)+' m';
+
+  document.getElementById('fcCurrent').textContent = fmt(kiu,2)+' m';
+  document.getElementById('fcDelta24').textContent = h.kiunga_delta_24h_m != null ? (h.kiunga_delta_24h_m>=0?'+':'')+fmt(h.kiunga_delta_24h_m,2)+' m' : '—';
+  document.getElementById('fcDelta12').textContent = h.kiunga_delta_12h_m != null ? (h.kiunga_delta_12h_m>=0?'+':'')+fmt(h.kiunga_delta_12h_m,2)+' m' : '—';
+  document.getElementById('fcToTrig').textContent = kiu!=null ? fmt(trigger-kiu,2)+' m short' : '—';
+
+  document.getElementById('cuTonDay').textContent = fmt(h.cu_t_day,0)+' t/d';
+  document.getElementById('daysToCap').textContent = fmt(h.shed_days_to_80kt,1)+' d';
+  document.getElementById('cuconShed').textContent = fmt(h.cucon_shed_t,0)+' t';
+
+  document.getElementById('gen').textContent = 'Loaded ' + new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC';
+}
+load();
+setInterval(load, 10*60*1000); // reload every 10 min
+</script>
+</body>
+</html>
