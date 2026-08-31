@@ -102,10 +102,10 @@ th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:9px;let
 <section class="card c4">
   <h2><span>Weather · rainfall</span><span class="badge">Upstream</span></h2>
   <table>
-    <tr><th>Station</th><th style="text-align:right">24 h rain</th></tr>
+    <tr><th>Station</th><th style="text-align:right">Latest</th></tr>
     <tr><td>OLS01 Olsobip</td><td class="n" id="olsRain">— mm</td></tr>
-    <tr><td>FLY01 Palmer (level)</td><td class="n" id="palRainLvl">—</td></tr>
-    <tr><td>BIA01 Biangabip</td><td class="n mono">via VDV</td></tr>
+    <tr><td>FLY01 Palmer LEVEL</td><td class="n" id="palRainLvl">—</td></tr>
+    <tr><td>BIA01 Biangabip (rain 24h)</td><td class="n" id="biaRain">-</td></tr>
   </table>
   <div class="a-links">
     <a href="https://zoom.earth/maps/precipitation/#view=-5.9,141.3,7z" target="_blank">Radar →</a>
@@ -189,7 +189,7 @@ function render(D){
   document.getElementById('daysRun').textContent = fmt(h.days_remaining,1)+' d';
   document.getElementById('daysActual').textContent = fmt(h.days_remaining_actual,1)+' d';
 
-  document.getElementById('olsRain').textContent = fmt(h.olsobip_rain_mm,0)+' mm';
+  document.getElementById('olsRain').textContent = fmt(h.olsobip_rain_mm,0)+' mm';\n  document.getElementById('biaRain').textContent = fmt(h.biangabip_rain_mm,1)+' mm';
   document.getElementById('palRainLvl').textContent = fmt(h.palmer_river_m,2)+' m';
 
   document.getElementById('fcCurrent').textContent = fmt(kiu,2)+' m';
@@ -197,8 +197,8 @@ function render(D){
   document.getElementById('fcDelta12').textContent = h.kiunga_delta_12h_m != null ? (h.kiunga_delta_12h_m>=0?'+':'')+fmt(h.kiunga_delta_12h_m,2)+' m' : '—';
   document.getElementById('fcToTrig').textContent = kiu!=null ? fmt(trigger-kiu,2)+' m short' : '—';
 
-  document.getElementById('cuTonDay').textContent = fmt(h.cu_t_day,0)+' t/d';
-  document.getElementById('daysToCap').textContent = fmt(h.shed_days_to_80kt,1)+' d';
+  document.getElementById('cuTonDay').textContent = h.cu_t_day!=null ? fmt(h.cu_t_day,0)+' t/d' : 'no daily KDPR';
+  document.getElementById('daysToCap').textContent = h.shed_days_to_80kt!=null ? fmt(h.shed_days_to_80kt,1)+' d' : '-';
   document.getElementById('cuconShed').textContent = fmt(h.cucon_shed_t,0)+' t';
 
   document.getElementById('gen').textContent = 'Loaded ' + new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC';
