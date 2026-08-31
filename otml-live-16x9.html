@@ -126,14 +126,18 @@ th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:9px;let
 </section>
 
 <section class="card c4">
-  <h2><span>Production + CuCon</span></h2>
+  <h2><span>Production + CuCon</span><span class="badge" id="prodStatus">—</span></h2>
   <div class="metric-row">
-    <div class="metric"><div class="l">Cu output</div><div class="v" id="cuTonDay">—</div></div>
-    <div class="metric"><div class="l">Shed to 80 kt</div><div class="v" id="daysToCap">—</div></div>
+    <div class="metric"><div class="l">Yesterday</div><div class="v" id="prodDay">—</div></div>
+    <div class="metric"><div class="l">MTD</div><div class="v" id="prodMTD">—</div></div>
   </div>
   <table>
-    <tr><td>CuCon shed</td><td class="n" id="cuconShed">—</td></tr>
+    <tr><td>Shed storage</td><td class="n" id="cuconShed">—</td></tr>
+    <tr><td>Days to 80 kt cap</td><td class="n" id="daysToCap">—</td></tr>
+    <tr><td>Cargo on feeders</td><td class="n" id="cargoFeeders">—</td></tr>
+    <tr><td>Cu grade OS</td><td class="n" id="cuGrade">—</td></tr>
   </table>
+  <div class="mono" style="margin-top:6px;font-size:10px;color:var(--muted)" id="safetyNote">—</div>
 </section>
 
 </main>
@@ -197,9 +201,18 @@ function render(D){
   document.getElementById('fcDelta12').textContent = h.kiunga_delta_12h_m != null ? (h.kiunga_delta_12h_m>=0?'+':'')+fmt(h.kiunga_delta_12h_m,2)+' m' : '—';
   document.getElementById('fcToTrig').textContent = kiu!=null ? fmt(trigger-kiu,2)+' m short' : '—';
 
-  document.getElementById('cuTonDay').textContent = h.cu_t_day!=null ? fmt(h.cu_t_day,0)+' t/d' : 'no daily KDPR';
-  document.getElementById('daysToCap').textContent = h.shed_days_to_80kt!=null ? fmt(h.shed_days_to_80kt,1)+' d' : '-';
-  document.getElementById('cuconShed').textContent = fmt(h.cucon_shed_t,0)+' t';
+  const prod = D.production || {};
+  const halted = (prod.prod_day_wmt === 0 || prod.prod_day_wmt == null);
+  const psEl = document.getElementById('prodStatus');
+  psEl.textContent = halted ? 'MILL HALTED' : 'RUNNING';
+  psEl.style.color = halted ? 'var(--bad)' : 'var(--good)';
+  document.getElementById('prodDay').textContent = fmt(prod.prod_day_wmt,0)+' t';
+  document.getElementById('prodMTD').textContent = prod.prod_mtd_wmt!=null ? fmt(prod.prod_mtd_wmt/1000,1)+' kt' : '-';
+  document.getElementById('cuconShed').textContent = fmt(prod.cs_tonnes_wmt ?? h.cucon_shed_t,0)+' t';
+  document.getElementById('daysToCap').textContent = (prod.days_to_80kt != null) ? fmt(prod.days_to_80kt,1)+' d' : 'shed static (no throughput)';
+  document.getElementById('cargoFeeders').textContent = fmt(prod.cargo_on_feeders_wmt,0)+' t';
+  document.getElementById('cuGrade').textContent = prod.os_cu_grade_pct!=null ? fmt(prod.os_cu_grade_pct,1)+'%' : '-';
+  document.getElementById('safetyNote').textContent = prod.safety || '-';
 
   document.getElementById('gen').textContent = 'Loaded ' + new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC';
 }
