@@ -148,7 +148,7 @@ async function load(){
     const r = await fetch('otml-live.html?t='+Date.now(),{cache:'no-store'});
     const html = await r.text();
     // Try multiple patterns to find the summary JS
-    let m = html.match(/window\.OTML_SUMMARY\s*=\s*({[\s\S]*?});/);
+    let m = html.match(/window\.LATEST_DATA\s*=\s*({[\s\S]*?});/);
     if(!m) m = html.match(/window\.__SUMMARY__\s*=\s*({[\s\S]*?});/);
     if(!m) m = html.match(/const\s+summary\s*=\s*({[\s\S]*?});/);
     if(!m) throw new Error('Summary data not found in otml-live.html');
