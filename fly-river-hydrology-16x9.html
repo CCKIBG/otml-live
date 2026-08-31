@@ -209,10 +209,10 @@ const fmt = (n,d=2) => (n==null||isNaN(n))?'—':Number(n).toFixed(d);
   const st = (H.current_status || {}).KIU_ship || {};
   const kiu = st.latest_value;
   document.getElementById('kiungaBig').textContent = fmt(kiu,2) + ' m';
-  const above = kiu >= 4;
+  const above = kiu >= 6.5;
   document.getElementById('kiungaSub').textContent = above
-    ? `ABOVE 6.5 m trigger ✓ (+${fmt(kiu-4,2)} m). Latest raw reading ${fmt(st.latest_value_raw_last_reading,2)} m at ${st.latest_ts || '—'}.`
-    : `BELOW 6.5 m trigger (short by ${fmt(4-kiu,2)} m). Latest raw reading ${fmt(st.latest_value_raw_last_reading,2)} m at ${st.latest_ts || '—'}.`;
+    ? `ABOVE 6.5 m trigger ✓ (+${fmt(kiu-6.5,2)} m). Latest raw reading ${fmt(st.latest_value_raw_last_reading,2)} m at ${st.latest_ts || '—'}.`
+    : `BELOW 6.5 m trigger (short by ${fmt(6.5-kiu,2)} m). Latest raw reading ${fmt(st.latest_value_raw_last_reading,2)} m at ${st.latest_ts || '—'}.`;
   document.getElementById('heroCard').classList.toggle('good', above);
   document.getElementById('pAug').textContent = 'P' + fmt(st.percentile_rank_pct,1);
   document.getElementById('augMed').textContent = fmt(st.month_median_all_years,2) + ' m';
@@ -304,6 +304,69 @@ const fmt = (n,d=2) => (n==null||isNaN(n))?'—':Number(n).toFixed(d);
 })();
 
 document.getElementById('gen').textContent = 'Generated ' + new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC · data through 2026-08-29';
+</script>
+
+<script>
+// LIVE OVERRIDE - fetch current Kiunga from OTML Live and update display
+(async function liveOverride() {
+  try {
+    const r = await fetch('otml-live.html?t=' + Date.now(), {cache:'no-store'});
+    const html = await r.text();
+    const m = html.match(/window\.LATEST_DATA\s*=\s*(\{[\s\S]*?\});\s*<\/script>/);
+    if (!m) return;
+    const D = JSON.parse(m[1]);
+    const liveKiu = D.headline && D.headline.kiunga_river_m;
+    const genAt = D.generated_at || '';
+    if (liveKiu == null) return;
+
+    // Update the top hero tile
+    const big = document.getElementById('kiungaBig');
+    if (big) big.textContent = liveKiu.toFixed(2) + ' m';
+    const sub = document.getElementById('kiungaSub');
+    if (sub) {
+      const above = liveKiu >= 6.5;
+      sub.textContent = above
+        ? 'ABOVE 6.5 m trigger ✓ (+' + (liveKiu-6.5).toFixed(2) + ' m). LIVE at ' + genAt.slice(0,16).replace('T',' ')
+        : 'BELOW 6.5 m trigger (short by ' + (6.5-liveKiu).toFixed(2) + ' m). LIVE at ' + genAt.slice(0,16).replace('T',' ');
+    }
+    const heroCard = document.getElementById('heroCard');
+    if (heroCard) heroCard.classList.toggle('good', liveKiu >= 6.5);
+
+    // Update Kiunga row NOW value in the Current System Status table
+    // find rows with 'Kiunga (Ship Dat)' text
+    document.querySelectorAll('td, div').forEach(el => {
+      if (el.textContent && el.textContent.trim() === 'Kiunga (Ship Dat)') {
+        const row = el.closest('tr') || el.parentElement;
+        if (row) {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 2) cells[1].textContent = liveKiu.toFixed(2);
+        }
+      }
+    });
+
+    // Recalculate P (AUG) percentile using seasonal Aug monthly_stats
+    try {
+      const augStats = window.HYDRO.seasonal.Kiunga_ShippingDatum.monthly_stats['8'];
+      // Rough percentile: linear between p10 (2.852) and median (9.532) and p90 (10.882)
+      let pct;
+      if (liveKiu <= augStats.p10) pct = 10.0 * (liveKiu / augStats.p10);
+      else if (liveKiu <= augStats.median) pct = 10 + 40 * (liveKiu - augStats.p10) / (augStats.median - augStats.p10);
+      else if (liveKiu <= augStats.p90) pct = 50 + 40 * (liveKiu - augStats.median) / (augStats.p90 - augStats.median);
+      else pct = 90 + 10 * Math.min(1, (liveKiu - augStats.p90) / augStats.p90);
+      // Update P(AUG) display if there's a tile
+      document.querySelectorAll('div').forEach(el => {
+        if (el.textContent && el.textContent.trim().startsWith('P') && el.textContent.length < 10) {
+          if (el.previousElementSibling && el.previousElementSibling.textContent.includes('P (AUG)')) {
+            el.textContent = 'P' + pct.toFixed(1);
+          }
+        }
+      });
+    } catch(e) {}
+  } catch(e) {
+    console.warn('Live override failed:', e.message);
+  }
+})();
+setInterval(() => location.reload(), 10*60*1000);
 </script>
 </body>
 </html>
