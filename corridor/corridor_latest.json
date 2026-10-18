@@ -1,95 +1,95 @@
 {
-  "generated": "2026-10-18T19:00+10:00",
+  "generated": "2026-10-18T19:17+10:00",
   "window": {
     "from": "2026-10-17T13:00+10:00",
     "to": "2026-10-18T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-10-18T19:00+10:00",
+    "as_of": "2026-10-18T19:17+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
           {
             "id": "T4",
             "product": "DIESEL",
-            "vol": 381579.0,
-            "ullage": 1900112.0,
+            "vol": 381581.0,
+            "ullage": 1900110.0,
             "cap": 2281691.0,
             "in_service": false,
             "suction_l": null,
-            "unusable_l": 381579.0,
+            "unusable_l": 381581.0,
             "usable_l": 0.0,
             "below_suction": false
           },
           {
             "id": "T5",
             "product": "DIESEL",
-            "vol": 645910.0,
-            "ullage": 1633536.0,
+            "vol": 645932.0,
+            "ullage": 1633514.0,
             "cap": 2279446.0,
             "in_service": true,
             "suction_l": 188495,
             "unusable_l": 188495,
-            "usable_l": 457415.0,
+            "usable_l": 457437.0,
             "below_suction": false
           },
           {
             "id": "T6",
             "product": "DIESEL",
-            "vol": 72034.0,
-            "ullage": 2226168.0,
+            "vol": 71963.0,
+            "ullage": 2226239.0,
             "cap": 2298202.0,
             "in_service": true,
             "suction_l": 188495,
-            "unusable_l": 72034.0,
+            "unusable_l": 71963.0,
             "usable_l": 0.0,
             "below_suction": true
           },
           {
             "id": "T7",
             "product": "DIESEL",
-            "vol": 56326.0,
-            "ullage": 887325.0,
+            "vol": 56339.0,
+            "ullage": 887312.0,
             "cap": 943651.0,
             "in_service": false,
             "suction_l": null,
-            "unusable_l": 56326.0,
+            "unusable_l": 56339.0,
             "usable_l": 0.0,
             "below_suction": false
           }
         ],
-        "total_l": 1155849.0,
-        "usable_l": 457415.0,
+        "total_l": 1155815.0,
+        "usable_l": 457437.0,
         "buffer_l": 400000,
-        "available_l": 57415.0,
+        "available_l": 57437.0,
         "net_l": null,
-        "change_3h_l": 244339.0
+        "change_3h_l": 197333.0
       },
       "tabubil": {
         "tanks": [
           {
             "id": "T1",
             "product": "DIESEL",
-            "vol": 1851745.0,
-            "ullage": 451858.0,
+            "vol": 1893358.0,
+            "ullage": 410245.0,
             "cap": 2303603.0,
             "in_service": true,
             "suction_l": 188495,
             "unusable_l": 188495,
-            "usable_l": 1663250.0,
+            "usable_l": 1704863.0,
             "below_suction": false
           },
           {
             "id": "T2",
             "product": "DIESEL",
-            "vol": 238962.0,
-            "ullage": 2058629.0,
+            "vol": 238944.0,
+            "ullage": 2058647.0,
             "cap": 2297591.0,
             "in_service": true,
             "suction_l": 188495,
             "unusable_l": 188495,
-            "usable_l": 50467.0,
+            "usable_l": 50449.0,
             "below_suction": false
           },
           {
@@ -105,21 +105,21 @@
             "below_suction": false
           }
         ],
-        "total_l": 2365583.0,
-        "usable_l": 1861359.0,
+        "total_l": 2407178.0,
+        "usable_l": 1902954.0,
         "buffer_l": 254566,
-        "available_l": 1606793.0,
+        "available_l": 1648388.0,
         "net_l": null,
-        "change_3h_l": -36422.0
+        "change_3h_l": 5173.0
       }
     },
-    "available_total_l": 1664208.0,
+    "available_total_l": 1705825.0,
     "received_l": null,
     "to_tbg_l": null
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-10-18T19:00+10:00",
+    "as_of": "2026-10-18T19:17+10:00",
     "since_1_oct": 2435,
     "filled_in_window": null,
     "shifts": [
@@ -184,7 +184,7 @@
     "basis": "Wakata Bulka asset count; per shift = difference between readings at 06:00 and 18:00"
   },
   "trucks": {
-    "state": "live",
+    "state": "cached_stale",
     "as_of": "2026-10-18T19:00+10:00",
     "positions": {
       "aiambak": [
@@ -889,11 +889,12 @@
         "TT23",
         "TT24"
       ]
-    }
+    },
+    "note": "Page.goto: Timeout 90000ms exceeded.\nCall log:\n  - navigating to \"https://locate.trakpro.com.pg/?lang=en\", waiting until \"domcontentloaded\"\n"
   },
   "fleet": {
     "state": "live",
-    "as_of": "2026-10-18T19:01+10:00",
+    "as_of": "2026-10-18T19:18+10:00",
     "report_date": "2026-10-18",
     "title": "AIAMBAK CONVOY (DAILY SHIFT REPORT) - 18.10.2026",
     "groups": {
@@ -1037,8 +1038,8 @@
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-10-18T19:01+10:00",
-    "as_of_readi": "18 Oct 2026, 7:01PM",
+    "as_of": "2026-10-18T19:18+10:00",
+    "as_of_readi": "18 Oct 2026, 7:19PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
@@ -1098,16 +1099,16 @@
       },
       {
         "name": "Eduardo B Gallego",
-        "sync": "14h",
+        "sync": "15h",
         "source": "ReadiML",
         "score": 74,
         "now_below": false,
-        "time_to_70": "58m",
+        "time_to_70": "41m",
         "when": "At 8:00PM"
       },
       {
         "name": "Charles Nogokas",
-        "sync": "14h",
+        "sync": "15h",
         "source": "ReadiML",
         "score": 81,
         "now_below": false,
@@ -1125,11 +1126,11 @@
       },
       {
         "name": "Michael John",
-        "sync": "2d",
+        "sync": "3d",
         "source": "ReadiML",
         "score": 74,
         "now_below": false,
-        "time_to_70": "58m",
+        "time_to_70": "41m",
         "when": "At 8:00PM"
       },
       {
@@ -1173,7 +1174,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-10-18T19:02+10:00",
+    "as_of": "2026-10-18T19:19+10:00",
     "site": null,
     "explored": [
       "chekrite_inspections: export not captured (Locator.click: Timeout 5000ms exceeded.); dumped newest-first view",
