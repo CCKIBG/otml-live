@@ -153,13 +153,25 @@ function toD(c, m){
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
   if(fk && fk.change_3h_l!=null && Math.abs(fk.change_3h_l)>=100000) flags.push({lvl:"amber",tag:"Fuel",text:`Kiunga tanks ${fk.change_3h_l<0?"down":"up"} ${Math.abs(KL(fk.change_3h_l))} kL in 3 h; Tabubil ${ft&&ft.change_3h_l!=null?(ft.change_3h_l<0?"down ":"up ")+Math.abs(KL(ft.change_3h_l))+" kL":"change unknown"}.`});
   const depT=(t.departures||{})[t.today]||{}, depY=(t.departures||{})[t.yesterday]||{};
+  {const pr=c.prestarts||{}; const departedNow=new Set([...(depT.north_units||[]),...(depT.south_units||[])]);
+   (pr.open_faults||[]).forEach(u=>{ const dno=u.other.concat(u.safety).some(x=>/do not operate/i.test(x));
+     const brake=u.safety.filter(x=>/brake|retarder|steer|tyre|wheel/i.test(x));
+     const moved=departedNow.has(u.trakpro_id);
+     const listedOk=(fl.operational||[]).includes(u.asset);
+     if(dno) flags.push({lvl:"red",tag:"Pre-start",text:`${u.asset} has an open "Do Not Operate" fault in ChekRite (${u.oldest_days} d)${listedOk?" but the shift report lists it as operational":""}.`});
+     else if(brake.length&&moved) flags.push({lvl:"red",tag:"Pre-start",text:`${u.asset} ran today with open ChekRite faults: ${brake.join(", ")}. None actioned.`});
+     else if(brake.length) flags.push({lvl:"amber",tag:"Pre-start",text:`${u.asset} has open faults: ${brake.join(", ")}.`}); });
+   const checkedT=new Set(pr.assets_checked_today||[]);
+   const ck=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
+   const noPre=[...departedNow].filter(u=>!checkedT.has(ck(u))).map(u=>ck(u)!==u?`${ck(u)} (${u})`:u);
+   if(pr.open_faults && noPre.length) flags.push({lvl:"amber",tag:"Pre-start",text:`${noPre.length} of ${departedNow.size} trucks that departed today have no ChekRite pre-start today: ${noPre.join(", ")}.`}); }
   const autoConv=(t.convoys||[]).filter(cv=>cv.date===t.today||cv.status==="on road"||cv.date===t.yesterday)
     .sort((a,b)=>(b.date+b.departed[0]).localeCompare(a.date+a.departed[0]));
   const manualBy=Object.fromEntries((m.convoys||[]).filter(x=>x.date===t.today).map(x=>[x.name,x]));
   const convoysOut=autoConv.map(cv=>{const mm=cv.date===t.today?manualBy[cv.name]:null;
     const dayTxt=cv.date===t.today?"":` (${cv.date.slice(8,10)}/${cv.date.slice(5,7)})`;
     const parts=[`Departed ${cv.from} ${cv.departed[0]}${cv.departed[1]!==cv.departed[0]?" to "+cv.departed[1]:""}`+(cv.scheduled?` (scheduled ${cv.scheduled}, ${cv.delay_min>0?cv.delay_min+" min late":cv.delay_min<0?(-cv.delay_min)+" min early":"on time"})`:"")+"."];
-    if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}.`);
+    if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}${cv.eta_miss_min?` (typically within ±${cv.eta_miss_min} min at this distance)`:""}.`);
     if(cv.arrived) parts.push(`Arrived ${cv.to} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}.`);
     if((cv.stops||[]).length) parts.push("Stops: "+cv.stops.map(x=>`KM${Math.round(x.km)} ${x.mins} min${x.type==="rest"?" (rest)":x.type==="hold"?" (hold point)":""}`).join(", ")+".");
     return {name:cv.name+dayTxt, tag:`${cv.direction==="north"?"Northbound, loaded":"Southbound"}: ${cv.from} to ${cv.to}`,
@@ -187,8 +199,13 @@ function toD(c, m){
     note:[wbDown.length?`Down per shift report: ${wbDown.join(", ")}.`:"", wbFar.length?`Away from the road end: ${wbFar.join(", ")}.`:"", escAt(180,999).length?`Escort ${escAt(180,999).join(", ")} here.`:""].filter(Boolean).join(" ")});
   if((pos.off_corridor||[]).length) groups.push({km:null,name:"Off corridor",kind:"silent",units:pos.off_corridor.map(u=>u.unit),note:""});
   groups.push({km:null,name:"Not reporting",kind:"silent",units:pos.not_reporting||[],note:"No fix in the last 4 h."});
-  const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap,usable:k.usable_l,unusable:k.unusable_l,suction:k.suction_l,inService:k.in_service!==false,belowSuction:!!k.below_suction})):[];
+  const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap,usable:k.usable_l,unusable:k.unusable_l,suction:k.suction_l,inService:k.in_service!==false,belowSuction:!!k.below_suction,
+    liveMove:!!k.live_by_movement, mvIn:(k.moved_24h_l||{}).in||0, mvOut:(k.moved_24h_l||{}).out||0})):[];
   const farmX=(x)=>x&&x.usable_l!=null?{usable:x.usable_l,buffer:x.buffer_l,available:x.available_l}:null;
+  const mvSo=((f.movements||{}).so_far)||{};
+  for(const [nm,x,key] of [["Kiunga",fk,"kiunga"],["Tabubil",ft,"tabubil"]]){ if(!x) continue;
+    (x.tanks||[]).filter(k=>k.live_by_movement).forEach(k=>{const mv=k.moved_24h_l||{};
+      flags.push({lvl:"amber",tag:"Fuel",text:`${nm} ${k.id} is listed out of service but is ${mv.in>=mv.out?"filling":"discharging"} (${KL(mv.in)} kL in, ${KL(mv.out)} kL out in 24 h), so it is counted as live. Update the tank list if it is back in service.`});}); }
   for(const [nm,x] of [["Kiunga",fk],["Tabubil",ft]]){ if(!x||x.available_l==null) continue;
     if(x.available_l<0) flags.push({lvl:"red",tag:"Fuel",text:`${nm} usable diesel ${KL(x.usable_l)} kL is below its ${KL(x.buffer_l)} kL safety buffer, short by ${Math.abs(KL(x.available_l))} kL.`});
     else if(x.available_l<150000) flags.push({lvl:"amber",tag:"Fuel",text:`${nm} only ${KL(x.available_l)} kL above its ${KL(x.buffer_l)} kL safety buffer.`});
@@ -199,12 +216,12 @@ function toD(c, m){
     updated:`${gen.toLocaleDateString("en-AU",{day:"numeric",month:"short"})} ${hhmm(c.generated)} PNG`,
     flags,
     strip:{asOf:hhmm(t.as_of), len:183, holds:((t.monitor&&t.monitor.rest_km)||[42.5,100,137]).map(k=>({km:k,label:`KM${k} stop`})), gaps:[[15,60],[64,68]], groups},
-    baseline:(t.monitor||{}).baseline||null, restMin:(t.monitor||{}).rest_min, speedLimit:(t.monitor||{}).speed_limit,
+    baseline:(t.monitor||{}).baseline||null, etaAcc:t.eta_accuracy||null, restMin:(t.monitor||{}).rest_min, speedLimit:(t.monitor||{}).speed_limit,
     trucks:{state:t.state||"missing", tripsNorth:depT.north_departures||0, tripsSouth:depT.south_departures||0, moved:null,
       yNorth:depY.north_departures, ySouth:depY.south_departures,
       note:`Counted by calendar date of departure (after midnight). Northbound = Aiambak to West Bank Kiunga, loaded. Southbound = West Bank Kiunga to Aiambak. Yesterday: ${depY.north_departures??"–"} northbound, ${depY.south_departures??"–"} southbound.`+(t.monitor?` Schedule from Aiambak ${t.monitor.schedule_north.join(", ")}; rest stops KM${t.monitor.rest_km.join(", KM")} (${t.monitor.rest_min} min); speed limit ${t.monitor.speed_limit} km/h.`:"")},
     convoys:convoysOut.length?convoysOut:(m.convoys||[]),
-    fuel:{state:f.state||"missing", received:f.received_l, toTbg:f.to_tbg_l,
+    fuel:{state:f.state||"missing", received:f.received_l, toTbg:f.to_tbg_l, tbgReceived:f.tbg_received_l, mv:f.movements||null,
       note:`Kiunga net ${fk&&fk.net_l!=null?(KL(fk.net_l)+" kL over the reporting day"):"over the day: from the first full day"}. Received and sent figures need the console delivery report.`,
       availableTotal:f.available_total_l,
       farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk),x:farmX(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft),x:farmX(ft)}]},
@@ -226,7 +243,12 @@ function toD(c, m){
       return {month:new Date(c.generated).toLocaleDateString("en-AU",{month:"long",timeZone:"Pacific/Port_Moresby"}), rows};})(),
     bagShifts:(b.shifts||[]), bagTarget:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||null, shiftHours:b.shift_hours||"",
     road:{state:"live", asOf:m.updated||"", items:m.road||[]},
-    prestarts:{state:"pending", note:"ChekRite connected; reader being built."},
+    prestarts:(()=>{const pr=c.prestarts||{}; if(!pr.open_faults) return {state:pr.state||"missing", note:pr.note||"ChekRite not read yet."};
+      const departed=[...new Set([...(depT.north_units||[]),...(depT.south_units||[])])];
+      const toCk=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
+      const checked=new Set(pr.assets_checked_today||[]);
+      const noPre=departed.filter(u=>!checked.has(toCk(u))).map(u=>toCk(u)!==u?`${toCk(u)} (${u})`:u);
+      return {state:pr.state, asOf:hhmm(pr.as_of), today:pr.inspections_today||[], faults:pr.open_faults||[], count:pr.open_fault_count, noPre, departed, note:pr.note};})(),
     fleet:{state:fl.state||"missing", date:fl.report_date, file:fl.file, groups:fl.groups||{}, down:fl.down||[], note:fl.note||""},
     hotshot:{next:nextHotshot(gen), cutoff:(m.hotshot||{}).cutoff||""},
     notes:m.notes||[]
@@ -311,6 +333,20 @@ function render(){
     </section>
 
     <section class="panel wide">
+      <div class="ph"><h2>How accurate are the arrival estimates</h2></div>
+      <p class="small muted">Estimates use the typical run time when a convoy is more than 4 h out, and the convoy’s own speed plus remaining stops after that. Error = predicted minus actual arrival.</p>
+      <div class="grid" style="gap:12px">
+        <div style="grid-column:span 6;min-width:0;overflow-x:auto"><h3 class="small" style="margin:4px 0">Backtest, 14 days of Trakpro</h3>
+        ${D.baseline&&D.baseline.eta_backtest?`<table class="small"><tr><th>When</th><th class="r">Typical miss</th><th class="r">Within 30 min</th><th class="r">Within 1 h</th></tr>
+        ${D.baseline.eta_backtest.map(r=>`<tr><td>${esc(r[0])}</td><td class="r">±${r[1]} min</td><td class="r">${r[2]} %</td><td class="r">${r[3]} %</td></tr>`).join("")}</table>`:"<p class='muted small'>No backtest.</p>"}</div>
+        <div style="grid-column:span 6;min-width:0;overflow-x:auto"><h3 class="small" style="margin:4px 0">Live, scored on arrival${D.etaAcc&&D.etaAcc.trips?` (${D.etaAcc.trips} trips)`:""}</h3>
+        ${D.etaAcc&&D.etaAcc.rows&&D.etaAcc.rows.filter(r=>r.method==="used").length?`<table class="small"><tr><th>When</th><th class="r">Bias</th><th class="r">Typical miss</th><th class="r">Within 30 min</th><th class="r">n</th></tr>
+        ${D.etaAcc.rows.filter(r=>r.method==="used").map(r=>`<tr><td>${esc(r.horizon)}</td><td class="r">${r.bias_min>0?"+":""}${r.bias_min} min</td><td class="r">±${r.typical_miss_min} min</td><td class="r">${r.within_30_pct} %</td><td class="r">${r.n}</td></tr>`).join("")}</table>
+        <p class="muted small">Positive bias: trucks arrive earlier than predicted.</p>`:"<p class='muted small'>Builds up as convoys arrive from today.</p>"}</div>
+      </div>
+    </section>
+
+    <section class="panel wide">
       <div class="ph"><h2>Performance vs plan, ${esc(D.perf.month)}</h2></div>
       ${D.perf.rows.length?`<div style="overflow-x:auto"><table><tr><th>Area</th><th>Metric</th><th class="r">Plan</th><th class="r">Actual</th><th>Source</th></tr>
       ${D.perf.rows.map(r=>{const pn=planNum(r.plan), a=r.actual, ok=a==null||pn==null?null:a>=pn, near=a!=null&&pn!=null&&a>=0.85*pn;
@@ -327,16 +363,17 @@ function render(){
 
     <section class="panel">
       <div class="ph"><h2>Fuel</h2>${stateBadge(f.state)}</div>
-      <table><tr><th>13:00 to 13:00</th><th class="r">kL</th></tr>
-        <tr><td>Received into Kiunga</td><td class="r num">${f.received==null?"TBC":kl(f.received)}</td></tr>
-        <tr><td>Kiunga to TBG top-up</td><td class="r num">${f.toTbg==null?"TBC":kl(f.toTbg)}</td></tr></table>
-      <p class="muted small">${esc(f.note)}</p>
-      <p class="muted small" style="margin:0 0 6px">Red line on each gauge: suction level. Fuel below it cannot be pumped.</p>
+      <table><tr><th>Fuel movements</th><th class="r">Last day</th><th class="r">Since 13:00</th></tr>
+        <tr><td>Received into Kiunga tanks</td><td class="r num">${f.received==null?"TBC":kl(f.received)+" kL"}</td><td class="r num">${f.mv&&f.mv.so_far.kiunga?kl(f.mv.so_far.kiunga.in_l)+" kL":"–"}</td></tr>
+        <tr><td>Out of Kiunga tanks (to TBG)</td><td class="r num">${f.toTbg==null?"TBC":kl(f.toTbg)+" kL"}</td><td class="r num">${f.mv&&f.mv.so_far.kiunga?kl(f.mv.so_far.kiunga.out_l)+" kL":"–"}</td></tr>
+        <tr><td>Received into Tabubil tanks</td><td class="r num">${f.tbgReceived==null?"TBC":kl(f.tbgReceived)+" kL"}</td><td class="r num">${f.mv&&f.mv.so_far.tabubil?kl(f.mv.so_far.tabubil.in_l)+" kL":"–"}</td></tr></table>
+      <p class="muted small">Estimated from rises and falls in the 15-minute tank readings (13:00 to 13:00)${f.mv&&f.mv.window&&f.mv.window.kiunga&&f.mv.window.kiunga.partial?"; last day is partial, readings start "+esc(f.mv.window.kiunga.from.slice(11,16))+" "+esc(f.mv.window.kiunga.from.slice(8,10))+"/"+esc(f.mv.window.kiunga.from.slice(5,7)):""}. Out of Kiunga includes any local issues. Delivery report figures will replace these when connected.</p>
+      <p class="muted small" style="margin:0 0 6px">Red line on each gauge: suction level. Fuel below it cannot be pumped. Any tank that filled or discharged in the last 24 h counts as live.</p>
       ${f.availableTotal!=null?`<p><b>Available above safety buffers: ${kl(f.availableTotal)} kL</b> <span class="muted small">(both farms)</span></p>`:""}
       ${f.farms.map(fm=>{const v=fm.tanks.reduce((a,t)=>a+t.vol,0), c=fm.tanks.reduce((a,t)=>a+t.cap,0), x=fm.x;
         return `<div class="farm"><h3>${esc(fm.name)}: ${kl(v)} kL in tanks <span class="muted small">(at ${esc(fm.asOf)})</span></h3>
         ${x?`<p class="small" style="margin:2px 0 6px">Usable ${kl(x.usable)} kL. Safety buffer ${kl(x.buffer)} kL. <b style="color:${x.available<0?"var(--red)":x.available<150000?"#B08A00":"var(--green)"}">${x.available<0?"Below buffer by "+kl(-x.available):"Above buffer "+kl(x.available)} kL</b></p>`:""}
-        ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%;${!t.inService?"background:var(--gap)":t.belowSuction?"background:var(--red)":""}"></span>${t.suction&&t.cap?`<i class="suction" style="left:${(t.suction/t.cap*100).toFixed(1)}%" title="Suction level ${kl(t.suction)} kL"></i>`:""}</div><span class="r muted small">${!t.inService?"out of service":t.belowSuction?"below suction":t.usable!=null?kl(t.usable)+" usable":pct(t.vol,t.cap)+" %"}</span></div>`).join("")}</div>`;}).join("")}
+        ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%;${!t.inService?"background:var(--gap)":t.belowSuction?"background:var(--red)":""}"></span>${t.suction&&t.cap?`<i class="suction" style="left:${(t.suction/t.cap*100).toFixed(1)}%" title="Suction level ${kl(t.suction)} kL"></i>`:""}</div><span class="r muted small">${!t.inService?"out of service":t.belowSuction?"below suction":t.usable!=null?kl(t.usable)+" usable"+(t.liveMove?(t.mvIn>=t.mvOut?" (filling)":" (discharging)"):""):pct(t.vol,t.cap)+" %"}</span></div>`).join("")}</div>`;}).join("")}
     </section>
 
     <section class="panel">
@@ -370,9 +407,14 @@ function render(){
       <ul class="plain">${D.road.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
     </section>
 
-    <section class="panel third">
-      <div class="ph"><h2>Pre-starts</h2>${stateBadge(D.prestarts.state)}</div>
-      <p class="muted">${esc(D.prestarts.note)}</p>
+    <section class="panel">
+      <div class="ph"><h2>Pre-starts and faults (ChekRite)</h2>${stateBadge(D.prestarts.state, D.prestarts.asOf)}</div>
+      ${D.prestarts.faults?`
+      <p class="small"><b>Pre-starts today: ${D.prestarts.today.length}</b> ${D.prestarts.today.length?"("+D.prestarts.today.map(x=>`${esc(x.asset)} ${esc(x.submitted.slice(6))}${x.issues?`, ${x.issues} fail`:""}`).join("; ")+")":""}</p>
+      ${D.prestarts.departed.length?`<p class="small" style="color:${D.prestarts.noPre.length?"var(--red)":"var(--green)"}">${D.prestarts.departed.length-D.prestarts.noPre.length} of ${D.prestarts.departed.length} trucks that departed today had a pre-start.${D.prestarts.noPre.length?" Missing: "+D.prestarts.noPre.join(", ")+".":""}</p>`:""}
+      <div style="overflow-x:auto"><table class="small"><tr><th>Asset</th><th class="r">Open</th><th>Safety items</th><th>Other</th></tr>
+      ${D.prestarts.faults.map(u=>`<tr><td><b>${esc(u.asset)}</b>${u.trakpro_id!==u.asset?" ("+esc(u.trakpro_id)+")":""}</td><td class="r">${u.open}</td><td style="color:${u.safety.length?"var(--red)":"inherit"}">${esc(u.safety.join(", ")||"–")}</td><td class="muted">${esc(u.other.join(", ")||"–")}</td></tr>`).join("")}</table></div>
+      <p class="muted small">${D.prestarts.count} open faults on corridor assets. ${esc(D.prestarts.note||"")}</p>`:`<p class="muted">${esc(D.prestarts.note)}</p>`}
     </section>
 
     <section class="panel third">
@@ -411,8 +453,7 @@ function buildMsg(){
     `• Filled today: ${fmt(b.today)} | Since 1 Oct: ${fmt(b.sinceOct1)} (about ${Math.round(b.sinceOct1/b.days)}/day vs plan ${b.planPerDay})`,
     ...(D.perf&&D.perf.rows.length?["", `*PERFORMANCE vs PLAN (${D.perf.month})*`, ...D.perf.rows.filter(r=>r.actual!=null).map(r=>`• ${r.metric}: ${r.unit==="L"?Math.round(r.actual).toLocaleString("en-AU")+" L":r.actual} vs ${planTxt(r.plan)}`)]:[]),
     "", "*FUEL (Veeder-Root TLS, 13:00–13:00)*",
-    `• Received into Kiunga: ${f.received==null?"TBC":kl(f.received)+" kL"}`,
-    `• Kiunga to TBG top-up: ${f.toTbg==null?"TBC":kl(f.toTbg)+" kL"}`,
+    `• Received into Kiunga: ${f.received==null?"TBC":kl(f.received)+" kL (est.)"} | Out of Kiunga to TBG: ${f.toTbg==null?"TBC":kl(f.toTbg)+" kL (est.)"} | Into Tabubil: ${f.tbgReceived==null?"TBC":kl(f.tbgReceived)+" kL (est.)"}`,
     `• Stock: Kiunga ${kgFarm("Kiunga")} | Tabubil ${kgFarm("Tabubil")}`,
     ...f.farms.filter(fm=>fm.x).map(fm=>`• ${fm.name.split(" ")[0]} usable ${kl(fm.x.usable)} kL, ${fm.x.available<0?"BELOW":"above"} ${kl(fm.x.buffer)} kL buffer by ${kl(Math.abs(fm.x.available))} kL`),
     ...(D.fleet&&Object.keys(D.fleet.groups||{}).length?["", "*FLEET (shift report "+(D.fleet.date||"")+")*",
@@ -422,7 +463,8 @@ function buildMsg(){
     "", "*FATIGUE / PRE-STARTS*",
     `• Below 70 now: ${below||"none"}`,
     `• Reaching 70 later today: ${cross||"none"}`,
-    `• Chekrite: ${D.prestarts.state==="missing"?"TBC":D.prestarts.note}`,
+    ...(D.prestarts.faults?[`• Pre-starts today: ${D.prestarts.today.length}; departed without one: ${D.prestarts.noPre.join(", ")||"none"}`,
+      `• Open ChekRite faults: ${D.prestarts.count} (${D.prestarts.faults.filter(u=>u.safety.length).map(u=>u.asset+": "+u.safety.join("/")).join("; ")||"no safety items"})`]:[`• Chekrite: TBC`]),
     "", "*HOTSHOT*", `• Next run ${D.hotshot.next}. ${D.hotshot.cutoff}`,
     "", "*FLAGS*", ...D.flags.filter(x=>x.lvl!=="red").map(x=>"• "+x.text)
   ].join("\n");
