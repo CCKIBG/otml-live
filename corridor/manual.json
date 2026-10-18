@@ -6,14 +6,81 @@
     "KM37 junction to Aiambak extremely rough. Grader patrol requested. Drive to conditions."
   ],
   "convoys": [
-    {"name": "Convoy 1", "tag": "Aiambak to West Bank", "units": "IT09, IT10, IT11, TT15, TT24",
-     "crew": "Escort HT-22 Paul Mage. Sparky Gilbert Huwoi. New operators: Michael Mathew, Bradley Sataufi, Jack Gambu, Benedict Kasi.",
-     "status": "Left Aiambak 06:08 on 17 Oct."},
-    {"name": "Convoy 2", "tag": "8 tankers", "units": "IT05, IT06, IT07, IT08, TT16, TT18, TT20, TT21",
-     "crew": "Arrived Aiambak 00:02 on 17 Oct. Departure set for 09:00.",
-     "status": "Tankers not refilled overnight (vessel not on the loading ramp)."}
+    {
+      "name": "Convoy 1",
+      "tag": "Aiambak to West Bank",
+      "units": "IT09, IT10, IT11, TT15, TT24",
+      "crew": "Escort HT-22 Paul Mage. Sparky Gilbert Huwoi. New operators: Michael Mathew, Bradley Sataufi, Jack Gambu, Benedict Kasi.",
+      "status": "Left Aiambak 06:08 on 17 Oct."
+    },
+    {
+      "name": "Convoy 2",
+      "tag": "8 tankers",
+      "units": "IT05, IT06, IT07, IT08, TT16, TT18, TT20, TT21",
+      "crew": "Arrived Aiambak 00:02 on 17 Oct. Departure set for 09:00.",
+      "status": "Tankers not refilled overnight (vessel not on the loading ramp)."
+    }
   ],
-  "crew_roles": {"Paul Mage": "Escort, Convoy 1", "Jerry Was": "TT15, Convoy 1", "Nambuga Alex": "TT24, Convoy 1"},
-  "hotshot": {"cutoff": "Pickups at TE, Warehouse 120 and 131 by 17:00 the evening before."},
-  "notes": ["Edwin’s messages say East Bank for the Kiunga discharge point; Trakpro’s road end is West Bank (KM183)."]
+  "crew_roles": {
+    "Paul Mage": "Escort, Convoy 1",
+    "Jerry Was": "TT15, Convoy 1",
+    "Nambuga Alex": "TT24, Convoy 1"
+  },
+  "hotshot": {
+    "cutoff": "Pickups at TE, Warehouse 120 and 131 by 17:00 the evening before."
+  },
+  "notes": [
+    "Edwin’s messages say East Bank for the Kiunga discharge point; Trakpro’s road end is West Bank (KM183)."
+  ],
+  "targets": {
+    "_source": "Dry Weather 2026 Operations, key metrics to hold requirements",
+    "2026-10": {
+      "bags_per_day": 250,
+      "copper_t_per_day": "323 t (400 t)",
+      "copper_loads_per_day": [
+        8,
+        10
+      ],
+      "backfill_containers_per_day": 20,
+      "fuel_l_per_day": 520000,
+      "tanker_loads_per_day": 13,
+      "voyages_month": "5 (10,000 t)",
+      "drivers_per_day": 50
+    },
+    "2026-11": {
+      "bags_per_day": 500,
+      "copper_t_per_day": "667 t (700 t)",
+      "copper_loads_per_day": [
+        17,
+        18
+      ],
+      "backfill_containers_per_day": 36,
+      "fuel_l_per_day": 560000,
+      "tanker_loads_per_day": 14,
+      "voyages_month": "10 (20,000 t)",
+      "drivers_per_day": 70
+    },
+    "2026-12": {
+      "bags_per_day": 500,
+      "copper_t_per_day": "667 t (700 t)",
+      "copper_loads_per_day": [
+        17,
+        18
+      ],
+      "backfill_containers_per_day": 36,
+      "fuel_l_per_day": 560000,
+      "tanker_loads_per_day": 14,
+      "voyages_month": "10 (20,000 t)",
+      "drivers_per_day": 70
+    }
+  },
+  "actuals_manual": {
+    "_note": "Figures with no system feed yet; update daily (Claude can do this from WhatsApp/reports).",
+    "date": null,
+    "backfill_containers": null,
+    "voyages_month_to_date": null,
+    "drivers_available": null,
+    "copper_t_to_aiambak": null
+  },
+  "tanker_kl_avg": 43
 }
