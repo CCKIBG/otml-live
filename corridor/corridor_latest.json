@@ -1,75 +1,75 @@
 {
-  "generated": "2026-10-18T10:09+10:00",
+  "generated": "2026-10-18T10:21+10:00",
   "window": {
     "from": "2026-10-16T13:00+10:00",
     "to": "2026-10-17T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-10-18T10:09+10:00",
+    "as_of": "2026-10-18T10:21+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
           {
             "id": "T4",
             "product": "DIESEL",
-            "vol": 59865.0,
-            "ullage": 2221826.0,
+            "vol": 59874.0,
+            "ullage": 2221817.0,
             "cap": 2281691.0
           },
           {
             "id": "T5",
             "product": "DIESEL",
-            "vol": 540726.0,
-            "ullage": 1738720.0,
+            "vol": 540684.0,
+            "ullage": 1738762.0,
             "cap": 2279446.0
           },
           {
             "id": "T6",
             "product": "DIESEL",
-            "vol": 362170.0,
-            "ullage": 1936032.0,
+            "vol": 362127.0,
+            "ullage": 1936075.0,
             "cap": 2298202.0
           },
           {
             "id": "T7",
             "product": "DIESEL",
-            "vol": 54812.0,
-            "ullage": 888839.0,
+            "vol": 54816.0,
+            "ullage": 888835.0,
             "cap": 943651.0
           }
         ],
-        "total_l": 1017573.0,
+        "total_l": 1017501.0,
         "net_l": null,
-        "change_3h_l": -3360.0
+        "change_3h_l": -3432.0
       },
       "tabubil": {
         "tanks": [
           {
             "id": "T1",
             "product": "DIESEL",
-            "vol": 1811537.0,
-            "ullage": 492066.0,
+            "vol": 1811457.0,
+            "ullage": 492146.0,
             "cap": 2303603.0
           },
           {
             "id": "T2",
             "product": "DIESEL",
-            "vol": 342214.0,
-            "ullage": 1955377.0,
+            "vol": 342116.0,
+            "ullage": 1955475.0,
             "cap": 2297591.0
           },
           {
             "id": "T3",
             "product": "DIESEL",
-            "vol": 274748.0,
-            "ullage": 7345584.0,
+            "vol": 274744.0,
+            "ullage": 7345588.0,
             "cap": 7620332.0
           }
         ],
-        "total_l": 2428499.0,
+        "total_l": 2428317.0,
         "net_l": null,
-        "change_3h_l": -85969.0
+        "change_3h_l": -86151.0
       }
     },
     "received_l": null,
@@ -77,13 +77,13 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-10-18T10:09+10:00",
+    "as_of": "2026-10-18T10:21+10:00",
     "since_1_oct": 2435,
     "filled_in_window": null,
     "basis": "Wakata Bulka asset count, difference between 13:00 readings"
   },
   "trucks": {
-    "state": "live",
+    "state": "cached_stale",
     "as_of": "2026-10-18T10:09+10:00",
     "positions": {
       "aiambak": [],
@@ -698,11 +698,12 @@
           }
         }
       }
-    }
+    },
+    "note": "Page.evaluate: TypeError: Cannot read properties of undefined (reading 'filter')\n    at window.msgs (eval at evaluate (:311:30), <anonymous>:13:28)\n    at async window.buildKM (eval at evaluate (:311:30), <anonymous>:27:13)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:19)\n    at async <anonymous>:337:30"
   },
   "fleet": {
     "state": "live",
-    "as_of": "2026-10-18T10:11+10:00",
+    "as_of": "2026-10-18T10:21+10:00",
     "report_date": "2026-10-18",
     "title": "AIAMBAK CONVOY (DAILY SHIFT REPORT) - 18.10.2026",
     "groups": {
@@ -846,8 +847,8 @@
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-10-18T10:11+10:00",
-    "as_of_readi": "18 Oct 2026, 10:11AM",
+    "as_of": "2026-10-18T10:21+10:00",
+    "as_of_readi": "18 Oct 2026, 10:21AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
@@ -934,7 +935,7 @@
       },
       {
         "name": "Mike Hombohori",
-        "sync": "43h",
+        "sync": "44h",
         "source": "ReadiML",
         "score": 81,
         "now_below": false,
@@ -982,7 +983,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-10-18T10:11+10:00",
+    "as_of": "2026-10-18T10:22+10:00",
     "site": null,
     "explored": [
       "chekrite_inspections: export not captured (Locator.click: Timeout 5000ms exceeded.); dumped newest-first view",
