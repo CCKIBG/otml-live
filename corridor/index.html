@@ -82,8 +82,9 @@ td.r,th.r{text-align:right}
 .convoy h3{margin:0 0 2px;font:600 18px Barlow,sans-serif;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .convoy .tag{font-size:13px;font-weight:600;color:var(--muted)}
 .convoy p{margin:2px 0}
-.tank{display:grid;grid-template-columns:110px 1fr 74px;gap:10px;align-items:center;margin:8px 0}
-.bar{height:14px;background:var(--bg);border-radius:3px;overflow:hidden}
+.tank{display:grid;grid-template-columns:110px 1fr 104px;gap:10px;align-items:center;margin:8px 0}
+.bar{position:relative;height:14px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bar i.suction{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--red);margin-left:-1px}
 .bar span{display:block;height:100%;background:var(--blue)}
 .farm{margin-bottom:14px}
 .farm h3{margin:0 0 2px;font:600 17px Barlow,sans-serif}
@@ -122,9 +123,12 @@ function nextHotshot(now){
   return d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+", 06:00 from TE";
 }
 function clusterRoad(onRoad){
-  const s=[...onRoad].sort((a,b)=>a.km-b.km), out=[];
-  for(const u of s){ const g=out[out.length-1];
-    if(g && u.km-g.kmMax<=3){ g.units.push(u); g.kmMax=u.km; } else out.push({units:[u],kmMax:u.km}); }
+  const out=[];
+  for(const dir of ["north","south",null]){
+    const s=onRoad.filter(u=>(u.dir||null)===dir).sort((a,b)=>a.km-b.km);
+    for(const u of s){ const g=out[out.length-1];
+      if(g && g.dir===dir && u.km-g.kmMax<=3){ g.units.push(u); g.kmMax=u.km; } else out.push({units:[u],kmMax:u.km,dir}); }
+  }
   return out;
 }
 function toD(c, m){
@@ -148,26 +152,45 @@ function toD(c, m){
   const h=gen.getHours()+gen.getMinutes()/60;
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
   if(fk && fk.change_3h_l!=null && Math.abs(fk.change_3h_l)>=100000) flags.push({lvl:"amber",tag:"Fuel",text:`Kiunga tanks ${fk.change_3h_l<0?"down":"up"} ${Math.abs(KL(fk.change_3h_l))} kL in 3 h; Tabubil ${ft&&ft.change_3h_l!=null?(ft.change_3h_l<0?"down ":"up ")+Math.abs(KL(ft.change_3h_l))+" kL":"change unknown"}.`});
-  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:""}];
+  const escAt=(lo,hi)=>(pos.escorts||[]).filter(e=>!e.silent&&e.off_km<=3&&e.km>=lo&&e.km<=hi).map(e=>e.unit);
+  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:escAt(0,2).length?`Escort ${escAt(0,2).join(", ")} here.`:""}];
   clusterRoad(pos.on_road||[]).forEach(g=>{const k=g.units.map(u=>u.km), mv=g.units.some(u=>u.speed>5);
-    groups.push({km:k.reduce((a,x)=>a+x,0)/k.length,name:`On road near KM${Math.round(k[0])}`,kind:mv?"move":"stop",units:g.units.map(u=>u.unit),
+    const nm=g.dir==="south"?`Southbound to Aiambak, KM${Math.round(k[0])}`:g.dir==="north"?`Northbound to West Bank Kiunga, KM${Math.round(k[0])}`:`On road near KM${Math.round(k[0])}`;
+    const cam=g.units.filter(u=>u.source==="dashcam").map(u=>u.unit);
+    const rng=a=>{a=a.filter(Boolean).sort(); return a.length?(a[0]===a[a.length-1]?a[0]:a[0]+" to "+a[a.length-1]):null;};
+    const dep=rng(g.units.map(u=>u.departed)), eta=rng(g.units.map(u=>u.eta));
+    const escNear=(pos.escorts||[]).filter(e=>!e.silent && e.off_km<=3 && Math.abs(e.km-g.units[0].km)<=5).map(e=>e.unit);
+    groups.push({km:k.reduce((a,x)=>a+x,0)/k.length,name:nm,dir:g.dir,cam,kind:mv?"move":"stop",units:g.units.map(u=>u.unit),
       note:(()=>{const fx=g.units.map(u=>u.last_fix).filter(Boolean).sort(), sp=g.units.map(u=>u.speed);
-        return (fx.length?`Last fix ${fx[0]}${fx.length>1&&fx[0]!==fx[fx.length-1]?" to "+fx[fx.length-1]:""}. `:"")+`${Math.min(...sp)}${Math.max(...sp)!==Math.min(...sp)?" to "+Math.max(...sp):""} km/h.`;})()});});
-  groups.push({km:183,name:"At West Bank",kind:"stop",units:pos.west_bank||[],note:""});
+        return (fx.length?`Last fix ${fx[0]}${fx.length>1&&fx[0]!==fx[fx.length-1]?" to "+fx[fx.length-1]:""}. `:"")+`${Math.min(...sp)}${Math.max(...sp)!==Math.min(...sp)?" to "+Math.max(...sp):""} km/h.`+(cam.length?` Dashcam position: ${cam.join(", ")}.`:"")
+          +(dep?` Left ${g.dir==="south"?"West Bank Kiunga":g.dir==="north"?"Aiambak":""} ${dep}.`:"")
+          +(eta?` ETA ${g.dir==="south"?"Aiambak":"West Bank Kiunga"} ${eta}.`:"")
+          +(escNear.length?` Escort ${escNear.join(", ")}.`:"");})()});});
+  const downIds=new Set((fl.down||[]).map(a=>a.trakpro_id));
+  const wbDown=(pos.west_bank||[]).filter(u=>downIds.has(u));
+  const wbFar=(pos.west_bank_detail||[]).filter(u=>u.off_km>1).map(u=>`${u.unit} ${u.off_km} km off road`);
+  groups.push({km:183,name:"At West Bank",kind:"stop",units:pos.west_bank||[],
+    note:[wbDown.length?`Down per shift report: ${wbDown.join(", ")}.`:"", wbFar.length?`Away from the road end: ${wbFar.join(", ")}.`:"", escAt(180,999).length?`Escort ${escAt(180,999).join(", ")} here.`:""].filter(Boolean).join(" ")});
   if((pos.off_corridor||[]).length) groups.push({km:null,name:"Off corridor",kind:"silent",units:pos.off_corridor.map(u=>u.unit),note:""});
   groups.push({km:null,name:"Not reporting",kind:"silent",units:pos.not_reporting||[],note:"No fix in the last 4 h."});
-  const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap})):[];
+  const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap,usable:k.usable_l,unusable:k.unusable_l,suction:k.suction_l,inService:k.in_service!==false,belowSuction:!!k.below_suction})):[];
+  const farmX=(x)=>x&&x.usable_l!=null?{usable:x.usable_l,buffer:x.buffer_l,available:x.available_l}:null;
+  for(const [nm,x] of [["Kiunga",fk],["Tabubil",ft]]){ if(!x||x.available_l==null) continue;
+    if(x.available_l<0) flags.push({lvl:"red",tag:"Fuel",text:`${nm} usable diesel ${KL(x.usable_l)} kL is below its ${KL(x.buffer_l)} kL safety buffer, short by ${Math.abs(KL(x.available_l))} kL.`});
+    else if(x.available_l<150000) flags.push({lvl:"amber",tag:"Fuel",text:`${nm} only ${KL(x.available_l)} kL above its ${KL(x.buffer_l)} kL safety buffer.`});
+    (x.tanks||[]).filter(k=>k.below_suction).forEach(k=>flags.push({lvl:"amber",tag:"Fuel",text:`${nm} ${k.id} is in service but at or below its suction level (${KL(k.vol)} kL in tank).`})); }
   return {
     title:"Kiunga–Aiambak Corridor", day:dayName(gen),
     window:`${c.window.from.slice(8,10)} Oct ${hhmm(c.window.from)} to ${c.window.to.slice(8,10)} Oct ${hhmm(c.window.to)} PNG`,
     updated:`${gen.toLocaleDateString("en-AU",{day:"numeric",month:"short"})} ${hhmm(c.generated)} PNG`,
     flags,
     strip:{asOf:hhmm(t.as_of), len:183, holds:[{km:42.6,label:"KM42.5"},{km:137,label:"KM137 Moian Rd"}], gaps:[[15,60],[64,68]], groups},
-    trucks:{state:t.state||"missing", tripsNorth:t.northbound, tripsSouth:t.southbound, moved:t.trucks_moved, note:"Trips counted on the day they arrive (13:00 to 13:00)."},
+    trucks:{state:t.state||"missing", tripsNorth:t.northbound, tripsSouth:t.southbound, moved:t.trucks_moved, note:"Northbound = Aiambak to West Bank Kiunga. Southbound = West Bank Kiunga to Aiambak. Trips count on the day they arrive (13:00 to 13:00)."},
     convoys:m.convoys||[],
     fuel:{state:f.state||"missing", received:f.received_l, toTbg:f.to_tbg_l,
       note:`Kiunga net ${fk&&fk.net_l!=null?(KL(fk.net_l)+" kL over the reporting day"):"over the day: from the first full day"}. Received and sent figures need the console delivery report.`,
-      farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft)}]},
+      availableTotal:f.available_total_l,
+      farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk),x:farmX(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft),x:farmX(ft)}]},
     bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:200, today:b.filled_in_window, note:b.basis||""},
     fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
       rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
@@ -214,7 +237,8 @@ function stripSVG(st){
     g+=`<line x1="${cx}" y1="${Y-6}" x2="${cx}" y2="${Y-30}" stroke="${stroke}" stroke-width="2"/>`;
     g+=`<circle cx="${cx}" cy="${Y-46}" r="20" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`;
     g+=`<text x="${cx}" y="${Y-40}" text-anchor="middle" font-size="19" font-weight="700" fill="${move?"var(--hivis-ink)":"var(--ink)"}" font-family="Barlow Condensed">${p.units.length}</text>`;
-    if(move) g+=`<path d="M${cx+26} ${Y-52} l12 6 l-12 6 z" fill="var(--hivis-ink)"/>`;
+    if(move && p.dir==="south") g+=`<path d="M${cx-26} ${Y-52} l-12 6 l12 6 z" fill="var(--ink)"/>`;
+    else if(move) g+=`<path d="M${cx+26} ${Y-52} l12 6 l-12 6 z" fill="var(--ink)"/>`;
   });
   return g+"</svg>";
 }
@@ -236,7 +260,7 @@ function render(){
   <section class="strip">
     <div class="ph"><h2>Trucks on the road</h2>${stateBadge("live", D.strip.asOf)}</div>
     <div class="strip-scroll">${stripSVG(D.strip)}</div>
-    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Known hold point</span><span><i style="background:var(--hivis)"></i>Moving</span></div>
+    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Known hold point</span><span><i style="background:var(--hivis)"></i>Moving (arrow right = northbound to West Bank Kiunga, left = southbound to Aiambak)</span></div>
     <div class="groups">
       ${D.strip.groups.map(p=>`<div class="grp ${p.kind}"><h3>${esc(p.name)} (${p.units.length})</h3><div class="ids">${p.units.join(" ")}</div><p>${esc(p.note||"")}</p></div>`).join("")}
     </div>
@@ -255,9 +279,12 @@ function render(){
         <tr><td>Received into Kiunga</td><td class="r num">${f.received==null?"TBC":kl(f.received)}</td></tr>
         <tr><td>Kiunga to TBG top-up</td><td class="r num">${f.toTbg==null?"TBC":kl(f.toTbg)}</td></tr></table>
       <p class="muted small">${esc(f.note)}</p>
-      ${f.farms.map(fm=>{const v=fm.tanks.reduce((a,t)=>a+t.vol,0), c=fm.tanks.reduce((a,t)=>a+t.cap,0);
-        return `<div class="farm"><h3>${esc(fm.name)}: ${kl(v)} kL <span class="muted small">(${pct(v,c)} % of ${kl(c)} kL, at ${esc(fm.asOf)})</span></h3>
-        ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%"></span></div><span class="r muted small">${pct(t.vol,t.cap)} %</span></div>`).join("")}</div>`;}).join("")}
+      <p class="muted small" style="margin:0 0 6px">Red line on each gauge: suction level. Fuel below it cannot be pumped.</p>
+      ${f.availableTotal!=null?`<p><b>Available above safety buffers: ${kl(f.availableTotal)} kL</b> <span class="muted small">(both farms)</span></p>`:""}
+      ${f.farms.map(fm=>{const v=fm.tanks.reduce((a,t)=>a+t.vol,0), c=fm.tanks.reduce((a,t)=>a+t.cap,0), x=fm.x;
+        return `<div class="farm"><h3>${esc(fm.name)}: ${kl(v)} kL in tanks <span class="muted small">(at ${esc(fm.asOf)})</span></h3>
+        ${x?`<p class="small" style="margin:2px 0 6px">Usable ${kl(x.usable)} kL. Safety buffer ${kl(x.buffer)} kL. <b style="color:${x.available<0?"var(--red)":x.available<150000?"#B08A00":"var(--green)"}">${x.available<0?"Below buffer by "+kl(-x.available):"Above buffer "+kl(x.available)} kL</b></p>`:""}
+        ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%;${!t.inService?"background:var(--gap)":t.belowSuction?"background:var(--red)":""}"></span>${t.suction&&t.cap?`<i class="suction" style="left:${(t.suction/t.cap*100).toFixed(1)}%" title="Suction level ${kl(t.suction)} kL"></i>`:""}</div><span class="r muted small">${!t.inService?"out of service":t.belowSuction?"below suction":t.usable!=null?kl(t.usable)+" usable":pct(t.vol,t.cap)+" %"}</span></div>`).join("")}</div>`;}).join("")}
     </section>
 
     <section class="panel">
@@ -324,7 +351,7 @@ function buildMsg(){
     `*${D.day} (${D.window})*`,
     ...(red.length?["",...red]:[]),
     "", "*TRUCKS*",
-    `• Trips completed: ${fmt(D.trucks.tripsNorth)} northbound, ${fmt(D.trucks.tripsSouth)} southbound | ${fmt(D.trucks.moved)} trucks moved`,
+    `• Trips completed: ${fmt(D.trucks.tripsNorth)} northbound (Aiambak to WB Kiunga), ${fmt(D.trucks.tripsSouth)} southbound (WB Kiunga to Aiambak) | ${fmt(D.trucks.moved)} trucks moved`,
     ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}`),
     `• At ${st.asOf}: Aiambak ${g("At Aiambak").units.length} | West Bank ${g("At West Bank").units.length} | On road ${st.groups.filter(p=>p.kind==="move").reduce((a,p)=>a+p.units.length,0)} | Not reporting ${g("Not reporting").units.join(", ")}`,
     "", "*CUCON BAGS*",
@@ -333,6 +360,7 @@ function buildMsg(){
     `• Received into Kiunga: ${f.received==null?"TBC":kl(f.received)+" kL"}`,
     `• Kiunga to TBG top-up: ${f.toTbg==null?"TBC":kl(f.toTbg)+" kL"}`,
     `• Stock: Kiunga ${kgFarm("Kiunga")} | Tabubil ${kgFarm("Tabubil")}`,
+    ...f.farms.filter(fm=>fm.x).map(fm=>`• ${fm.name.split(" ")[0]} usable ${kl(fm.x.usable)} kL, ${fm.x.available<0?"BELOW":"above"} ${kl(fm.x.buffer)} kL buffer by ${kl(Math.abs(fm.x.available))} kL`),
     ...(D.fleet&&Object.keys(D.fleet.groups||{}).length?["", "*FLEET (shift report "+(D.fleet.date||"")+")*",
       "• "+["PRIME MOVERS","FUEL TANKERS","FLAT DECK TRAILERS","TOTAL FLEETS"].filter(k=>D.fleet.groups[k]).map(k=>`${k.charAt(0)+k.slice(1).toLowerCase()} ${D.fleet.groups[k].available}/${D.fleet.groups[k].total}`).join(" | "),
       ...D.fleet.down.map(a=>`• Down: ${a.id}${a.trakpro_id!==a.id?" ("+a.trakpro_id+")":""} ${(a.comment||"").replace(/^DOWN\s*:\s*/i,"")}`)]:[]),
