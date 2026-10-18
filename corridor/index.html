@@ -165,6 +165,8 @@ function toD(c, m){
      if(dno) flags.push({lvl:"red",tag:"Pre-start",text:`${u.asset} has an open "Do Not Operate" fault in ChekRite (${u.oldest_days} d)${listedOk?" but the shift report lists it as operational":""}.`});
      else if(brake.length&&moved) flags.push({lvl:"red",tag:"Pre-start",text:`${u.asset} ran today with open ChekRite faults: ${brake.join(", ")}. None actioned.`});
      else if(brake.length) flags.push({lvl:"amber",tag:"Pre-start",text:`${u.asset} has open faults: ${brake.join(", ")}.`}); });
+   {const bac=(pr.open_issues||[]).filter(i=>i.today&&/\bbac\b|alcohol/i.test(i.item));
+    if(bac.length) flags.push({lvl:"amber",tag:"Pre-start",text:`BAC test marked failed on ${bac.length} pre-start${bac.length>1?"s":""} today (${bac.map(i=>i.asset+" "+(i.raised||"").slice(6)).join(", ")}). There may be no BAC unit at the site; confirm how alcohol testing was done.`});}
    const checkedT=new Set(pr.assets_checked_today||[]);
    const ck=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
    const noPre=[...departedNow].filter(u=>!checkedT.has(ck(u))).map(u=>ck(u)!==u?`${ck(u)} (${u})`:u);
@@ -220,7 +222,10 @@ function toD(c, m){
     window:`${c.window.from.slice(8,10)} Oct ${hhmm(c.window.from)} to ${c.window.to.slice(8,10)} Oct ${hhmm(c.window.to)} PNG`,
     updated:`${gen.toLocaleDateString("en-AU",{day:"numeric",month:"short"})} ${hhmm(c.generated)} PNG`,
     flags,
-    strip:{asOf:hhmm(t.as_of), len:183, holds:((t.monitor&&t.monitor.rest_km)||[42.5,100,137]).map(k=>({km:k,label:`KM${k} stop`})), gaps:[[15,60],[64,68]], groups},
+    strip:{asOf:hhmm(t.as_of), asOfDate:(t.as_of||"").slice(8,10), len:183,
+      holds:((t.monitor&&t.monitor.rest_km)||[42.5,97,137]).map(k=>({km:k,label:k===137?"KM137 Moian Rd":`KM${k}`})), gaps:[[15,60],[64,68]], groups,
+      notOp:(()=>{const m={}; (fl.down||[]).forEach(a=>m[a.trakpro_id||a.id]="Down in the shift report"+(a.comment?": "+a.comment.replace(/^DOWN\s*:\s*/i,""):""));
+        ((c.prestarts||{}).open_faults||[]).forEach(u=>{ if(u.other.concat(u.safety).some(x=>/do not operate/i.test(x))) m[u.trakpro_id]="Do Not Operate in ChekRite"; }); return m;})()},
     baseline:(t.monitor||{}).baseline||null, etaAcc:t.eta_accuracy||null, restMin:(t.monitor||{}).rest_min, speedLimit:(t.monitor||{}).speed_limit,
     trucks:{state:t.state||"missing", tripsNorth:depT.north_departures||0, tripsSouth:depT.south_departures||0, moved:null,
       yNorth:depY.north_departures, ySouth:depY.south_departures,
@@ -232,6 +237,15 @@ function toD(c, m){
       farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk),x:farmX(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft),x:farmX(ft)}]},
     bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||200, today:b.filled_in_window, note:b.basis||""},
     adas:t.adas||null,
+    drivers:(()=>{const pr=c.prestarts||{}, rows=(fa.rows||[]), nf=(fa.no_forecast_names||[]);
+      const norm=x=>String(x||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
+      const match=n=>{const a=norm(n); if(!a.length) return null; const last=a[a.length-1], first=a[0];
+        return rows.find(r=>{const b=norm(r.name); return b.includes(last)&&b.some(w=>w.slice(0,3)===first.slice(0,3));})
+            || rows.find(r=>{const b=norm(r.name); return b.includes(first)&&b.some(w=>w.slice(0,3)===last.slice(0,3));}) || null;};
+      const seen={}; (pr.inspections_today||[]).forEach(x=>{ if(!x.user) return; const k=x.user.trim(); (seen[k]=seen[k]||{name:k,assets:[]}).assets.push(x.asset); });
+      return Object.values(seen).map(d=>{const r=match(d.name); const inNf=nf.some(n=>norm(n).join(" ")===norm(d.name).join(" "));
+        const h=r?syncH(r.sync):null;
+        return {...d, readi:r, status:r?(h<=8?"synced":"stale"):(inNf?"no forecast":"not found")};});})(),
     fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
       rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
     perf:(()=>{const ym=c.generated.slice(0,7), T=(m.targets||{})[ym]||null, A=m.actuals_manual||{}, kla=m.tanker_kl_avg||43;
@@ -254,7 +268,7 @@ function toD(c, m){
       const toCk=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
       const checked=new Set(pr.assets_checked_today||[]);
       const noPre=departed.filter(u=>!checked.has(toCk(u))).map(u=>toCk(u)!==u?`${toCk(u)} (${u})`:u);
-      return {state:pr.state, asOf:hhmm(pr.as_of), today:pr.inspections_today||[], faults:pr.open_faults||[], count:pr.open_fault_count, noPre, departed, note:pr.note};})(),
+      return {state:pr.state, asOf:hhmm(pr.as_of), today:pr.inspections_today||[], faults:pr.open_faults||[], count:pr.open_fault_count, noPre, departed, note:pr.note, issues:pr.open_issues||null};})(),
     fleet:{state:fl.state||"missing", date:fl.report_date, file:fl.file, groups:fl.groups||{}, down:fl.down||[], note:fl.note||""},
     hotshot:{next:nextHotshot(gen), cutoff:(m.hotshot||{}).cutoff||""},
     notes:m.notes||[]
@@ -264,7 +278,7 @@ async function load(){
   try{
     const bust="?t="+Date.now();
     const [c,m]=await Promise.all([fetch("corridor_latest.json"+bust).then(r=>r.json()), fetch("manual.json"+bust).then(r=>r.ok?r.json():{}).catch(()=>({}))]);
-    D=toD(c,m); render();
+    c0gen=c.generated; D=toD(c,m); render();
   }catch(e){
     document.getElementById("app").innerHTML=`<h1>Corridor</h1><p>Could not load corridor_latest.json (${e}). The collector on the Claude PC may be stopped.</p>`;
   }
@@ -296,14 +310,17 @@ function stripSVG(st){
   st.groups.filter(p=>p.km!=null).forEach(p=>{
     const cx=x(p.km), move=p.kind==="move", fill=move?"var(--hivis)":"var(--paper)", stroke=move?"var(--hivis-ink)":"var(--ink)";
     g+=`<line x1="${cx}" y1="${Y-6}" x2="${cx}" y2="${Y-30}" stroke="${stroke}" stroke-width="2"/>`;
-    g+=`<circle cx="${cx}" cy="${Y-46}" r="20" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`;
+    const tip=`${p.name}: ${p.units.join(", ")}`;
+    g+=`<g class="dot" data-tip="${esc(tip)}" style="cursor:pointer"><title>${esc(tip)}</title><circle cx="${cx}" cy="${Y-46}" r="20" fill="${fill}" stroke="${p.units.some(u=>st.notOp&&st.notOp[u])?"var(--red)":stroke}" stroke-width="2.5"/>`;
     g+=`<text x="${cx}" y="${Y-40}" text-anchor="middle" font-size="19" font-weight="700" fill="${move?"var(--hivis-ink)":"var(--ink)"}" font-family="Barlow Condensed">${p.units.length}</text>`;
+    g+=`</g>`;
     if(move && p.dir==="south") g+=`<path d="M${cx-26} ${Y-52} l-12 6 l12 6 z" fill="var(--ink)"/>`;
     else if(move) g+=`<path d="M${cx+26} ${Y-52} l12 6 l-12 6 z" fill="var(--ink)"/>`;
   });
   return g+"</svg>";
 }
 
+let c0gen=Date.now();
 function render(){
   const f=D.fuel, b=D.bags, fa=D.fatigue;
   const below=fa.rows.filter(r=>r.score<fa.threshold), crossing=fa.rows.filter(r=>r.score>=fa.threshold && r.at);
@@ -319,12 +336,14 @@ function render(){
   </section>
 
   <section class="strip">
-    <div class="ph"><h2>Trucks on the road</h2>${stateBadge("live", D.strip.asOf)}</div>
+    <div class="ph"><h2>Trucks on the road</h2><span class="state live">Trakpro ${esc(D.strip.asOfDate)} ${esc(new Date(c0gen).toLocaleDateString("en-AU",{month:"short",timeZone:"Pacific/Port_Moresby"}))}, ${esc(D.strip.asOf)}</span></div>
     <div class="strip-scroll">${stripSVG(D.strip)}</div>
-    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Usual convoy stop</span><span><i style="background:var(--hivis)"></i>Moving (arrow right = northbound to West Bank Kiunga, left = southbound to Aiambak)</span></div>
+    <div id="stripTip" class="small" style="min-height:1.4em;margin:2px 0 4px"></div>
+    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Usual rest or hold point</span><span><i style="background:var(--hivis)"></i>Moving (arrow left = southbound to Aiambak, right = northbound to West Bank)</span></div>
     <div class="groups">
-      ${D.strip.groups.map(p=>`<div class="grp ${p.kind}"><h3>${esc(p.name)} (${p.units.length})</h3><div class="ids">${p.units.join(" ")}</div><p>${esc(p.note||"")}</p></div>`).join("")}
+      ${D.strip.groups.map(p=>`<div class="grp ${p.kind}"><h3>${esc(p.name)} (${p.units.length})</h3><div class="ids">${p.units.map(u=>D.strip.notOp[u]?`<span style="color:var(--red)" title="${esc(D.strip.notOp[u])}">${u}</span>`:u).join(" ")}</div><p>${esc(p.note||"")}</p></div>`).join("")}
     </div>
+    <p class="muted small" style="margin-top:10px">Positions from Trakpro trackers, with dashcam (.AI) fixes used where they are newer. Hover over or tap a circle to see its trucks. Red truck numbers are down in the shift report or marked Do Not Operate in ChekRite. Northbound ETA uses the 2-week typical trip of ${D.baseline?D.baseline.run_h_north:7.5} h until the convoy is within about 100 km, then its own speed; a hold at KM137 adds time.</p>
   </section>
 
   <div class="grid">
@@ -339,7 +358,9 @@ function render(){
     </section>
 
     <section class="panel wide">
-      <div class="ph"><h2>How accurate are the arrival estimates</h2></div>
+      <div class="ph"><h2>Performance vs plan, ${esc(D.perf.month)}</h2></div>
+      <p><b>Typical travel time: ${D.baseline?D.baseline.run_h_north:7.5} h northbound, ${D.baseline?D.baseline.run_h_south:7.1} h southbound</b> <span class="muted small">(14-day median, Aiambak to West Bank Kiunga)</span></p>
+      <details style="margin:0 0 12px"><summary class="small"><b>How accurate are the arrival times</b>${D.etaAcc&&D.etaAcc.trips?` <span class="muted">(${D.etaAcc.trips} trips scored live)</span>`:""}</summary>
       <p class="small muted">Estimates use the typical run time when a convoy is more than 4 h out, and the convoy’s own speed plus remaining stops after that. Error = predicted minus actual arrival.</p>
       <div class="grid" style="gap:12px">
         <div style="grid-column:span 6;min-width:0;overflow-x:auto"><h3 class="small" style="margin:4px 0">Backtest, 14 days of Trakpro</h3>
@@ -350,22 +371,14 @@ function render(){
         ${D.etaAcc.rows.filter(r=>r.method==="used").map(r=>`<tr><td>${esc(r.horizon)}</td><td class="r">${r.bias_min>0?"+":""}${r.bias_min} min</td><td class="r">±${r.typical_miss_min} min</td><td class="r">${r.within_30_pct} %</td><td class="r">${r.n}</td></tr>`).join("")}</table>
         <p class="muted small">Positive bias: trucks arrive earlier than predicted.</p>`:"<p class='muted small'>Builds up as convoys arrive from today.</p>"}</div>
       </div>
-    </section>
-
-    <section class="panel wide">
-      <div class="ph"><h2>Performance vs plan, ${esc(D.perf.month)}</h2></div>
+    </details>
       ${D.perf.rows.length?`<div style="overflow-x:auto"><table><tr><th>Area</th><th>Metric</th><th class="r">Plan</th><th class="r">Actual</th><th>Source</th></tr>
       ${D.perf.rows.map(r=>{const pn=planNum(r.plan), a=r.actual, ok=a==null||pn==null?null:a>=pn, near=a!=null&&pn!=null&&a>=0.85*pn;
         const col=ok==null?"var(--muted)":ok?"var(--green)":near?"#B08A00":"var(--red)";
         return `<tr><td>${esc(r.area)}</td><td>${esc(r.metric)}</td><td class="r">${esc(planTxt(r.plan))}</td><td class="r num" style="color:${col};font-weight:600">${a==null?"TBC":(r.unit==="L"?Math.round(a).toLocaleString("en-AU")+" L":a.toLocaleString("en-AU"))}</td><td class="small muted">${esc(r.src)}</td></tr>`;}).join("")}</table></div>`:`<p class="muted">No plan set for this month in manual.json.</p>`}
     </section>
 
-    <section class="panel">
-      <div class="ph"><h2>CuCon bagging by shift</h2>${stateBadge(D.bags.state)}</div>
-      ${D.bagShifts.length?`<table><tr><th>Production day</th><th class="r">Day</th><th class="r">Night</th><th class="r">Total</th><th class="r">Plan</th></tr>
-      ${D.bagShifts.map(x=>`<tr><td>${x.date.slice(8,10)}/${x.date.slice(5,7)}${x.in_progress?" <span class=\"muted small\">so far</span>":""}</td><td class="r">${x.day??"–"}</td><td class="r">${x.night??"–"}</td><td class="r" style="font-weight:600;color:${x.total==null||!D.bagTarget||x.in_progress?"inherit":x.total>=D.bagTarget?"var(--green)":x.total>=0.85*D.bagTarget?"#B08A00":"var(--red)"}">${x.total??(x.in_progress&&x.day!=null?x.day+" so far":"–")}</td><td class="r muted">${D.bagTarget??""}</td></tr>`).join("")}</table>
-      <p class="muted small">Shifts: ${esc(D.shiftHours)}. Counted from Wakata Bulka totals logged every 30 min. A dash means the readings for that shift were not collected.</p>`:`<p class="muted">Shift tally starts once the collector has readings at 06:00 and 18:00.</p>`}
-    </section>
+
 
     <section class="panel">
       <div class="ph"><h2>Fuel</h2>${stateBadge(f.state)}</div>
@@ -383,16 +396,27 @@ function render(){
     </section>
 
     <section class="panel">
-      <div class="ph"><h2>CuCon bulka bags</h2>${stateBadge(b.state)}</div>
-      <div class="big num">${fmt(b.sinceOct1)}</div>
+      <div class="ph"><h2>CuCon bulka bags: ${fmt(b.sinceOct1)}</h2>${stateBadge(b.state)}</div>
       <div class="muted">bags since 1 Oct. Filled today: ${fmt(b.today)}.</div>
       <div class="plan" role="img" aria-label="Average ${avg} bags a day against plan of ${b.planPerDay}"><span style="width:${Math.min(100,avg/b.planPerDay*100)}%"></span><i style="left:calc(100% - 2px)"></i></div>
       <div class="small">Averaging about ${avg} a day against the plan of ${b.planPerDay} a day.</div>
       <p class="muted small">${esc(b.note)}</p>
+      <details><summary class="small"><b>Bagging by shift</b></summary>
+      ${D.bagShifts.length?`<table><tr><th>Production day</th><th class="r">Day</th><th class="r">Night</th><th class="r">Total</th><th class="r">Plan</th></tr>
+      ${D.bagShifts.map(x=>`<tr><td>${x.date.slice(8,10)}/${x.date.slice(5,7)}${x.in_progress?" <span class=\"muted small\">so far</span>":""}</td><td class="r">${x.day??"–"}</td><td class="r">${x.night??"–"}</td><td class="r" style="font-weight:600;color:${x.total==null||!D.bagTarget||x.in_progress?"inherit":x.total>=D.bagTarget?"var(--green)":x.total>=0.85*D.bagTarget?"#B08A00":"var(--red)"}">${x.total??(x.in_progress&&x.day!=null?x.day+" so far":"–")}</td><td class="r muted">${D.bagTarget??""}</td></tr>`).join("")}</table>
+      <p class="muted small">Shifts: ${esc(D.shiftHours)}. Counted from Wakata Bulka totals logged every 30 min. A dash means the readings for that shift were not collected.</p>`:`<p class="muted">Shift tally starts once the collector has readings at 06:00 and 18:00.</p>`}
+      </details>
     </section>
 
     <section class="panel">
       <div class="ph"><h2>Fatigue</h2>${stateBadge(fa.state, fa.asOf)}</div>
+      ${(()=>{const d=D.drivers||[]; if(!d.length) return `<p class="small"><b>Check ChekRite for who is driving today and Readi for who has synced.</b> <span class="muted">No pre-starts logged yet today.</span></p>`;
+        const n=k=>d.filter(x=>x.status===k);
+        const lbl={synced:"synced",stale:"sync out of date","no forecast":"no Readi forecast","not found":"not found in Readi"};
+        return `<p class="small"><b>Drivers on today's ChekRite pre-starts: ${d.length}. Synced with Readi in the last 8 h: ${n("synced").length}. Out of date: ${n("stale").length}. No forecast or not found: ${n("no forecast").length+n("not found").length}.</b></p>
+        <div style="overflow-x:auto"><table class="small"><tr><th>Driver</th><th>Truck</th><th>Readi</th></tr>
+        ${d.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.assets.join(", "))}</td><td style="color:${x.status==="synced"?(x.readi.score<70?"var(--red)":"var(--green)"):"var(--red)"}">${x.readi?`${x.readi.score}, sync ${esc(x.readi.sync)}`:""} ${esc(lbl[x.status])}</td></tr>`).join("")}</table></div>`;})()}
+      <details style="margin-top:8px"><summary class="small"><b>Full Readi list and driver cameras</b></summary>
       <table>
         <tr><th>Name</th><th>Score</th><th>Sync</th><th>Note</th></tr>
         ${fa.rows.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="score" style="background:${scoreColour(r.score)}">${r.score}</span></td><td class="${syncH(r.sync)>8?"stale":""}">${typeof r.sync==="number"? r.sync+" h" : esc(r.sync)}</td><td class="small">${esc([r.role, r.at?("reaches 70 at "+r.at):""].filter(Boolean).join(", "))}</td></tr>`).join("")}
@@ -402,6 +426,7 @@ function render(){
       ${D.adas&&D.adas.units.length?`<div style="overflow-x:auto"><table class="small"><tr><th>Truck</th><th>Events (24 h)</th><th>Last</th></tr>
       ${D.adas.units.map(u=>`<tr><td><b>${esc(u.unit)}</b></td><td style="color:${u.fatigue_12h?"var(--red)":"inherit"}">${Object.entries(u.types).map(([k,v])=>`${esc(k.toLowerCase())} ${v.n24}`).join(", ")}</td><td class="muted">${Object.values(u.types).map(v=>v.last).sort().pop()||""}</td></tr>`).join("")}</table></div>
       <p class="muted small">Eyes closed and yawning are fatigue signs. Camera cover means the driver camera was blocked. ${D.adas.cameras} dashcams checked; trucks with no events are not listed. Covers drivers whose Readi watch data is lagging.</p>`:`<p class="muted small">${D.adas?"No ADAS/DMS events in the last 24 h.":"Camera events load hourly once the updated collector runs."}</p>`}
+          </details>
     </section>
 
     <section class="panel">
@@ -422,8 +447,18 @@ function render(){
       ${D.prestarts.faults?`
       <p class="small"><b>Pre-starts today: ${D.prestarts.today.length}</b> ${D.prestarts.today.length?"("+D.prestarts.today.map(x=>`${esc(x.asset)} ${esc(x.submitted.slice(6))}${x.issues?`, ${x.issues} fail`:""}`).join("; ")+")":""}</p>
       ${D.prestarts.departed.length?`<p class="small" style="color:${D.prestarts.noPre.length?"var(--red)":"var(--green)"}">${D.prestarts.departed.length-D.prestarts.noPre.length} of ${D.prestarts.departed.length} trucks that departed today had a pre-start.${D.prestarts.noPre.length?" Missing: "+D.prestarts.noPre.join(", ")+".":""}</p>`:""}
-      <div style="overflow-x:auto"><table class="small"><tr><th>Asset</th><th class="r">Open</th><th>Safety items</th><th>Other</th></tr>
-      ${D.prestarts.faults.map(u=>`<tr><td><b>${esc(u.asset)}</b>${u.trakpro_id!==u.asset?" ("+esc(u.trakpro_id)+")":""}</td><td class="r">${u.open}</td><td style="color:${u.safety.length?"var(--red)":"inherit"}">${esc(u.safety.join(", ")||"–")}</td><td class="muted">${esc(u.other.join(", ")||"–")}</td></tr>`).join("")}</table></div>
+      ${D.prestarts.issues?(()=>{const I=D.prestarts.issues, T=I.filter(i=>i.today), O=I.filter(i=>!i.today);
+        const b=[[0,2,"1 to 2 days"],[2,7,"3 to 7 days"],[7,9999,"over 7 days"]].map(([lo,hi,l])=>[l,O.filter(i=>i.age_days>lo&&i.age_days<=hi).length]);
+        const byA={}; O.forEach(i=>(byA[i.asset]=byA[i.asset]||[]).push(i));
+        const rowsO=Object.entries(byA).sort((a,c)=>(c[1].some(i=>i.safety)-a[1].some(i=>i.safety))||(Math.max(...c[1].map(i=>i.age_days))-Math.max(...a[1].map(i=>i.age_days))));
+        const item=i=>`<span style="color:${i.safety?"var(--red)":"inherit"}">${esc(i.item)}</span> <span class="muted">${esc((i.raised||"").slice(0,5))}, ${Math.round(i.age_days)} d</span>`;
+        return `<h3 class="small" style="margin:10px 0 4px">Raised today (${T.length})</h3>
+        ${T.length?`<div style="overflow-x:auto"><table class="small"><tr><th>Time</th><th>Asset</th><th>Item</th></tr>${T.map(i=>`<tr><td>${esc((i.raised||"").slice(6))}</td><td><b>${esc(i.asset)}</b></td><td style="color:${i.safety?"var(--red)":"inherit"}">${esc(i.item)}</td></tr>`).join("")}</table></div>`:`<p class="muted small">None so far today.</p>`}
+        <h3 class="small" style="margin:12px 0 4px">Still open from before (${O.length}): ${b.map(([l,n])=>`${l} ${n}`).join(", ")}</h3>
+        <div style="overflow-x:auto"><table class="small"><tr><th>Asset</th><th class="r">Open</th><th>Items (raised, age)</th></tr>
+        ${rowsO.map(([a,L])=>`<tr><td><b>${esc(a)}</b></td><td class="r">${L.length}</td><td>${L.sort((x,y)=>(y.safety-x.safety)||(y.age_days-x.age_days)).map(item).join("; ")}</td></tr>`).join("")}</table></div>`;})()
+      :`<div style="overflow-x:auto"><table class="small"><tr><th>Asset</th><th class="r">Open</th><th>Safety items</th><th>Other</th></tr>
+      ${D.prestarts.faults.map(u=>`<tr><td><b>${esc(u.asset)}</b>${u.trakpro_id!==u.asset?" ("+esc(u.trakpro_id)+")":""}</td><td class="r">${u.open}</td><td style="color:${u.safety.length?"var(--red)":"inherit"}">${esc(u.safety.join(", ")||"–")}</td><td class="muted">${esc(u.other.join(", ")||"–")}</td></tr>`).join("")}</table></div>`}
       <p class="muted small">${D.prestarts.count} open faults on corridor assets. ${esc(D.prestarts.note||"")}</p>`:`<p class="muted">${esc(D.prestarts.note)}</p>`}
     </section>
 
@@ -441,6 +476,7 @@ function render(){
   <footer>${(D.notes||[]).map(esc).join(" ")} Collected by the Claude PC every 15 min, 24 hours a day (PNG time).</footer>`;
   document.getElementById("app").innerHTML = html;
   document.getElementById("msgBtn").onclick = openMsg;
+  if(document.querySelectorAll) document.querySelectorAll(".dot").forEach(el=>el.onclick=()=>{document.getElementById("stripTip").textContent=el.getAttribute("data-tip");});
 }
 
 function buildMsg(){
