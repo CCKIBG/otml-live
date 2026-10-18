@@ -191,9 +191,23 @@ function toD(c, m){
       note:`Kiunga net ${fk&&fk.net_l!=null?(KL(fk.net_l)+" kL over the reporting day"):"over the day: from the first full day"}. Received and sent figures need the console delivery report.`,
       availableTotal:f.available_total_l,
       farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk),x:farmX(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft),x:farmX(ft)}]},
-    bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:200, today:b.filled_in_window, note:b.basis||""},
+    bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||200, today:b.filled_in_window, note:b.basis||""},
     fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
       rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
+    perf:(()=>{const ym=c.generated.slice(0,7), T=(m.targets||{})[ym]||null, A=m.actuals_manual||{}, kla=m.tanker_kl_avg||43;
+      const sh=(b.shifts||[]), last=sh.find(x=>!x.in_progress&&x.total!=null);
+      const north=t.northbound, south=t.southbound;
+      const rows=T?[
+        {area:"Bagging",metric:"Copper bags filled per day",plan:T.bags_per_day,actual:last?last.total:null,unit:"bags",src:last?`production day ${last.date.slice(8,10)}/${last.date.slice(5,7)} (Wakata)`:"after the first full production day (06:00 to 06:00)"},
+        {area:"Copper road",metric:"Truck loads per day (20 bags)",plan:T.copper_loads_per_day,actual:null,unit:"loads",src:"needs copper loads split from returns"},
+        {area:"Copper road",metric:"Tonnes to Aiambak per day",plan:T.copper_t_per_day,actual:A.copper_t_to_aiambak,unit:"t",src:"manual"},
+        {area:"Backfill",metric:"Containers to Kiunga per day",plan:T.backfill_containers_per_day,actual:A.backfill_containers,unit:"containers",src:"manual"},
+        {area:"Fuel",metric:"Tanker loads per day (northbound trips)",plan:T.tanker_loads_per_day,actual:north,unit:"loads",src:"Trakpro, 13:00 to 13:00"},
+        {area:"Fuel",metric:"Litres to West Bank per day",plan:T.fuel_l_per_day,actual:f.received_l!=null?f.received_l:(north!=null?north*kla*1000:null),unit:"L",src:f.received_l!=null?"TLS deliveries":`estimate: loads × ${kla} kL`},
+        {area:"Shipping",metric:"Voyages to Raggiana this month",plan:T.voyages_month,actual:A.voyages_month_to_date,unit:"voyages",src:"manual"},
+        {area:"Drivers",metric:"Drivers available per day",plan:T.drivers_per_day,actual:A.drivers_available,unit:"drivers",src:"manual"}]:[];
+      return {month:new Date(c.generated).toLocaleDateString("en-AU",{month:"long",timeZone:"Pacific/Port_Moresby"}), rows};})(),
+    bagShifts:(b.shifts||[]), bagTarget:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||null, shiftHours:b.shift_hours||"",
     road:{state:"live", asOf:m.updated||"", items:m.road||[]},
     prestarts:{state:"pending", note:"ChekRite connected; reader being built."},
     fleet:{state:fl.state||"missing", date:fl.report_date, file:fl.file, groups:fl.groups||{}, down:fl.down||[], note:fl.note||""},
@@ -220,6 +234,8 @@ const stateBadge = (s, asOf) => {
   const t = {live:"Live", pending:"Pending", missing:"Not connected", cached_stale:"Stale"}[s] || s;
   return `<span class="state ${s==="cached_stale"?"missing":s}">${t}${asOf?" "+asOf:""}</span>`;
 };
+const planNum = p => Array.isArray(p) ? p[0] : (typeof p==="number" ? p : (String(p||"").match(/[\d,]+/)||[""])[0].replace(/,/g,"")*1||null);
+const planTxt = p => Array.isArray(p) ? p.join(" to ") : (typeof p==="number" ? p.toLocaleString("en-AU") : String(p||"TBC"));
 const syncH = v => typeof v==="number" ? v : (m=>m? +m[1]*({m:1/60,h:1,d:24}[m[2]]) : 0)(String(v).match(/(\d+)\s*([mhd])/));
 const scoreColour = s => s<60 ? "var(--red)" : s<70 ? "#C9651D" : s<=75 ? "#B08A00" : "var(--green)";
 
@@ -273,6 +289,21 @@ function render(){
       ${D.convoys.map(c=>`<div class="convoy"><h3>${esc(c.name)} <span class="tag">${esc(c.tag)}</span></h3>${c.units?`<p><b>${esc(c.units)}</b></p>`:""}${c.crew?`<p>${esc(c.crew)}</p>`:""}<p class="muted">${esc(c.status)}</p></div>`).join("")}
     </section>
 
+    <section class="panel wide">
+      <div class="ph"><h2>Performance vs plan, ${esc(D.perf.month)}</h2></div>
+      ${D.perf.rows.length?`<div style="overflow-x:auto"><table><tr><th>Area</th><th>Metric</th><th class="r">Plan</th><th class="r">Actual</th><th>Source</th></tr>
+      ${D.perf.rows.map(r=>{const pn=planNum(r.plan), a=r.actual, ok=a==null||pn==null?null:a>=pn, near=a!=null&&pn!=null&&a>=0.85*pn;
+        const col=ok==null?"var(--muted)":ok?"var(--green)":near?"#B08A00":"var(--red)";
+        return `<tr><td>${esc(r.area)}</td><td>${esc(r.metric)}</td><td class="r">${esc(planTxt(r.plan))}</td><td class="r num" style="color:${col};font-weight:600">${a==null?"TBC":(r.unit==="L"?Math.round(a).toLocaleString("en-AU")+" L":a.toLocaleString("en-AU"))}</td><td class="small muted">${esc(r.src)}</td></tr>`;}).join("")}</table></div>`:`<p class="muted">No plan set for this month in manual.json.</p>`}
+    </section>
+
+    <section class="panel">
+      <div class="ph"><h2>CuCon bagging by shift</h2>${stateBadge(D.bags.state)}</div>
+      ${D.bagShifts.length?`<table><tr><th>Production day</th><th class="r">Day</th><th class="r">Night</th><th class="r">Total</th><th class="r">Plan</th></tr>
+      ${D.bagShifts.map(x=>`<tr><td>${x.date.slice(8,10)}/${x.date.slice(5,7)}${x.in_progress?" <span class=\"muted small\">so far</span>":""}</td><td class="r">${x.day??"–"}</td><td class="r">${x.night??"–"}</td><td class="r" style="font-weight:600;color:${x.total==null||!D.bagTarget||x.in_progress?"inherit":x.total>=D.bagTarget?"var(--green)":x.total>=0.85*D.bagTarget?"#B08A00":"var(--red)"}">${x.total??(x.in_progress&&x.day!=null?x.day+" so far":"–")}</td><td class="r muted">${D.bagTarget??""}</td></tr>`).join("")}</table>
+      <p class="muted small">Shifts: ${esc(D.shiftHours)}. Counted from Wakata Bulka totals logged every 30 min. A dash means the readings for that shift were not collected.</p>`:`<p class="muted">Shift tally starts once the collector has readings at 06:00 and 18:00.</p>`}
+    </section>
+
     <section class="panel">
       <div class="ph"><h2>Fuel</h2>${stateBadge(f.state)}</div>
       <table><tr><th>13:00 to 13:00</th><th class="r">kL</th></tr>
@@ -292,7 +323,7 @@ function render(){
       <div class="big num">${fmt(b.sinceOct1)}</div>
       <div class="muted">bags since 1 Oct. Filled today: ${fmt(b.today)}.</div>
       <div class="plan" role="img" aria-label="Average ${avg} bags a day against plan of ${b.planPerDay}"><span style="width:${Math.min(100,avg/b.planPerDay*100)}%"></span><i style="left:calc(100% - 2px)"></i></div>
-      <div class="small">Averaging about ${avg} a day against the October plan of ${b.planPerDay} a day.</div>
+      <div class="small">Averaging about ${avg} a day against the plan of ${b.planPerDay} a day.</div>
       <p class="muted small">${esc(b.note)}</p>
     </section>
 
@@ -334,7 +365,7 @@ function render(){
       <p class="muted small">Trakpro, Veeder-Root TLS (Kiunga 10.35.20.16, Tabubil 10.13.20.123), Wakata, Readi Supervise, Chekrite, WhatsApp convoy and road groups. All times PNG.</p>
     </section>
   </div>
-  <footer>${(D.notes||[]).map(esc).join(" ")} Collected by the Claude PC every 30 min, 05:00 to 02:00 PNG.</footer>`;
+  <footer>${(D.notes||[]).map(esc).join(" ")} Collected by the Claude PC every 15 min, 24 hours a day (PNG time).</footer>`;
   document.getElementById("app").innerHTML = html;
   document.getElementById("msgBtn").onclick = openMsg;
 }
@@ -355,7 +386,9 @@ function buildMsg(){
     ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}`),
     `• At ${st.asOf}: Aiambak ${g("At Aiambak").units.length} | West Bank ${g("At West Bank").units.length} | On road ${st.groups.filter(p=>p.kind==="move").reduce((a,p)=>a+p.units.length,0)} | Not reporting ${g("Not reporting").units.join(", ")}`,
     "", "*CUCON BAGS*",
+    ...(()=>{const x=(D.bagShifts||[]).find(r=>!r.in_progress&&r.total!=null); return x?[`• ${x.date.slice(8,10)}/${x.date.slice(5,7)}: day ${x.day??"–"}, night ${x.night??"–"}, total ${x.total} (plan ${D.bagTarget??"TBC"})`]:[];})(),
     `• Filled today: ${fmt(b.today)} | Since 1 Oct: ${fmt(b.sinceOct1)} (about ${Math.round(b.sinceOct1/b.days)}/day vs plan ${b.planPerDay})`,
+    ...(D.perf&&D.perf.rows.length?["", `*PERFORMANCE vs PLAN (${D.perf.month})*`, ...D.perf.rows.filter(r=>r.actual!=null).map(r=>`• ${r.metric}: ${r.unit==="L"?Math.round(r.actual).toLocaleString("en-AU")+" L":r.actual} vs ${planTxt(r.plan)}`)]:[]),
     "", "*FUEL (Veeder-Root TLS, 13:00–13:00)*",
     `• Received into Kiunga: ${f.received==null?"TBC":kl(f.received)+" kL"}`,
     `• Kiunga to TBG top-up: ${f.toTbg==null?"TBC":kl(f.toTbg)+" kL"}`,
