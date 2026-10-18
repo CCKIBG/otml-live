@@ -1,12 +1,12 @@
 {
-  "generated": "2026-10-18T21:00+10:00",
+  "generated": "2026-10-18T21:15+10:00",
   "window": {
     "from": "2026-10-17T13:00+10:00",
     "to": "2026-10-18T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-10-18T21:00+10:00",
+    "as_of": "2026-10-18T21:15+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -92,7 +92,7 @@
         "buffer_l": 400000,
         "available_l": 403763.0,
         "net_l": null,
-        "change_3h_l": 22380.0
+        "change_3h_l": 6923.0
       },
       "tabubil": {
         "tanks": [
@@ -159,7 +159,7 @@
         "buffer_l": 254566,
         "available_l": 1801801.0,
         "net_l": null,
-        "change_3h_l": 234579.0
+        "change_3h_l": 234493.0
       }
     },
     "available_total_l": 2205564.0,
@@ -331,7 +331,7 @@
   },
   "trucks": {
     "state": "live",
-    "as_of": "2026-10-18T21:00+10:00",
+    "as_of": "2026-10-18T21:15+10:00",
     "positions": {
       "aiambak": [
         "IT09",
@@ -357,7 +357,7 @@
           "km_30min": -4.8,
           "dir": "south",
           "last_fix": "19:54",
-          "fix_age_min": 66,
+          "fix_age_min": 81,
           "source": "dashcam",
           "departed": "05:55",
           "eta": "01:32"
@@ -369,7 +369,7 @@
           "km_30min": -6.3,
           "dir": "south",
           "last_fix": "20:01",
-          "fix_age_min": 58,
+          "fix_age_min": 73,
           "source": "dashcam",
           "departed": "05:56",
           "eta": "01:36"
@@ -381,7 +381,7 @@
           "km_30min": -12,
           "dir": "south",
           "last_fix": "20:13",
-          "fix_age_min": 46,
+          "fix_age_min": 61,
           "source": "tracker",
           "departed": "05:54",
           "eta": "01:38"
@@ -393,7 +393,7 @@
           "km_30min": -3.2,
           "dir": "south",
           "last_fix": "19:47",
-          "fix_age_min": 72,
+          "fix_age_min": 87,
           "source": "tracker",
           "departed": "05:58",
           "eta": "01:27"
@@ -403,7 +403,7 @@
         {
           "unit": "IT14",
           "off_km": 95,
-          "last_fix": "20:55"
+          "last_fix": "21:05"
         }
       ],
       "not_reporting": [
@@ -419,19 +419,19 @@
         {
           "unit": "IT03",
           "off_km": 0.1,
-          "last_fix": "20:57",
+          "last_fix": "21:12",
           "source": "tracker"
         },
         {
           "unit": "IT06",
           "off_km": 0.1,
-          "last_fix": "20:59",
+          "last_fix": "21:14",
           "source": "tracker"
         },
         {
           "unit": "IT07",
           "off_km": 0.1,
-          "last_fix": "20:59",
+          "last_fix": "21:14",
           "source": "tracker"
         },
         {
@@ -443,25 +443,25 @@
         {
           "unit": "TT19",
           "off_km": 0.1,
-          "last_fix": "20:58",
+          "last_fix": "21:14",
           "source": "tracker"
         },
         {
           "unit": "TT20",
           "off_km": 0,
-          "last_fix": "20:58",
+          "last_fix": "21:13",
           "source": "tracker"
         },
         {
           "unit": "TT21",
           "off_km": 0.1,
-          "last_fix": "20:56",
+          "last_fix": "21:13",
           "source": "tracker"
         },
         {
           "unit": "TT22",
           "off_km": 0.1,
-          "last_fix": "20:57",
+          "last_fix": "21:12",
           "source": "tracker"
         }
       ],
@@ -478,14 +478,14 @@
           "km": 183.3,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:11"
         },
         {
           "unit": "L2197",
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:12"
         }
       ]
     },
@@ -825,11 +825,19 @@
         "issues": [
           {
             "lvl": "amber",
-            "text": "TT18: no position for 72 min (last at KM134)."
+            "text": "TT18: no position for 87 min (last at KM134)."
           },
           {
             "lvl": "amber",
-            "text": "IT05: no position for 66 min (last at KM132)."
+            "text": "IT05: no position for 81 min (last at KM132)."
+          },
+          {
+            "lvl": "amber",
+            "text": "TT16: no position for 62 min (last at KM125)."
+          },
+          {
+            "lvl": "amber",
+            "text": "IT08: no position for 73 min (last at KM131)."
           },
           {
             "lvl": "amber",
@@ -1018,7 +1026,7 @@
           "eta_ref": "IT09 run arriving 2026-10-18T06:39:45.000Z"
         },
         "IT06": {
-          "t": 1792321172,
+          "t": 1792322071,
           "km": 182.8,
           "off_km": 0.1,
           "speed": 0,
@@ -1026,7 +1034,7 @@
           "km_30min": 0
         },
         "IT07": {
-          "t": 1792321195,
+          "t": 1792322041,
           "km": 182.7,
           "off_km": 0.1,
           "speed": 0,
@@ -1044,7 +1052,7 @@
           "eta_ref": "IT09 run arriving 2026-10-18T06:39:45.000Z"
         },
         "IT09": {
-          "t": 1792321122,
+          "t": 1792321909,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -1058,7 +1066,7 @@
           "silent": true
         },
         "IT03": {
-          "t": 1792321071,
+          "t": 1792321976,
           "km": 183.2,
           "off_km": 0.1,
           "speed": 0,
@@ -1069,7 +1077,7 @@
           "silent": true
         },
         "IT10": {
-          "t": 1792321103,
+          "t": 1792321912,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -1077,7 +1085,7 @@
           "km_30min": 0
         },
         "IT11": {
-          "t": 1792320925,
+          "t": 1792321935,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -1096,7 +1104,7 @@
           "silent": true
         },
         "IT14": {
-          "t": 1792320926,
+          "t": 1792321539,
           "km": 183.3,
           "off_km": 95,
           "speed": 0,
@@ -1130,7 +1138,7 @@
           "eta_ref": "IT09 run arriving 2026-10-18T06:39:45.000Z"
         },
         "TT19": {
-          "t": 1792321119,
+          "t": 1792322072,
           "km": 182.8,
           "off_km": 0.1,
           "speed": 0,
@@ -1138,7 +1146,7 @@
           "km_30min": 0
         },
         "TT20": {
-          "t": 1792321128,
+          "t": 1792322028,
           "km": 182.7,
           "off_km": 0,
           "speed": 0,
@@ -1146,7 +1154,7 @@
           "km_30min": 0
         },
         "TT21": {
-          "t": 1792320978,
+          "t": 1792321989,
           "km": 182.8,
           "off_km": 0.1,
           "speed": 0,
@@ -1154,7 +1162,7 @@
           "km_30min": 0
         },
         "TT22": {
-          "t": 1792321040,
+          "t": 1792321941,
           "km": 182.8,
           "off_km": 0.1,
           "speed": 0,
@@ -1165,7 +1173,7 @@
           "silent": true
         },
         "TT24": {
-          "t": 1792321112,
+          "t": 1792321944,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -1175,7 +1183,7 @@
       },
       "escorts": {
         "L2095": {
-          "t": 1792321154,
+          "t": 1792321873,
           "km": 183.3,
           "off_km": 0.1,
           "speed": 0,
@@ -1183,7 +1191,7 @@
           "km_30min": 0
         },
         "L2197": {
-          "t": 1792321079,
+          "t": 1792321977,
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
@@ -2372,15 +2380,15 @@
   },
   "fleet": {
     "state": "live",
-    "as_of": "2026-10-18T21:02+10:00",
+    "as_of": "2026-10-18T21:17+10:00",
     "report_date": "2026-10-18",
     "title": "AIAMBAK CONVOY (DAILY SHIFT REPORT) - 18.10.2026",
     "groups": {
       "PRIME MOVERS": {
         "total": 20,
-        "down": 3,
-        "available": 17,
-        "pct": 85
+        "down": 4,
+        "available": 16,
+        "pct": 80
       },
       "FUEL TANKERS": {
         "total": 14,
@@ -2390,9 +2398,9 @@
       },
       "FLAT DECK TRAILERS": {
         "total": 9,
-        "down": 1,
-        "available": 8,
-        "pct": 89
+        "down": 0,
+        "available": 9,
+        "pct": 100
       },
       "ESCORT VEHICLES": {
         "total": 2,
@@ -2415,115 +2423,61 @@
     },
     "down": [
       {
-        "id": "IT13",
-        "name": "IT13 Howo Prime Mover Truck",
-        "status": "Down",
-        "since": "2026-10-10",
-        "parts": "CLUTCH ASSY",
-        "comment": "DOWN:(Clutch Change out). Good clean up prior to move in to w/shop, delay due to power outage to use water blaster.",
-        "trakpro_id": "IT13"
-      },
-      {
-        "id": "IT22",
-        "name": "IT22 CNHTC Prime Mover Truck",
-        "status": "Down",
-        "since": "2026-10-10",
-        "parts": null,
-        "comment": "DOWN: Broken Air-Tank Straps (Awaiting Design/Fabrication)",
-        "trakpro_id": "TT22"
-      },
-      {
-        "id": "T254",
-        "name": "T254 TITAN Fuel Tanker (TR-9399)",
+        "id": "TITAN FUEL TANKER",
+        "name": "TITAN FUEL TANKER",
         "status": "Down",
         "since": "2026-10-10",
         "parts": "DISCHARGE VALVE",
         "comment": "DOWN: Torque rod installation / Valve / Discharging port housing to be weld.",
-        "trakpro_id": "T254"
+        "trakpro_id": "TITAN FUEL TANKER"
       },
       {
         "id": "HT21",
-        "name": "HT 21 Tyre Truck",
+        "name": "HT21 TYRE TRUCK",
         "status": "Down",
         "since": null,
         "parts": "FUEL TANK+CABIN TILT CYL",
-        "comment": "DOWN:Cabin Tilt Cylinder Parts Pending. (Do final checks/Greasing and release for use).",
+        "comment": "DOWN:Cabin Tilt Cylinder Parts Pending. (Do final checks/Greasing).",
         "trakpro_id": "HT21"
-      },
-      {
-        "id": "IT15",
-        "name": "IT15 CNHTC Prime Mover Truck",
-        "status": "Down",
-        "since": null,
-        "parts": null,
-        "comment": "DOWN:Dashboard light warning light that triggered transmission malfuction. (Trouble shooting)",
-        "trakpro_id": "TT15"
-      },
-      {
-        "id": "T234",
-        "name": "T234 TITAN Flat Deck Trailer (TR-9379)",
-        "status": "Down",
-        "since": null,
-        "parts": null,
-        "comment": "DOWN: Landing legs Faulty (Bent).",
-        "trakpro_id": "T234"
       }
     ],
     "operational": [
-      "IT05",
-      "IT06",
-      "IT07",
-      "IT08",
-      "IT09",
-      "IT10",
-      "IT11",
-      "IT12",
-      "IT14",
-      "IT16",
-      "IT17",
-      "IT18",
-      "IT19",
-      "IT20",
-      "IT21",
-      "IT23",
-      "IT24",
-      "T250",
-      "T251",
-      "T253",
-      "T255",
-      "T256",
-      "T257",
-      "T258",
-      "T259",
-      "TR-9395",
-      "TR-9396",
-      "TR-9406",
-      "TR-9411",
-      "TR-9416",
-      "T235",
-      "T236",
-      "T237",
-      "T238",
-      "T239",
-      "T240",
-      "T241",
-      "T242",
-      "L2025",
-      "HT22"
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Fuel Tanker",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer",
+      "TITAN Flat Deck Trailer"
     ],
     "file": "Aiambakconvoy daily shift  report. WEEK42 .18.10.2026.1.ods",
     "age_days": 0
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-10-18T21:02+10:00",
-    "as_of_readi": "18 Oct 2026, 9:02PM",
+    "as_of": "2026-10-18T21:17+10:00",
+    "as_of_readi": "18 Oct 2026, 9:17PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
         "name": "Joe Guiap",
-        "sync": "1h",
+        "sync": "2h",
         "source": "ReadiML",
         "score": 65,
         "now_below": true,
@@ -2554,7 +2508,7 @@
         "source": "Wearable Only",
         "score": 69,
         "now_below": false,
-        "time_to_70": "57m",
+        "time_to_70": "42m",
         "when": "At 10:00PM"
       },
       {
@@ -2586,7 +2540,7 @@
       },
       {
         "name": "Eduardo B Gallego",
-        "sync": "16h",
+        "sync": "17h",
         "source": "ReadiML",
         "score": 65,
         "now_below": true,
@@ -2595,11 +2549,11 @@
       },
       {
         "name": "Charles Nogokas",
-        "sync": "16h",
+        "sync": "17h",
         "source": "ReadiML",
         "score": 75,
         "now_below": false,
-        "time_to_70": "57m",
+        "time_to_70": "42m",
         "when": "At 10:00PM"
       },
       {
@@ -2652,7 +2606,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-10-18T21:02+10:00",
+    "as_of": "2026-10-18T21:17+10:00",
     "site": "Tabubil Engineering (TE)",
     "inspections_today": [
       {
