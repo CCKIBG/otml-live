@@ -304,7 +304,7 @@ function render(){
   const avg=Math.round(b.sinceOct1/b.days);
   const html = `
   <header>
-    <div><h1>${esc(D.title)}</h1><div class="sub">${esc(D.day)}. Reporting day ${esc(D.window)}. Updated ${esc(D.updated)}.</div></div>
+    <div><h1>${esc(D.title)}</h1><div class="sub">${esc(D.day)}. Updated ${esc(D.updated)}. Trucks count by departure date (from midnight), fuel by the 13:00 to 13:00 day, bagging by the 06:00 production day.</div></div>
     <button id="msgBtn">Make WhatsApp update</button>
   </header>
 
@@ -442,7 +442,7 @@ function buildMsg(){
   const red = D.flags.filter(x=>x.lvl==="red").map(x=>"⚠️ "+x.text);
   return [
     `*${D.title} – Daily Update*`,
-    `*${D.day} (${D.window})*`,
+    `*${D.day}, updated ${D.updated}*`,
     ...(red.length?["",...red]:[]),
     "", "*TRUCKS*",
     `• Departures today: ${fmt(D.trucks.tripsNorth)} northbound loaded (Aiambak to WB Kiunga), ${fmt(D.trucks.tripsSouth)} southbound (WB Kiunga to Aiambak). Yesterday: ${D.trucks.yNorth??"–"} / ${D.trucks.ySouth??"–"}`,
