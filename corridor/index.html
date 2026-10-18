@@ -144,7 +144,7 @@ function toD(c, m){
   (fa.rows||[]).filter(r=>!r.now_below && roles[r.name]).forEach(r=>flags.push({lvl:"amber",tag:"Fatigue",text:`${r.name} (${roles[r.name]}) reaches 70 at ${to24(r.when.replace("At ",""))}.`}));
   const stale=(pos.on_road||[]).filter(u=>u.fix_age_min>60);
   if(stale.length) flags.push({lvl:"amber",tag:"Tracker",text:`No fix for over an hour: ${stale.map(u=>`${u.unit} (KM${Math.round(u.km)}, last ${u.last_fix})`).join(", ")}.`});
-  if((pos.not_reporting||[]).length) flags.push({lvl:"amber",tag:"Tracker",text:`Not reporting: ${pos.not_reporting.join(", ")}.`});
+  if((pos.not_reporting||[]).length) flags.push({lvl:"amber",tag:"Tracker",text:`Not reporting away from the road ends: ${(pos.silent_detail||[]).length?pos.silent_detail.map(x=>`${x.unit} (last KM${Math.round(x.km)}, ${x.last_fix})`).join(", "):pos.not_reporting.join(", ")}.`});
   if((pos.off_corridor||[]).length) flags.push({lvl:"amber",tag:"Tracker",text:`Off the corridor: ${pos.off_corridor.map(u=>`${u.unit} (${Math.round(u.off_km)} km away)`).join(", ")}.`});
   const fl=c.fleet||{};
   (fl.down||[]).forEach(a=>{ const u=(pos.on_road||[]).find(x=>x.unit===a.trakpro_id);
@@ -153,6 +153,10 @@ function toD(c, m){
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
   if(fk && fk.change_3h_l!=null && Math.abs(fk.change_3h_l)>=100000) flags.push({lvl:"amber",tag:"Fuel",text:`Kiunga tanks ${fk.change_3h_l<0?"down":"up"} ${Math.abs(KL(fk.change_3h_l))} kL in 3 h; Tabubil ${ft&&ft.change_3h_l!=null?(ft.change_3h_l<0?"down ":"up ")+Math.abs(KL(ft.change_3h_l))+" kL":"change unknown"}.`});
   const depT=(t.departures||{})[t.today]||{}, depY=(t.departures||{})[t.yesterday]||{};
+  {const ad=t.adas||{}; const onRoadNow=new Set((pos.on_road||[]).map(u=>u.unit));
+   (ad.units||[]).forEach(u=>{ const fat=Object.entries(u.types).filter(([k])=>/EYES CLOSED|YAWN|FATIGUE|DROWS/.test(k)&&u.types[k].n12>0);
+     if(fat.length) flags.push({lvl:onRoadNow.has(u.unit)?"red":"amber",tag:"Camera",text:`${u.unit} driver camera: ${fat.map(([k,v])=>`${k.toLowerCase()} ${v.n12}× (last ${v.last}${v.where?" near "+v.where:""})`).join(", ")} in the last 12 h${onRoadNow.has(u.unit)?", truck is on the road now":""}.`});
+     if(u.cover_24h>=5) flags.push({lvl:"amber",tag:"Camera",text:`${u.unit} driver camera covered ${u.cover_24h}× in 24 h (last ${(u.types["CAMERA COVER"]||{}).last||""}). Fatigue monitoring is blocked while covered.`}); });}
   {const pr=c.prestarts||{}; const departedNow=new Set([...(depT.north_units||[]),...(depT.south_units||[])]);
    (pr.open_faults||[]).forEach(u=>{ const dno=u.other.concat(u.safety).some(x=>/do not operate/i.test(x));
      const brake=u.safety.filter(x=>/brake|retarder|steer|tyre|wheel/i.test(x));
@@ -173,13 +177,14 @@ function toD(c, m){
     const parts=[`Departed ${cv.from} ${cv.departed[0]}${cv.departed[1]!==cv.departed[0]?" to "+cv.departed[1]:""}`+(cv.scheduled?` (scheduled ${cv.scheduled}, ${cv.delay_min>0?cv.delay_min+" min late":cv.delay_min<0?(-cv.delay_min)+" min early":"on time"})`:"")+"."];
     if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}${cv.eta_miss_min?` (typically within ±${cv.eta_miss_min} min at this distance)`:""}.`);
     if(cv.arrived) parts.push(`Arrived ${cv.to} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}.`);
-    if((cv.stops||[]).length) parts.push("Stops: "+cv.stops.map(x=>`KM${Math.round(x.km)} ${x.mins} min${x.type==="rest"?" (rest)":x.type==="hold"?" (hold point)":""}`).join(", ")+".");
+    if((cv.stops||[]).length) parts.push("Stops: "+cv.stops.map(x=>`${x.at} KM${x.km_range&&x.km_range[0]!==x.km_range[1]?Math.round(x.km_range[0])+" to "+Math.round(x.km_range[1]):Math.round(x.km)} ${x.mins} min${x.type==="rest"?" (rest)":x.type==="hold"?" (hold point)":""}`).join(", ")+".");
     return {name:cv.name+dayTxt, tag:`${cv.direction==="north"?"Northbound, loaded":"Southbound"}: ${cv.from} to ${cv.to}`,
       units:cv.units.join(", ")+(cv.units.length?` (${cv.units.length})`:""), crew:mm?mm.crew||"":"", status:parts.join(" "), issues:cv.issues||[], live:cv.status==="on road"};});
   autoConv.filter(cv=>cv.date===t.today||cv.status==="on road").forEach(cv=>(cv.issues||[]).filter(i=>!/coverage gap/.test(i.text))
     .forEach(i=>flags.push({lvl:i.lvl,tag:cv.name,text:i.text})));
   const escAt=(lo,hi)=>(pos.escorts||[]).filter(e=>!e.silent&&e.off_km<=3&&e.km>=lo&&e.km<=hi).map(e=>e.unit);
-  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:escAt(0,2).length?`Escort ${escAt(0,2).join(", ")} here.`:""}];
+  const parkedAt=w=>(pos.parked||[]).filter(x=>x.at===w).map(x=>`${x.unit} (last ${x.last_fix})`);
+  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:[escAt(0,2).length?`Escort ${escAt(0,2).join(", ")} here.`:"", parkedAt("Aiambak").length?`Parked, tracker asleep: ${parkedAt("Aiambak").join(", ")}.`:""].filter(Boolean).join(" ")}];
   clusterRoad(pos.on_road||[]).forEach(g=>{const k=g.units.map(u=>u.km), mv=g.units.some(u=>u.speed>5);
     const nm=g.dir==="south"?`Southbound to Aiambak, KM${Math.round(k[0])}`:g.dir==="north"?`Northbound to West Bank Kiunga, KM${Math.round(k[0])}`:`On road near KM${Math.round(k[0])}`;
     const cam=g.units.filter(u=>u.source==="dashcam").map(u=>u.unit);
@@ -196,9 +201,9 @@ function toD(c, m){
   const wbDown=(pos.west_bank||[]).filter(u=>downIds.has(u));
   const wbFar=(pos.west_bank_detail||[]).filter(u=>u.off_km>1).map(u=>`${u.unit} ${u.off_km} km off road`);
   groups.push({km:183,name:"At West Bank",kind:"stop",units:pos.west_bank||[],
-    note:[wbDown.length?`Down per shift report: ${wbDown.join(", ")}.`:"", wbFar.length?`Away from the road end: ${wbFar.join(", ")}.`:"", escAt(180,999).length?`Escort ${escAt(180,999).join(", ")} here.`:""].filter(Boolean).join(" ")});
+    note:[wbDown.length?`Down per shift report: ${wbDown.join(", ")}.`:"", wbFar.length?`Away from the road end: ${wbFar.join(", ")}.`:"", escAt(180,999).length?`Escort ${escAt(180,999).join(", ")} here.`:"", parkedAt("West Bank Kiunga").length?`Parked, tracker asleep: ${parkedAt("West Bank Kiunga").join(", ")}.`:""].filter(Boolean).join(" ")});
   if((pos.off_corridor||[]).length) groups.push({km:null,name:"Off corridor",kind:"silent",units:pos.off_corridor.map(u=>u.unit),note:""});
-  groups.push({km:null,name:"Not reporting",kind:"silent",units:pos.not_reporting||[],note:"No fix in the last 4 h."});
+  groups.push({km:null,name:"Not reporting",kind:"silent",units:pos.not_reporting||[],note:"No fix in the last 4 h, last seen away from Aiambak and West Bank."+((pos.silent_detail||[]).length?" "+pos.silent_detail.map(x=>`${x.unit} KM${Math.round(x.km)}${x.off_km>3?" ("+Math.round(x.off_km)+" km off road)":""} at ${x.last_fix}`).join(", ")+".":"")});
   const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap,usable:k.usable_l,unusable:k.unusable_l,suction:k.suction_l,inService:k.in_service!==false,belowSuction:!!k.below_suction,
     liveMove:!!k.live_by_movement, mvIn:(k.moved_24h_l||{}).in||0, mvOut:(k.moved_24h_l||{}).out||0})):[];
   const farmX=(x)=>x&&x.usable_l!=null?{usable:x.usable_l,buffer:x.buffer_l,available:x.available_l}:null;
@@ -226,6 +231,7 @@ function toD(c, m){
       availableTotal:f.available_total_l,
       farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk),x:farmX(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft),x:farmX(ft)}]},
     bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||200, today:b.filled_in_window, note:b.basis||""},
+    adas:t.adas||null,
     fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
       rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
     perf:(()=>{const ym=c.generated.slice(0,7), T=(m.targets||{})[ym]||null, A=m.actuals_manual||{}, kla=m.tanker_kl_avg||43;
@@ -392,6 +398,10 @@ function render(){
         ${fa.rows.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="score" style="background:${scoreColour(r.score)}">${r.score}</span></td><td class="${syncH(r.sync)>8?"stale":""}">${typeof r.sync==="number"? r.sync+" h" : esc(r.sync)}</td><td class="small">${esc([r.role, r.at?("reaches 70 at "+r.at):""].filter(Boolean).join(", "))}</td></tr>`).join("")}
       </table>
       <p class="muted small">${fa.group}, threshold ${fa.threshold}. Sync over 8 h shown in red: the score may be out of date. ${fa.noForecast} users have no forecast.</p>
+      <h3 class="small" style="margin:12px 0 4px">Driver cameras (ADAS/DMS), last 24 h${D.adas?` <span class="muted">at ${esc(D.adas.as_of)}</span>`:""}</h3>
+      ${D.adas&&D.adas.units.length?`<div style="overflow-x:auto"><table class="small"><tr><th>Truck</th><th>Events (24 h)</th><th>Last</th></tr>
+      ${D.adas.units.map(u=>`<tr><td><b>${esc(u.unit)}</b></td><td style="color:${u.fatigue_12h?"var(--red)":"inherit"}">${Object.entries(u.types).map(([k,v])=>`${esc(k.toLowerCase())} ${v.n24}`).join(", ")}</td><td class="muted">${Object.values(u.types).map(v=>v.last).sort().pop()||""}</td></tr>`).join("")}</table></div>
+      <p class="muted small">Eyes closed and yawning are fatigue signs. Camera cover means the driver camera was blocked. ${D.adas.cameras} dashcams checked; trucks with no events are not listed. Covers drivers whose Readi watch data is lagging.</p>`:`<p class="muted small">${D.adas?"No ADAS/DMS events in the last 24 h.":"Camera events load hourly once the updated collector runs."}</p>`}
     </section>
 
     <section class="panel">
@@ -462,6 +472,7 @@ function buildMsg(){
     "", "*ROAD*", ...D.road.items.map(i=>"• "+i),
     "", "*FATIGUE / PRE-STARTS*",
     `• Below 70 now: ${below||"none"}`,
+    ...(D.adas&&D.adas.units.length?[`• Driver cameras 24 h: ${D.adas.units.map(u=>u.unit+" "+Object.entries(u.types).map(([k,v])=>k.toLowerCase()+" "+v.n24).join("/")).join("; ")}`]:[]),
     `• Reaching 70 later today: ${cross||"none"}`,
     ...(D.prestarts.faults?[`• Pre-starts today: ${D.prestarts.today.length}; departed without one: ${D.prestarts.noPre.join(", ")||"none"}`,
       `• Open ChekRite faults: ${D.prestarts.count} (${D.prestarts.faults.filter(u=>u.safety.length).map(u=>u.asset+": "+u.safety.join("/")).join("; ")||"no safety items"})`]:[`• Chekrite: TBC`]),
