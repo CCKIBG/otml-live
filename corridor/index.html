@@ -152,6 +152,20 @@ function toD(c, m){
   const h=gen.getHours()+gen.getMinutes()/60;
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
   if(fk && fk.change_3h_l!=null && Math.abs(fk.change_3h_l)>=100000) flags.push({lvl:"amber",tag:"Fuel",text:`Kiunga tanks ${fk.change_3h_l<0?"down":"up"} ${Math.abs(KL(fk.change_3h_l))} kL in 3 h; Tabubil ${ft&&ft.change_3h_l!=null?(ft.change_3h_l<0?"down ":"up ")+Math.abs(KL(ft.change_3h_l))+" kL":"change unknown"}.`});
+  const depT=(t.departures||{})[t.today]||{}, depY=(t.departures||{})[t.yesterday]||{};
+  const autoConv=(t.convoys||[]).filter(cv=>cv.date===t.today||cv.status==="on road"||cv.date===t.yesterday)
+    .sort((a,b)=>(b.date+b.departed[0]).localeCompare(a.date+a.departed[0]));
+  const manualBy=Object.fromEntries((m.convoys||[]).filter(x=>x.date===t.today).map(x=>[x.name,x]));
+  const convoysOut=autoConv.map(cv=>{const mm=cv.date===t.today?manualBy[cv.name]:null;
+    const dayTxt=cv.date===t.today?"":` (${cv.date.slice(8,10)}/${cv.date.slice(5,7)})`;
+    const parts=[`Departed ${cv.from} ${cv.departed[0]}${cv.departed[1]!==cv.departed[0]?" to "+cv.departed[1]:""}`+(cv.scheduled?` (scheduled ${cv.scheduled}, ${cv.delay_min>0?cv.delay_min+" min late":cv.delay_min<0?(-cv.delay_min)+" min early":"on time"})`:"")+"."];
+    if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}.`);
+    if(cv.arrived) parts.push(`Arrived ${cv.to} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}.`);
+    if((cv.stops||[]).length) parts.push("Stops: "+cv.stops.map(x=>`KM${Math.round(x.km)} ${x.mins} min${x.type==="rest"?" (rest)":x.type==="hold"?" (hold point)":""}`).join(", ")+".");
+    return {name:cv.name+dayTxt, tag:`${cv.direction==="north"?"Northbound, loaded":"Southbound"}: ${cv.from} to ${cv.to}`,
+      units:cv.units.join(", ")+(cv.units.length?` (${cv.units.length})`:""), crew:mm?mm.crew||"":"", status:parts.join(" "), issues:cv.issues||[], live:cv.status==="on road"};});
+  autoConv.filter(cv=>cv.date===t.today||cv.status==="on road").forEach(cv=>(cv.issues||[]).filter(i=>!/coverage gap/.test(i.text))
+    .forEach(i=>flags.push({lvl:i.lvl,tag:cv.name,text:i.text})));
   const escAt=(lo,hi)=>(pos.escorts||[]).filter(e=>!e.silent&&e.off_km<=3&&e.km>=lo&&e.km<=hi).map(e=>e.unit);
   const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:escAt(0,2).length?`Escort ${escAt(0,2).join(", ")} here.`:""}];
   clusterRoad(pos.on_road||[]).forEach(g=>{const k=g.units.map(u=>u.km), mv=g.units.some(u=>u.speed>5);
@@ -184,9 +198,12 @@ function toD(c, m){
     window:`${c.window.from.slice(8,10)} Oct ${hhmm(c.window.from)} to ${c.window.to.slice(8,10)} Oct ${hhmm(c.window.to)} PNG`,
     updated:`${gen.toLocaleDateString("en-AU",{day:"numeric",month:"short"})} ${hhmm(c.generated)} PNG`,
     flags,
-    strip:{asOf:hhmm(t.as_of), len:183, holds:[{km:42.6,label:"KM42.5"},{km:137,label:"KM137 Moian Rd"}], gaps:[[15,60],[64,68]], groups},
-    trucks:{state:t.state||"missing", tripsNorth:t.northbound, tripsSouth:t.southbound, moved:t.trucks_moved, note:"Northbound = Aiambak to West Bank Kiunga. Southbound = West Bank Kiunga to Aiambak. Trips count on the day they arrive (13:00 to 13:00)."},
-    convoys:m.convoys||[],
+    strip:{asOf:hhmm(t.as_of), len:183, holds:((t.monitor&&t.monitor.rest_km)||[42.5,100,137]).map(k=>({km:k,label:`KM${k} stop`})), gaps:[[15,60],[64,68]], groups},
+    baseline:(t.monitor||{}).baseline||null, restMin:(t.monitor||{}).rest_min, speedLimit:(t.monitor||{}).speed_limit,
+    trucks:{state:t.state||"missing", tripsNorth:depT.north_departures||0, tripsSouth:depT.south_departures||0, moved:null,
+      yNorth:depY.north_departures, ySouth:depY.south_departures,
+      note:`Counted by calendar date of departure (after midnight). Northbound = Aiambak to West Bank Kiunga, loaded. Southbound = West Bank Kiunga to Aiambak. Yesterday: ${depY.north_departures??"–"} northbound, ${depY.south_departures??"–"} southbound.`+(t.monitor?` Schedule from Aiambak ${t.monitor.schedule_north.join(", ")}; rest stops KM${t.monitor.rest_km.join(", KM")} (${t.monitor.rest_min} min); speed limit ${t.monitor.speed_limit} km/h.`:"")},
+    convoys:convoysOut.length?convoysOut:(m.convoys||[]),
     fuel:{state:f.state||"missing", received:f.received_l, toTbg:f.to_tbg_l,
       note:`Kiunga net ${fk&&fk.net_l!=null?(KL(fk.net_l)+" kL over the reporting day"):"over the day: from the first full day"}. Received and sent figures need the console delivery report.`,
       availableTotal:f.available_total_l,
@@ -202,8 +219,8 @@ function toD(c, m){
         {area:"Copper road",metric:"Truck loads per day (20 bags)",plan:T.copper_loads_per_day,actual:null,unit:"loads",src:"needs copper loads split from returns"},
         {area:"Copper road",metric:"Tonnes to Aiambak per day",plan:T.copper_t_per_day,actual:A.copper_t_to_aiambak,unit:"t",src:"manual"},
         {area:"Backfill",metric:"Containers to Kiunga per day",plan:T.backfill_containers_per_day,actual:A.backfill_containers,unit:"containers",src:"manual"},
-        {area:"Fuel",metric:"Tanker loads per day (northbound trips)",plan:T.tanker_loads_per_day,actual:north,unit:"loads",src:"Trakpro, 13:00 to 13:00"},
-        {area:"Fuel",metric:"Litres to West Bank per day",plan:T.fuel_l_per_day,actual:f.received_l!=null?f.received_l:(north!=null?north*kla*1000:null),unit:"L",src:f.received_l!=null?"TLS deliveries":`estimate: loads × ${kla} kL`},
+        {area:"Fuel",metric:"Tanker loads per day (northbound departures)",plan:T.tanker_loads_per_day,actual:depY.north_departures??null,unit:"loads",src:`yesterday's departures (Trakpro); today so far ${depT.north_departures||0}`},
+        {area:"Fuel",metric:"Litres to West Bank per day",plan:T.fuel_l_per_day,actual:f.received_l!=null?f.received_l:(depY.north_departures!=null?depY.north_departures*kla*1000:null),unit:"L",src:f.received_l!=null?"TLS deliveries":`estimate: yesterday's loads × ${kla} kL`},
         {area:"Shipping",metric:"Voyages to Raggiana this month",plan:T.voyages_month,actual:A.voyages_month_to_date,unit:"voyages",src:"manual"},
         {area:"Drivers",metric:"Drivers available per day",plan:T.drivers_per_day,actual:A.drivers_available,unit:"drivers",src:"manual"}]:[];
       return {month:new Date(c.generated).toLocaleDateString("en-AU",{month:"long",timeZone:"Pacific/Port_Moresby"}), rows};})(),
@@ -276,7 +293,7 @@ function render(){
   <section class="strip">
     <div class="ph"><h2>Trucks on the road</h2>${stateBadge("live", D.strip.asOf)}</div>
     <div class="strip-scroll">${stripSVG(D.strip)}</div>
-    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Known hold point</span><span><i style="background:var(--hivis)"></i>Moving (arrow right = northbound to West Bank Kiunga, left = southbound to Aiambak)</span></div>
+    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Usual convoy stop</span><span><i style="background:var(--hivis)"></i>Moving (arrow right = northbound to West Bank Kiunga, left = southbound to Aiambak)</span></div>
     <div class="groups">
       ${D.strip.groups.map(p=>`<div class="grp ${p.kind}"><h3>${esc(p.name)} (${p.units.length})</h3><div class="ids">${p.units.join(" ")}</div><p>${esc(p.note||"")}</p></div>`).join("")}
     </div>
@@ -285,8 +302,12 @@ function render(){
   <div class="grid">
     <section class="panel wide">
       <div class="ph"><h2>Convoys</h2>${stateBadge(D.trucks.state)}</div>
-      <p class="muted small">Trips completed today: ${fmt(D.trucks.tripsNorth)} northbound, ${fmt(D.trucks.tripsSouth)} southbound, ${fmt(D.trucks.moved)} trucks moved. ${esc(D.trucks.note)}</p>
-      ${D.convoys.map(c=>`<div class="convoy"><h3>${esc(c.name)} <span class="tag">${esc(c.tag)}</span></h3>${c.units?`<p><b>${esc(c.units)}</b></p>`:""}${c.crew?`<p>${esc(c.crew)}</p>`:""}<p class="muted">${esc(c.status)}</p></div>`).join("")}
+      <p class="small"><b>Departures today: ${fmt(D.trucks.tripsNorth)} northbound (loaded), ${fmt(D.trucks.tripsSouth)} southbound.</b> <span class="muted">${esc(D.trucks.note)}</span></p>
+      ${D.baseline?`<details style="margin:6px 0 10px"><summary class="small"><b>14-day baseline (${esc(D.baseline.period)})</b>: typical run ${D.baseline.run_h_north} h northbound, ${D.baseline.run_h_south} h southbound; top speed usually ${D.baseline.typical_max_kmh} km/h. Flags: stop over ${D.restMin+5} min, speed over ${D.speedLimit} km/h.</summary>
+        <div style="overflow-x:auto"><table class="small"><tr><th>Place</th><th>Northbound</th><th>Southbound</th><th>Typical min</th></tr>
+        ${(D.baseline.stops||[]).map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join("")}</table></div>
+        <p class="muted small">From ${D.baseline.convoys_north+D.baseline.convoys_south} convoys on Trakpro. Runs ranged ${esc(D.baseline.run_h_range||"")} h; ${D.baseline.convoys_over_60} of ${D.baseline.convoys_north+D.baseline.convoys_south} convoys exceeded 60 km/h at least once (highest ${D.baseline.highest_kmh}). Plan rest stops KM47 and KM147 were not used.</p></details>`:""}
+      ${D.convoys.map(c=>`<div class="convoy"><h3>${esc(c.name)} <span class="tag">${esc(c.tag)}</span></h3>${c.units?`<p><b>${esc(c.units)}</b></p>`:""}${c.crew?`<p>${esc(c.crew)}</p>`:""}<p class="muted">${esc(c.status)}</p>${(c.issues||[]).length?`<ul class="plain small">${c.issues.map(i=>`<li style="color:${i.lvl==="red"?"var(--red)":"inherit"}">${esc(i.text)}</li>`).join("")}</ul>`:""}</div>`).join("")}
     </section>
 
     <section class="panel wide">
@@ -382,8 +403,8 @@ function buildMsg(){
     `*${D.day} (${D.window})*`,
     ...(red.length?["",...red]:[]),
     "", "*TRUCKS*",
-    `• Trips completed: ${fmt(D.trucks.tripsNorth)} northbound (Aiambak to WB Kiunga), ${fmt(D.trucks.tripsSouth)} southbound (WB Kiunga to Aiambak) | ${fmt(D.trucks.moved)} trucks moved`,
-    ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}`),
+    `• Departures today: ${fmt(D.trucks.tripsNorth)} northbound loaded (Aiambak to WB Kiunga), ${fmt(D.trucks.tripsSouth)} southbound (WB Kiunga to Aiambak). Yesterday: ${D.trucks.yNorth??"–"} / ${D.trucks.ySouth??"–"}`,
+    ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}${(c.issues||[]).filter(i=>!/coverage gap/.test(i.text)).length?" Issues: "+c.issues.filter(i=>!/coverage gap/.test(i.text)).map(i=>i.text).join(" "):""}`),
     `• At ${st.asOf}: Aiambak ${g("At Aiambak").units.length} | West Bank ${g("At West Bank").units.length} | On road ${st.groups.filter(p=>p.kind==="move").reduce((a,p)=>a+p.units.length,0)} | Not reporting ${g("Not reporting").units.join(", ")}`,
     "", "*CUCON BAGS*",
     ...(()=>{const x=(D.bagShifts||[]).find(r=>!r.in_progress&&r.total!=null); return x?[`• ${x.date.slice(8,10)}/${x.date.slice(5,7)}: day ${x.day??"–"}, night ${x.night??"–"}, total ${x.total} (plan ${D.bagTarget??"TBC"})`]:[];})(),
