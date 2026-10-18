@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OTML Corridor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EE; --paper:#FFFFFF; --ink:#1F2B27; --muted:#5C6964; --line:#D3D9D5;
+  --road:#9C8B67; --gap:#C9CFCB; --hivis:#F2B705; --hivis-ink:#2A2200;
+  --red:#C2362B; --red-soft:#F7DEDB; --amber-soft:#FCF0C8; --green:#2F7A4F; --blue:#2F64A0; --blue-soft:#DCE7F4;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141A18; --paper:#1D2522; --ink:#E6ECE9; --muted:#9AA7A2; --line:#33403B;
+    --road:#A8976F; --gap:#3A4642; --hivis:#F2B705; --hivis-ink:#2A2200;
+    --red:#EF6A5E; --red-soft:#3B201D; --amber-soft:#3A3115; --green:#5FBF86; --blue:#79A8E0; --blue-soft:#1C2C40;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141A18; --paper:#1D2522; --ink:#E6ECE9; --muted:#9AA7A2; --line:#33403B;
+  --road:#A8976F; --gap:#3A4642; --hivis:#F2B705; --hivis-ink:#2A2200;
+  --red:#EF6A5E; --red-soft:#3B201D; --amber-soft:#3A3115; --green:#5FBF86; --blue:#79A8E0; --blue-soft:#1C2C40;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Barlow,"Segoe UI",Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 48px}
+h1,h2,.num{font-family:"Barlow Condensed","Arial Narrow",Barlow,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;margin:0;line-height:1}
+.sub{color:var(--muted);margin-top:6px}
+button{font:600 15px Barlow,sans-serif;border:0;border-radius:6px;padding:10px 16px;background:var(--hivis);color:var(--hivis-ink);cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.flags{display:grid;gap:8px;margin-bottom:20px}
+.flag{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;border-radius:6px;background:var(--amber-soft);border-left:6px solid var(--hivis)}
+.flag.red{background:var(--red-soft);border-left-color:var(--red)}
+.flag b{font-family:"Barlow Condensed",sans-serif;font-size:17px;min-width:64px}
+/* road strip hero */
+.strip{background:var(--paper);border-radius:10px;padding:18px 18px 10px;margin-bottom:22px}
+.strip h2{margin:0 0 4px;font-size:24px}
+.strip-scroll{overflow-x:auto}
+.strip svg{display:block;min-width:640px;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:14px;margin-top:6px}
+.legend i{display:inline-block;width:18px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.grp{border-top:3px solid var(--line);padding-top:8px}
+.grp.move{border-top-color:var(--hivis)}
+.grp.silent{border-top-color:var(--red)}
+.grp h3{margin:0;font:600 16px Barlow,sans-serif}
+.grp .ids{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:600;letter-spacing:.02em}
+.grp p{margin:2px 0;color:var(--muted);font-size:14px}
+/* panels */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.panel{background:var(--paper);border-radius:10px;padding:16px 18px;grid-column:span 6;min-width:0}
+.panel.wide{grid-column:span 12}
+.panel.third{grid-column:span 4}
+@media (max-width:900px){.panel,.panel.third{grid-column:span 12}}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.ph h2{margin:0;font-size:24px}
+.state{font-size:13px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.state.live{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}
+.state.pending{background:var(--amber-soft);color:var(--ink)}
+.state.missing{background:var(--red-soft);color:var(--red)}
+.big{font-size:44px;font-weight:700;line-height:1}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+table{border-collapse:collapse;width:100%}
+td,th{padding:6px 8px 6px 0;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:14px}
+td.r,th.r{text-align:right}
+.convoy{padding:10px 0;border-bottom:1px solid var(--line)}
+.convoy:last-child{border-bottom:0}
+.convoy h3{margin:0 0 2px;font:600 18px Barlow,sans-serif;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.convoy .tag{font-size:13px;font-weight:600;color:var(--muted)}
+.convoy p{margin:2px 0}
+.tank{display:grid;grid-template-columns:110px 1fr 74px;gap:10px;align-items:center;margin:8px 0}
+.bar{height:14px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--blue)}
+.farm{margin-bottom:14px}
+.farm h3{margin:0 0 2px;font:600 17px Barlow,sans-serif}
+.score{display:inline-block;min-width:38px;text-align:center;font-weight:700;border-radius:4px;padding:1px 6px;color:#fff}
+.stale{color:var(--red);font-weight:600}
+ul.plain{margin:0;padding-left:18px}
+ul.plain li{margin:4px 0}
+.plan{position:relative;height:18px;background:var(--bg);border-radius:3px;margin:10px 0 4px}
+.plan span{position:absolute;left:0;top:0;bottom:0;background:var(--hivis);border-radius:3px}
+.plan i{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+dialog{border:0;border-radius:10px;padding:18px;max-width:640px;width:92vw;background:var(--paper);color:var(--ink)}
+dialog textarea{width:100%;height:50vh;font:14px/1.4 Barlow,sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+footer{color:var(--muted);font-size:13px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<dialog id="msgDlg">
+  <textarea id="msgText" aria-label="WhatsApp update text"></textarea>
+  <div class="row"><button class="ghost" id="closeBtn">Close</button><button id="copyBtn">Copy text</button></div>
+</dialog>
+
+<script>
+/* ---------- DATA: edit this block, or have the PC replace it daily ---------- */
+let D = null;
+const KL = l => l==null ? null : Math.round(l/1000);
+const hhmm = iso => iso ? iso.slice(11,16) : "";
+const to24 = s => String(s||"").replace(/(\d{1,2}):(\d{2})\s*([AP]M)/i,(x,h,mm,ap)=>String((+h%12)+(ap.toUpperCase()==="PM"?12:0)).padStart(2,"0")+":"+mm);
+const dayName = d => d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"Pacific/Port_Moresby"});
+function nextHotshot(now){
+  const d=new Date(now.getTime()); d.setHours(d.getHours()+ (d.getHours()>=6?24:0));
+  while([0,6].includes(d.getDay())) d.setDate(d.getDate()+1);
+  return d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+", 06:00 from TE";
+}
+function clusterRoad(onRoad){
+  const s=[...onRoad].sort((a,b)=>a.km-b.km), out=[];
+  for(const u of s){ const g=out[out.length-1];
+    if(g && u.km-g.kmMax<=3){ g.units.push(u); g.kmMax=u.km; } else out.push({units:[u],kmMax:u.km}); }
+  return out;
+}
+function toD(c, m){
+  const t=c.trucks||{}, pos=t.positions||{aiambak:[],west_bank:[],on_road:[],off_corridor:[],not_reporting:[]};
+  const f=c.fuel||{}, fk=(f.farms||{}).kiunga, ft=(f.farms||{}).tabubil, b=c.bags||{}, fa=c.fatigue||{};
+  const gen=new Date(c.generated), flags=[];
+  for(const [k,label] of [["fuel","Fuel"],["bags","Bags"],["trucks","Trakpro"],["fatigue","Readi"],["prestarts","ChekRite"]]){
+    const st=(c[k]||{}).state; if(st && st!=="live") flags.push({lvl:"amber",tag:"Feed",text:`${label} ${st==="missing"?"not available":"stale"}: ${(c[k]||{}).note||""}`});
+  }
+  const lowNow=(fa.rows||[]).filter(r=>r.now_below);
+  const roles=m.crew_roles||{};
+  lowNow.forEach(r=>flags.push({lvl:r.score<60||roles[r.name]?"red":"amber",tag:"Fatigue",text:`${r.name}${roles[r.name]?" ("+roles[r.name]+")":""} ReadiScore ${r.score} now (sync ${r.sync}).`}));
+  (fa.rows||[]).filter(r=>!r.now_below && roles[r.name]).forEach(r=>flags.push({lvl:"amber",tag:"Fatigue",text:`${r.name} (${roles[r.name]}) reaches 70 at ${to24(r.when.replace("At ",""))}.`}));
+  const stale=(pos.on_road||[]).filter(u=>u.fix_age_min>60);
+  if(stale.length) flags.push({lvl:"amber",tag:"Tracker",text:`No fix for over an hour: ${stale.map(u=>`${u.unit} (KM${Math.round(u.km)}, last ${u.last_fix})`).join(", ")}.`});
+  if((pos.not_reporting||[]).length) flags.push({lvl:"amber",tag:"Tracker",text:`Not reporting: ${pos.not_reporting.join(", ")}.`});
+  if((pos.off_corridor||[]).length) flags.push({lvl:"amber",tag:"Tracker",text:`Off the corridor: ${pos.off_corridor.map(u=>`${u.unit} (${Math.round(u.off_km)} km away)`).join(", ")}.`});
+  const fl=c.fleet||{};
+  (fl.down||[]).forEach(a=>{ const u=(pos.on_road||[]).find(x=>x.unit===a.trakpro_id);
+    if(u) flags.push({lvl:"red",tag:"Fleet",text:`${a.id} is listed DOWN in the shift report but Trakpro shows it on the road at KM${Math.round(u.km)}.`}); });
+  const h=gen.getHours()+gen.getMinutes()/60;
+  if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
+  if(fk && fk.change_3h_l!=null && Math.abs(fk.change_3h_l)>=100000) flags.push({lvl:"amber",tag:"Fuel",text:`Kiunga tanks ${fk.change_3h_l<0?"down":"up"} ${Math.abs(KL(fk.change_3h_l))} kL in 3 h; Tabubil ${ft&&ft.change_3h_l!=null?(ft.change_3h_l<0?"down ":"up ")+Math.abs(KL(ft.change_3h_l))+" kL":"change unknown"}.`});
+  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:""}];
+  clusterRoad(pos.on_road||[]).forEach(g=>{const k=g.units.map(u=>u.km), mv=g.units.some(u=>u.speed>5);
+    groups.push({km:k.reduce((a,x)=>a+x,0)/k.length,name:`On road near KM${Math.round(k[0])}`,kind:mv?"move":"stop",units:g.units.map(u=>u.unit),
+      note:(()=>{const fx=g.units.map(u=>u.last_fix).filter(Boolean).sort(), sp=g.units.map(u=>u.speed);
+        return (fx.length?`Last fix ${fx[0]}${fx.length>1&&fx[0]!==fx[fx.length-1]?" to "+fx[fx.length-1]:""}. `:"")+`${Math.min(...sp)}${Math.max(...sp)!==Math.min(...sp)?" to "+Math.max(...sp):""} km/h.`;})()});});
+  groups.push({km:183,name:"At West Bank",kind:"stop",units:pos.west_bank||[],note:""});
+  if((pos.off_corridor||[]).length) groups.push({km:null,name:"Off corridor",kind:"silent",units:pos.off_corridor.map(u=>u.unit),note:""});
+  groups.push({km:null,name:"Not reporting",kind:"silent",units:pos.not_reporting||[],note:"No fix in the last 4 h."});
+  const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap})):[];
+  return {
+    title:"Kiunga–Aiambak Corridor", day:dayName(gen),
+    window:`${c.window.from.slice(8,10)} Oct ${hhmm(c.window.from)} to ${c.window.to.slice(8,10)} Oct ${hhmm(c.window.to)} PNG`,
+    updated:`${gen.toLocaleDateString("en-AU",{day:"numeric",month:"short"})} ${hhmm(c.generated)} PNG`,
+    flags,
+    strip:{asOf:hhmm(t.as_of), len:183, holds:[{km:42.6,label:"KM42.5"},{km:137,label:"KM137 Moian Rd"}], gaps:[[15,60],[64,68]], groups},
+    trucks:{state:t.state||"missing", tripsNorth:t.northbound, tripsSouth:t.southbound, moved:t.trucks_moved, note:"Trips counted on the day they arrive (13:00 to 13:00)."},
+    convoys:m.convoys||[],
+    fuel:{state:f.state||"missing", received:f.received_l, toTbg:f.to_tbg_l,
+      note:`Kiunga net ${fk&&fk.net_l!=null?(KL(fk.net_l)+" kL over the reporting day"):"over the day: from the first full day"}. Received and sent figures need the console delivery report.`,
+      farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft)}]},
+    bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:200, today:b.filled_in_window, note:b.basis||""},
+    fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
+      rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
+    road:{state:"live", asOf:m.updated||"", items:m.road||[]},
+    prestarts:{state:"pending", note:"ChekRite connected; reader being built."},
+    fleet:{state:fl.state||"missing", date:fl.report_date, file:fl.file, groups:fl.groups||{}, down:fl.down||[], note:fl.note||""},
+    hotshot:{next:nextHotshot(gen), cutoff:(m.hotshot||{}).cutoff||""},
+    notes:m.notes||[]
+  };
+}
+async function load(){
+  try{
+    const bust="?t="+Date.now();
+    const [c,m]=await Promise.all([fetch("corridor_latest.json"+bust).then(r=>r.json()), fetch("manual.json"+bust).then(r=>r.ok?r.json():{}).catch(()=>({}))]);
+    D=toD(c,m); render();
+  }catch(e){
+    document.getElementById("app").innerHTML=`<h1>Corridor</h1><p>Could not load corridor_latest.json (${e}). The collector on the Claude PC may be stopped.</p>`;
+  }
+}
+/* ---------------------------------------------------------------------------- */
+
+const fmt = n => n==null ? "TBC" : n.toLocaleString("en-AU");
+const kl = l => (l/1000).toLocaleString("en-AU",{maximumFractionDigits:0});
+const pct = (a,b) => Math.round(a/b*100);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const stateBadge = (s, asOf) => {
+  const t = {live:"Live", pending:"Pending", missing:"Not connected", cached_stale:"Stale"}[s] || s;
+  return `<span class="state ${s==="cached_stale"?"missing":s}">${t}${asOf?" "+asOf:""}</span>`;
+};
+const syncH = v => typeof v==="number" ? v : (m=>m? +m[1]*({m:1/60,h:1,d:24}[m[2]]) : 0)(String(v).match(/(\d+)\s*([mhd])/));
+const scoreColour = s => s<60 ? "var(--red)" : s<70 ? "#C9651D" : s<=75 ? "#B08A00" : "var(--green)";
+
+function stripSVG(st){
+  const W=1000, L=40, R=960, Y=92, x=k=>L+(R-L)*k/st.len;
+  let g = `<svg viewBox="0 0 ${W} 190" role="img" aria-label="Road from Aiambak KM0 to West Bank KM183 with truck positions">`;
+  st.gaps.forEach(([a,b])=>{ g+=`<rect x="${x(a)}" y="${Y-14}" width="${x(b)-x(a)}" height="28" fill="var(--gap)" opacity=".55" rx="3"/>`; });
+  g += `<line x1="${L}" y1="${Y}" x2="${R}" y2="${Y}" stroke="var(--road)" stroke-width="10" stroke-linecap="round"/>`;
+  for(let k=0;k<=180;k+=20){ g+=`<line x1="${x(k)}" y1="${Y+10}" x2="${x(k)}" y2="${Y+18}" stroke="var(--muted)"/><text x="${x(k)}" y="${Y+34}" text-anchor="middle" font-size="14" fill="var(--muted)" font-family="Barlow">${k}</text>`; }
+  st.holds.forEach(h=>{ g+=`<line x1="${x(h.km)}" y1="${Y-22}" x2="${x(h.km)}" y2="${Y+22}" stroke="var(--red)" stroke-width="3"/><text x="${x(h.km)}" y="${Y+56}" text-anchor="middle" font-size="14" fill="var(--red)" font-family="Barlow" font-weight="600">${esc(h.label)}</text>`; });
+  g += `<text x="${L}" y="${Y+80}" font-size="16" font-weight="600" fill="var(--ink)" font-family="Barlow">Aiambak</text>`;
+  g += `<text x="${R}" y="${Y+80}" text-anchor="end" font-size="16" font-weight="600" fill="var(--ink)" font-family="Barlow">Kiunga West Bank</text>`;
+  st.groups.filter(p=>p.km!=null).forEach(p=>{
+    const cx=x(p.km), move=p.kind==="move", fill=move?"var(--hivis)":"var(--paper)", stroke=move?"var(--hivis-ink)":"var(--ink)";
+    g+=`<line x1="${cx}" y1="${Y-6}" x2="${cx}" y2="${Y-30}" stroke="${stroke}" stroke-width="2"/>`;
+    g+=`<circle cx="${cx}" cy="${Y-46}" r="20" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`;
+    g+=`<text x="${cx}" y="${Y-40}" text-anchor="middle" font-size="19" font-weight="700" fill="${move?"var(--hivis-ink)":"var(--ink)"}" font-family="Barlow Condensed">${p.units.length}</text>`;
+    if(move) g+=`<path d="M${cx+26} ${Y-52} l12 6 l-12 6 z" fill="var(--hivis-ink)"/>`;
+  });
+  return g+"</svg>";
+}
+
+function render(){
+  const f=D.fuel, b=D.bags, fa=D.fatigue;
+  const below=fa.rows.filter(r=>r.score<fa.threshold), crossing=fa.rows.filter(r=>r.score>=fa.threshold && r.at);
+  const avg=Math.round(b.sinceOct1/b.days);
+  const html = `
+  <header>
+    <div><h1>${esc(D.title)}</h1><div class="sub">${esc(D.day)}. Reporting day ${esc(D.window)}. Updated ${esc(D.updated)}.</div></div>
+    <button id="msgBtn">Make WhatsApp update</button>
+  </header>
+
+  <section class="flags" aria-label="Flags">
+    ${D.flags.map(fl=>`<div class="flag ${fl.lvl}"><b>${esc(fl.tag)}</b><span>${esc(fl.text)}</span></div>`).join("")}
+  </section>
+
+  <section class="strip">
+    <div class="ph"><h2>Trucks on the road</h2>${stateBadge("live", D.strip.asOf)}</div>
+    <div class="strip-scroll">${stripSVG(D.strip)}</div>
+    <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Known hold point</span><span><i style="background:var(--hivis)"></i>Moving</span></div>
+    <div class="groups">
+      ${D.strip.groups.map(p=>`<div class="grp ${p.kind}"><h3>${esc(p.name)} (${p.units.length})</h3><div class="ids">${p.units.join(" ")}</div><p>${esc(p.note||"")}</p></div>`).join("")}
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel wide">
+      <div class="ph"><h2>Convoys</h2>${stateBadge(D.trucks.state)}</div>
+      <p class="muted small">Trips completed today: ${fmt(D.trucks.tripsNorth)} northbound, ${fmt(D.trucks.tripsSouth)} southbound, ${fmt(D.trucks.moved)} trucks moved. ${esc(D.trucks.note)}</p>
+      ${D.convoys.map(c=>`<div class="convoy"><h3>${esc(c.name)} <span class="tag">${esc(c.tag)}</span></h3>${c.units?`<p><b>${esc(c.units)}</b></p>`:""}${c.crew?`<p>${esc(c.crew)}</p>`:""}<p class="muted">${esc(c.status)}</p></div>`).join("")}
+    </section>
+
+    <section class="panel">
+      <div class="ph"><h2>Fuel</h2>${stateBadge(f.state)}</div>
+      <table><tr><th>13:00 to 13:00</th><th class="r">kL</th></tr>
+        <tr><td>Received into Kiunga</td><td class="r num">${f.received==null?"TBC":kl(f.received)}</td></tr>
+        <tr><td>Kiunga to TBG top-up</td><td class="r num">${f.toTbg==null?"TBC":kl(f.toTbg)}</td></tr></table>
+      <p class="muted small">${esc(f.note)}</p>
+      ${f.farms.map(fm=>{const v=fm.tanks.reduce((a,t)=>a+t.vol,0), c=fm.tanks.reduce((a,t)=>a+t.cap,0);
+        return `<div class="farm"><h3>${esc(fm.name)}: ${kl(v)} kL <span class="muted small">(${pct(v,c)} % of ${kl(c)} kL, at ${esc(fm.asOf)})</span></h3>
+        ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%"></span></div><span class="r muted small">${pct(t.vol,t.cap)} %</span></div>`).join("")}</div>`;}).join("")}
+    </section>
+
+    <section class="panel">
+      <div class="ph"><h2>CuCon bulka bags</h2>${stateBadge(b.state)}</div>
+      <div class="big num">${fmt(b.sinceOct1)}</div>
+      <div class="muted">bags since 1 Oct. Filled today: ${fmt(b.today)}.</div>
+      <div class="plan" role="img" aria-label="Average ${avg} bags a day against plan of ${b.planPerDay}"><span style="width:${Math.min(100,avg/b.planPerDay*100)}%"></span><i style="left:calc(100% - 2px)"></i></div>
+      <div class="small">Averaging about ${avg} a day against the October plan of ${b.planPerDay} a day.</div>
+      <p class="muted small">${esc(b.note)}</p>
+    </section>
+
+    <section class="panel">
+      <div class="ph"><h2>Fatigue</h2>${stateBadge(fa.state, fa.asOf)}</div>
+      <table>
+        <tr><th>Name</th><th>Score</th><th>Sync</th><th>Note</th></tr>
+        ${fa.rows.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="score" style="background:${scoreColour(r.score)}">${r.score}</span></td><td class="${syncH(r.sync)>8?"stale":""}">${typeof r.sync==="number"? r.sync+" h" : esc(r.sync)}</td><td class="small">${esc([r.role, r.at?("reaches 70 at "+r.at):""].filter(Boolean).join(", "))}</td></tr>`).join("")}
+      </table>
+      <p class="muted small">${fa.group}, threshold ${fa.threshold}. Sync over 8 h shown in red: the score may be out of date. ${fa.noForecast} users have no forecast.</p>
+    </section>
+
+    <section class="panel">
+      <div class="ph"><h2>Fleet availability</h2>${stateBadge(D.fleet?D.fleet.state:"missing", D.fleet&&D.fleet.date?D.fleet.date.slice(8,10)+"/"+D.fleet.date.slice(5,7):"")}</div>
+      ${D.fleet&&Object.keys(D.fleet.groups).length?`<table><tr><th>Fleet</th><th class="r">Total</th><th class="r">Down</th><th class="r">Avail</th></tr>
+        ${Object.entries(D.fleet.groups).map(([k,g])=>`<tr${k==="TOTAL FLEETS"?' style="font-weight:600"':""}><td>${esc(k.charAt(0)+k.slice(1).toLowerCase())}</td><td class="r">${g.total}</td><td class="r">${g.down}</td><td class="r">${g.pct!=null?g.pct+" %":g.available}</td></tr>`).join("")}</table>
+        <ul class="plain small" style="margin-top:8px">${D.fleet.down.map(a=>`<li><b>${esc(a.id)}</b>${a.trakpro_id!==a.id?" ("+esc(a.trakpro_id)+")":""}: ${esc((a.comment||"").replace(/^DOWN\s*:\s*/i,""))}${a.since?` <span class="muted">since ${a.since.slice(8,10)}/${a.since.slice(5,7)}</span>`:""}</li>`).join("")}</ul>
+        <p class="muted small">From ${esc(D.fleet.file||"the daily shift report")}.</p>`:`<p class="muted">${esc(D.fleet&&D.fleet.note||"No shift report yet.")}</p>`}
+    </section>
+
+    <section class="panel">
+      <div class="ph"><h2>Road</h2>${stateBadge(D.road.state, D.road.asOf)}</div>
+      <ul class="plain">${D.road.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+    </section>
+
+    <section class="panel third">
+      <div class="ph"><h2>Pre-starts</h2>${stateBadge(D.prestarts.state)}</div>
+      <p class="muted">${esc(D.prestarts.note)}</p>
+    </section>
+
+    <section class="panel third">
+      <div class="ph"><h2>Hotshot</h2></div>
+      <p><b>${esc(D.hotshot.next)}</b></p>
+      <p class="muted small">Runs Monday to Friday. ${esc(D.hotshot.cutoff)}</p>
+    </section>
+
+    <section class="panel third">
+      <div class="ph"><h2>Sources</h2></div>
+      <p class="muted small">Trakpro, Veeder-Root TLS (Kiunga 10.35.20.16, Tabubil 10.13.20.123), Wakata, Readi Supervise, Chekrite, WhatsApp convoy and road groups. All times PNG.</p>
+    </section>
+  </div>
+  <footer>${(D.notes||[]).map(esc).join(" ")} Collected by the Claude PC every 30 min, 05:00 to 02:00 PNG.</footer>`;
+  document.getElementById("app").innerHTML = html;
+  document.getElementById("msgBtn").onclick = openMsg;
+}
+
+function buildMsg(){
+  const f=D.fuel, fa=D.fatigue, b=D.bags, st=D.strip;
+  const g = n => st.groups.find(p=>p.name.startsWith(n));
+  const below = fa.rows.filter(r=>r.score<fa.threshold).map(r=>`${r.name} ${r.score}${r.role?" ("+r.role+")":""}`).join(", ");
+  const cross = fa.rows.filter(r=>r.at).map(r=>`${r.name} ${r.at}`).join(", ");
+  const kgFarm = name => { const fm=f.farms.find(x=>x.name.startsWith(name)); return fm? kl(fm.tanks.reduce((a,t)=>a+t.vol,0))+" kL at "+fm.asOf : "TBC"; };
+  const red = D.flags.filter(x=>x.lvl==="red").map(x=>"⚠️ "+x.text);
+  return [
+    `*${D.title} – Daily Update*`,
+    `*${D.day} (${D.window})*`,
+    ...(red.length?["",...red]:[]),
+    "", "*TRUCKS*",
+    `• Trips completed: ${fmt(D.trucks.tripsNorth)} northbound, ${fmt(D.trucks.tripsSouth)} southbound | ${fmt(D.trucks.moved)} trucks moved`,
+    ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}`),
+    `• At ${st.asOf}: Aiambak ${g("At Aiambak").units.length} | West Bank ${g("At West Bank").units.length} | On road ${st.groups.filter(p=>p.kind==="move").reduce((a,p)=>a+p.units.length,0)} | Not reporting ${g("Not reporting").units.join(", ")}`,
+    "", "*CUCON BAGS*",
+    `• Filled today: ${fmt(b.today)} | Since 1 Oct: ${fmt(b.sinceOct1)} (about ${Math.round(b.sinceOct1/b.days)}/day vs plan ${b.planPerDay})`,
+    "", "*FUEL (Veeder-Root TLS, 13:00–13:00)*",
+    `• Received into Kiunga: ${f.received==null?"TBC":kl(f.received)+" kL"}`,
+    `• Kiunga to TBG top-up: ${f.toTbg==null?"TBC":kl(f.toTbg)+" kL"}`,
+    `• Stock: Kiunga ${kgFarm("Kiunga")} | Tabubil ${kgFarm("Tabubil")}`,
+    ...(D.fleet&&Object.keys(D.fleet.groups||{}).length?["", "*FLEET (shift report "+(D.fleet.date||"")+")*",
+      "• "+["PRIME MOVERS","FUEL TANKERS","FLAT DECK TRAILERS","TOTAL FLEETS"].filter(k=>D.fleet.groups[k]).map(k=>`${k.charAt(0)+k.slice(1).toLowerCase()} ${D.fleet.groups[k].available}/${D.fleet.groups[k].total}`).join(" | "),
+      ...D.fleet.down.map(a=>`• Down: ${a.id}${a.trakpro_id!==a.id?" ("+a.trakpro_id+")":""} ${(a.comment||"").replace(/^DOWN\s*:\s*/i,"")}`)]:[]),
+    "", "*ROAD*", ...D.road.items.map(i=>"• "+i),
+    "", "*FATIGUE / PRE-STARTS*",
+    `• Below 70 now: ${below||"none"}`,
+    `• Reaching 70 later today: ${cross||"none"}`,
+    `• Chekrite: ${D.prestarts.state==="missing"?"TBC":D.prestarts.note}`,
+    "", "*HOTSHOT*", `• Next run ${D.hotshot.next}. ${D.hotshot.cutoff}`,
+    "", "*FLAGS*", ...D.flags.filter(x=>x.lvl!=="red").map(x=>"• "+x.text)
+  ].join("\n");
+}
+
+function openMsg(){
+  const dlg=document.getElementById("msgDlg"), ta=document.getElementById("msgText");
+  ta.value=buildMsg(); dlg.showModal(); ta.focus(); ta.select();
+}
+document.getElementById("closeBtn").onclick=()=>document.getElementById("msgDlg").close();
+document.getElementById("copyBtn").onclick=async e=>{
+  const ta=document.getElementById("msgText");
+  try{ await navigator.clipboard.writeText(ta.value); e.target.textContent="Copied"; }
+  catch{ ta.select(); document.execCommand && document.execCommand("copy"); e.target.textContent="Copied"; }
+  setTimeout(()=>e.target.textContent="Copy text",1500);
+};
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
