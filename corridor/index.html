@@ -131,6 +131,16 @@ function clusterRoad(onRoad){
   }
   return out;
 }
+function fatigueFlags(D){
+  const out=[];
+  (D.drivers||[]).forEach(d=>{
+    const where=d.onRoad?`on the road at KM${Math.round(d.onRoad.km)}`:"not on the road now";
+    const cam=d.cam.map(e=>`${e.type} ${e.n}× (last ${e.last})`).join(", ");
+    if(d.level==="alarm") out.push({lvl:"red",tag:"Fatigue alarm",text:`${d.name} (${d.trucks.join(", ")}, ${where}): Readi ${d.readi.score} and driver camera ${cam} in the last 12 h.`});
+    else if(d.level==="warn") out.push({lvl:"red",tag:"Fatigue",text:`${d.name} is driving (${d.trucks.join(", ")}, KM${Math.round(d.onRoad.km)}) with ${d.readi&&d.readi.score<70?"Readi "+d.readi.score:"driver camera "+cam}.`});
+  });
+  D.flags=[...out,...D.flags];
+}
 function toD(c, m){
   const t=c.trucks||{}, pos=t.positions||{aiambak:[],west_bank:[],on_road:[],off_corridor:[],not_reporting:[]};
   const f=c.fuel||{}, fk=(f.farms||{}).kiunga, ft=(f.farms||{}).tabubil, b=c.bags||{}, fa=c.fatigue||{};
@@ -243,9 +253,18 @@ function toD(c, m){
         return rows.find(r=>{const b=norm(r.name); return b.includes(last)&&b.some(w=>w.slice(0,3)===first.slice(0,3));})
             || rows.find(r=>{const b=norm(r.name); return b.includes(first)&&b.some(w=>w.slice(0,3)===last.slice(0,3));}) || null;};
       const seen={}; (pr.inspections_today||[]).forEach(x=>{ if(!x.user) return; const k=x.user.trim(); (seen[k]=seen[k]||{name:k,assets:[]}).assets.push(x.asset); });
+      const tp=a=>/^IT(1[5-9]|2\d)$/.test(a)?"TT"+a.slice(2):a;
+      const road=Object.fromEntries((pos.on_road||[]).map(u=>[u.unit,u]));
+      const cam=Object.fromEntries((((t.adas||{}).units)||[]).map(u=>[u.unit,u]));
       return Object.values(seen).map(d=>{const r=match(d.name); const inNf=nf.some(n=>norm(n).join(" ")===norm(d.name).join(" "));
         const h=r?syncH(r.sync):null;
-        return {...d, readi:r, status:r?(h<=8?"synced":"stale"):(inNf?"no forecast":"not found")};});})(),
+        const trucks=d.assets.map(tp), ru=trucks.map(x=>road[x]).find(Boolean)||null;
+        const ce=trucks.map(x=>cam[x]).filter(Boolean).flatMap(u=>Object.entries(u.types).filter(([k,v])=>/EYES CLOSED|YAWN|FATIGUE|DROWS/.test(k)&&v.n12>0).map(([k,v])=>({type:k.toLowerCase(),n:v.n12,last:v.last})));
+        const low=r&&r.score<70, camHit=ce.length>0;
+        const level=low&&camHit?"alarm":(ru&&(low||camHit))?"warn":(low||camHit)?"watch":"ok";
+        return {...d, trucks, readi:r, status:r?(h<=8?"synced":"stale"):(inNf?"no forecast":"not found"), onRoad:ru, cam:ce, level};})
+        .sort((a,b)=>({alarm:0,warn:1,watch:2,ok:3}[a.level]-{alarm:0,warn:1,watch:2,ok:3}[b.level])||((b.onRoad?1:0)-(a.onRoad?1:0))||((a.readi?a.readi.score:99)-(b.readi?b.readi.score:99)));})(),
+    adasUrl:m.adas_footage_url||"https://locate.trakpro.com.pg/?lang=en",
     fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
       rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
     perf:(()=>{const ym=c.generated.slice(0,7), T=(m.targets||{})[ym]||null, kla=m.tanker_kl_avg||43;
@@ -286,7 +305,7 @@ async function load(){
       const lv=await fetch("https://raw.githubusercontent.com/CCKIBG/otml-live/corridor-live/corridor/live.json"+bust,{cache:"no-store"}).then(r=>r.ok?r.json():null);
       if(lv&&lv.positions&&c.trucks&&(!c.trucks.as_of||lv.generated>c.trucks.as_of)){ c.trucks.positions=lv.positions; c.trucks.as_of=lv.generated; }
     }catch(e){}
-    c0gen=c.generated; D=toD(c,m); render();
+    c0gen=c.generated; D=toD(c,m); fatigueFlags(D); render();
   }catch(e){
     document.getElementById("app").innerHTML=`<h1>Corridor</h1><p>Could not load corridor_latest.json (${e}). The collector on the Claude PC may be stopped.</p>`;
   }
@@ -346,7 +365,7 @@ function render(){
   const html = `
   <header>
     <div><h1>${esc(D.title)}</h1><div class="sub">${esc(D.day)}. Updated ${esc(D.updated)}. Trucks count by departure date (from midnight), fuel by the 13:00 to 13:00 day, bagging by the 06:00 production day.</div></div>
-    <button id="msgBtn">Make WhatsApp update</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="${esc(D.adasUrl)}" target="_blank" rel="noopener" style="font:600 15px Barlow,sans-serif;border-radius:6px;padding:10px 16px;background:var(--paper);color:var(--ink);border:1px solid var(--line);text-decoration:none" title="Trakpro opens on the map. Click Video at the top, then Files for camera event clips, Playback for recorded video or Live for a live stream.">ADAS footage: Trakpro › Video › Files</a><button id="msgBtn">Make WhatsApp update</button></div>
   </header>
 
   <section class="flags" aria-label="Flags">
@@ -429,21 +448,30 @@ function render(){
 
     <section class="panel">
       <div class="ph"><h2>Fatigue</h2>${stateBadge(fa.state, fa.asOf)}</div>
-      ${(()=>{const d=D.drivers||[]; if(!d.length) return `<p class="small"><b>Check ChekRite for who is driving today and Readi for who has synced.</b> <span class="muted">No pre-starts logged yet today.</span></p>`;
-        const n=k=>d.filter(x=>x.status===k);
-        const lbl={synced:"synced",stale:"sync out of date","no forecast":"no Readi forecast","not found":"not found in Readi"};
-        return `<p class="small"><b>Drivers on today's ChekRite pre-starts: ${d.length}. Synced with Readi in the last 8 h: ${n("synced").length}. Out of date: ${n("stale").length}. No forecast or not found: ${n("no forecast").length+n("not found").length}.</b></p>
-        <div style="overflow-x:auto"><table class="small"><tr><th>Driver</th><th>Truck</th><th>Readi</th></tr>
-        ${d.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.assets.join(", "))}</td><td style="color:${x.status==="synced"?(x.readi.score<70?"var(--red)":"var(--green)"):"var(--red)"}">${x.readi?`${x.readi.score}, sync ${esc(x.readi.sync)}`:""} ${esc(lbl[x.status])}</td></tr>`).join("")}</table></div>`;})()}
-      <details style="margin-top:8px"><summary class="small"><b>Full Readi list and driver cameras</b></summary>
-      <table>
+      ${(()=>{const d=D.drivers||[]; if(!d.length) return `<p class="small"><b>Drivers today: none on ChekRite pre-starts yet.</b> Check ChekRite for who is driving and Readi for who has synced.</p>`;
+        const lvl={alarm:["var(--red)","ALARM: Readi low and camera fatigue"],warn:["var(--red)","Driving with a fatigue sign"],watch:["#B08A00","Fatigue sign, not on the road"],ok:["var(--green)","No fatigue sign"]};
+        const nOn=d.filter(x=>x.onRoad).length, nSync=d.filter(x=>x.status==="synced").length;
+        return `<p class="small"><b>Drivers on today's ChekRite pre-starts: ${d.length} (${nOn} on the road now). Synced with Readi in the last 8 h: ${nSync}.</b></p>
+        <div style="overflow-x:auto"><table class="small"><tr><th>Driver</th><th>Truck</th><th>Readi</th><th>Camera 12 h</th><th>Status</th></tr>
+        ${d.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.trucks.join(", "))}${x.onRoad?`<br><span class="muted">on road KM${Math.round(x.onRoad.km)}</span>`:""}</td>
+          <td>${x.readi?`<span class="score" style="background:${scoreColour(x.readi.score)}">${x.readi.score}</span> <span class="${syncH(x.readi.sync)>8?"stale":"muted"}">${esc(x.readi.sync)}</span>`:`<span class="stale">${esc(x.status)}</span>`}</td>
+          <td style="color:${x.cam.length?"var(--red)":"inherit"}">${x.cam.length?esc(x.cam.map(e=>e.type+" "+e.n).join(", ")):"–"}</td>
+          <td style="color:${lvl[x.level][0]};font-weight:600">${lvl[x.level][1]}</td></tr>`).join("")}</table></div>`;})()}
+      <h3 class="small" style="margin:12px 0 4px">Latest fatigue scores (Readi ${esc(fa.group)}, ${esc(fa.asOf||"")})</h3>
+      <div style="overflow-x:auto"><table class="small">
         <tr><th>Name</th><th>Score</th><th>Sync</th><th>Note</th></tr>
-        ${fa.rows.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="score" style="background:${scoreColour(r.score)}">${r.score}</span></td><td class="${syncH(r.sync)>8?"stale":""}">${typeof r.sync==="number"? r.sync+" h" : esc(r.sync)}</td><td class="small">${esc([r.role, r.at?("reaches 70 at "+r.at):""].filter(Boolean).join(", "))}</td></tr>`).join("")}
-      </table>
+        ${[...fa.rows].sort((a,b)=>a.score-b.score).map(r=>`<tr><td>${esc(r.name)}</td><td><span class="score" style="background:${scoreColour(r.score)}">${r.score}</span></td><td class="${syncH(r.sync)>8?"stale":""}">${typeof r.sync==="number"? r.sync+" h" : esc(r.sync)}</td><td class="small">${esc([r.role, r.at?("reaches 70 at "+r.at):""].filter(Boolean).join(", "))}</td></tr>`).join("")}
+      </table></div>
+      <details style="margin-top:8px"><summary class="small"><b>Driver cameras (ADAS/DMS) and notes</b></summary>
+
       <p class="muted small">${fa.group}, threshold ${fa.threshold}. Sync over 8 h shown in red: the score may be out of date. ${fa.noForecast} users have no forecast.</p>
       <h3 class="small" style="margin:12px 0 4px">Driver cameras (ADAS/DMS), last 24 h${D.adas?` <span class="muted">at ${esc(D.adas.as_of)}</span>`:""}</h3>
       ${D.adas&&D.adas.units.length?`<div style="overflow-x:auto"><table class="small"><tr><th>Truck</th><th>Events (24 h)</th><th>Last</th></tr>
       ${D.adas.units.map(u=>`<tr><td><b>${esc(u.unit)}</b></td><td style="color:${u.fatigue_12h?"var(--red)":"inherit"}">${Object.entries(u.types).map(([k,v])=>`${esc(k.toLowerCase())} ${v.n24}`).join(", ")}</td><td class="muted">${Object.values(u.types).map(v=>v.last).sort().pop()||""}</td></tr>`).join("")}</table></div>
+      ${D.adas&&(D.adas.events||[]).length?`<h3 class="small" style="margin:12px 0 4px">Camera events, newest first (${D.adas.events.length})</h3>
+      <div style="overflow-x:auto"><table class="small"><tr><th>Time</th><th>Truck</th><th>Event</th><th>Near</th><th></th></tr>
+      ${D.adas.events.map(e=>`<tr><td>${esc(e.label)}</td><td><b>${esc(e.unit)}</b></td><td style="color:${e.fatigue?"var(--red)":"inherit"}">${esc(e.type.toLowerCase())}</td><td class="muted">${esc(e.where||"")}${e.map?` · <a href="${esc(e.map)}" target="_blank" rel="noopener">map</a>`:""}</td><td><a href="${esc(D.adasUrl)}" target="_blank" rel="noopener" title="In Trakpro: Video › Files › search ${esc(e.unit)} › ${esc(e.time)}">Find in Trakpro</a></td></tr>`).join("")}</table></div>
+      <p class="muted small">Each event has a clip in Trakpro: open Trakpro, click Video › Files, search the truck number, and the clip is listed under the same date and time.</p>`:""}
       <p class="muted small">Eyes closed and yawning are fatigue signs. Camera cover means the driver camera was blocked. ${D.adas.cameras} dashcams checked; trucks with no events are not listed. Covers drivers whose Readi watch data is lagging.</p>`:`<p class="muted small">${D.adas?"No ADAS/DMS events in the last 24 h.":"Camera events load hourly once the updated collector runs."}</p>`}
           </details>
     </section>
