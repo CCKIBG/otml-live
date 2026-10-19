@@ -222,7 +222,7 @@ function toD(c, m){
     window:`${c.window.from.slice(8,10)} Oct ${hhmm(c.window.from)} to ${c.window.to.slice(8,10)} Oct ${hhmm(c.window.to)} PNG`,
     updated:`${gen.toLocaleDateString("en-AU",{day:"numeric",month:"short"})} ${hhmm(c.generated)} PNG`,
     flags,
-    strip:{asOf:hhmm(t.as_of), asOfDate:(t.as_of||"").slice(8,10), len:183,
+    strip:{asOf:hhmm(t.as_of), asOfDate:(t.as_of||"").slice(8,10), asOfIso:t.as_of||null, len:183,
       holds:((t.monitor&&t.monitor.rest_km)||[42.5,97,137]).map(k=>({km:k,label:k===137?"KM137 Moian Rd":`KM${k}`})), gaps:[[15,60],[64,68]], groups,
       notOp:(()=>{const m={}; (fl.down||[]).forEach(a=>m[a.trakpro_id||a.id]="Down in the shift report"+(a.comment?": "+a.comment.replace(/^DOWN\s*:\s*/i,""):""));
         ((c.prestarts||{}).open_faults||[]).forEach(u=>{ if(u.other.concat(u.safety).some(x=>/do not operate/i.test(x))) m[u.trakpro_id]="Do Not Operate in ChekRite"; }); return m;})()},
@@ -248,21 +248,25 @@ function toD(c, m){
         return {...d, readi:r, status:r?(h<=8?"synced":"stale"):(inNf?"no forecast":"not found")};});})(),
     fatigue:{state:fa.state||"missing", asOf:(fa.as_of_readi||"").split(", ").pop(), group:fa.group||"HTL TE", threshold:fa.threshold||70, noForecast:fa.no_forecast,
       rows:(fa.rows||[]).map(r=>({name:r.name,score:r.score,sync:r.sync,at:r.now_below?null:to24(r.when.replace("At ","")),role:roles[r.name]}))},
-    perf:(()=>{const ym=c.generated.slice(0,7), T=(m.targets||{})[ym]||null, A=m.actuals_manual||{}, kla=m.tanker_kl_avg||43;
+    perf:(()=>{const ym=c.generated.slice(0,7), T=(m.targets||{})[ym]||null, kla=m.tanker_kl_avg||43;
+      const IN=((c.inbox||{}).inputs)||{}, A0=m.actuals_manual||{}, A={...A0}; const srcOf={};
+      for(const [k,v] of Object.entries(IN)){ const n=Number(v.value); A[k]=isNaN(n)?v.value:n; srcOf[k]=`Daily inputs (${v.file}${v.date?", "+v.date:""})`; }
+      const sm=k=>srcOf[k]||"manual";
       const sh=(b.shifts||[]), last=sh.find(x=>!x.in_progress&&x.total!=null);
       const north=t.northbound, south=t.southbound;
       const rows=T?[
         {area:"Bagging",metric:"Copper bags filled per day",plan:T.bags_per_day,actual:last?last.total:null,unit:"bags",src:last?`production day ${last.date.slice(8,10)}/${last.date.slice(5,7)} (Wakata)`:"after the first full production day (06:00 to 06:00)"},
-        {area:"Copper road",metric:"Truck loads per day (20 bags)",plan:T.copper_loads_per_day,actual:null,unit:"loads",src:"needs copper loads split from returns"},
-        {area:"Copper road",metric:"Tonnes to Aiambak per day",plan:T.copper_t_per_day,actual:A.copper_t_to_aiambak,unit:"t",src:"manual"},
-        {area:"Backfill",metric:"Containers to Kiunga per day",plan:T.backfill_containers_per_day,actual:A.backfill_containers,unit:"containers",src:"manual"},
+        {area:"Copper road",metric:"Truck loads per day (20 bags)",plan:T.copper_loads_per_day,actual:A.copper_loads??null,unit:"loads",src:srcOf.copper_loads||"Daily inputs sheet"},
+        {area:"Copper road",metric:"Tonnes to Aiambak per day",plan:T.copper_t_per_day,actual:A.copper_t_to_aiambak??null,unit:"t",src:sm("copper_t_to_aiambak")},
+        {area:"Backfill",metric:"Containers to Kiunga per day",plan:T.backfill_containers_per_day,actual:A.backfill_containers??null,unit:"containers",src:sm("backfill_containers")},
         {area:"Fuel",metric:"Tanker loads per day (northbound departures)",plan:T.tanker_loads_per_day,actual:depY.north_departures??null,unit:"loads",src:`yesterday's departures (Trakpro); today so far ${depT.north_departures||0}`},
         {area:"Fuel",metric:"Litres to West Bank per day",plan:T.fuel_l_per_day,actual:f.received_l!=null?f.received_l:(depY.north_departures!=null?depY.north_departures*kla*1000:null),unit:"L",src:f.received_l!=null?"TLS deliveries":`estimate: yesterday's loads × ${kla} kL`},
-        {area:"Shipping",metric:"Voyages to Raggiana this month",plan:T.voyages_month,actual:A.voyages_month_to_date,unit:"voyages",src:"manual"},
-        {area:"Drivers",metric:"Drivers available per day",plan:T.drivers_per_day,actual:A.drivers_available,unit:"drivers",src:"manual"}]:[];
+        {area:"Shipping",metric:"Voyages to Raggiana this month",plan:T.voyages_month,actual:A.voyages_month_to_date??null,unit:"voyages",src:sm("voyages_month_to_date")},
+        {area:"Drivers",metric:"Drivers available per day",plan:T.drivers_per_day,actual:A.drivers_available??null,unit:"drivers",src:sm("drivers_available")}]:[];
       return {month:new Date(c.generated).toLocaleDateString("en-AU",{month:"long",timeZone:"Pacific/Port_Moresby"}), rows};})(),
     bagShifts:(b.shifts||[]), bagTarget:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||null, shiftHours:b.shift_hours||"",
     road:{state:"live", asOf:m.updated||"", items:m.road||[]},
+    inbox:c.inbox||null,
     prestarts:(()=>{const pr=c.prestarts||{}; if(!pr.open_faults) return {state:pr.state||"missing", note:pr.note||"ChekRite not read yet."};
       const departed=[...new Set([...(depT.north_units||[]),...(depT.south_units||[])])];
       const toCk=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
@@ -278,6 +282,10 @@ async function load(){
   try{
     const bust="?t="+Date.now();
     const [c,m]=await Promise.all([fetch("corridor_latest.json"+bust).then(r=>r.json()), fetch("manual.json"+bust).then(r=>r.ok?r.json():{}).catch(()=>({}))]);
+    try{ // newer truck positions (every 5 min) from the live branch
+      const lv=await fetch("https://raw.githubusercontent.com/CCKIBG/otml-live/corridor-live/corridor/live.json"+bust,{cache:"no-store"}).then(r=>r.ok?r.json():null);
+      if(lv&&lv.positions&&c.trucks&&(!c.trucks.as_of||lv.generated>c.trucks.as_of)){ c.trucks.positions=lv.positions; c.trucks.as_of=lv.generated; }
+    }catch(e){}
     c0gen=c.generated; D=toD(c,m); render();
   }catch(e){
     document.getElementById("app").innerHTML=`<h1>Corridor</h1><p>Could not load corridor_latest.json (${e}). The collector on the Claude PC may be stopped.</p>`;
@@ -299,28 +307,38 @@ const syncH = v => typeof v==="number" ? v : (m=>m? +m[1]*({m:1/60,h:1,d:24}[m[2
 const scoreColour = s => s<60 ? "var(--red)" : s<70 ? "#C9651D" : s<=75 ? "#B08A00" : "var(--green)";
 
 function stripSVG(st){
-  const W=1000, L=40, R=960, Y=92, x=k=>L+(R-L)*k/st.len;
-  let g = `<svg viewBox="0 0 ${W} 190" role="img" aria-label="Road from Aiambak KM0 to West Bank KM183 with truck positions">`;
+  // compact layout on phones: narrower drawing, bigger text, fewer ticks
+  const small = typeof window!=="undefined" && window.innerWidth && window.innerWidth < 700;
+  const W=small?560:1000, L=small?28:40, R=W-(small?28:40), fs=small?20:14, r=small?24:20, step=small?40:20;
+  const x=k=>L+(R-L)*k/st.len;
+  // place circles, stacking upwards when they would overlap
+  const pts=st.groups.filter(p=>p.km!=null).map(p=>({...p,cx:x(p.km)})).sort((a,b)=>a.cx-b.cx);
+  const levels=[]; pts.forEach(p=>{ let lv=0; while(levels[lv]!=null && p.cx-levels[lv]<2*r+20) lv++; levels[lv]=p.cx; p.lv=lv; });
+  const maxLv=Math.max(0,...pts.map(p=>p.lv)), top=(r*2+18)*(maxLv+1)+14, Y=top+20, H=Y+(small?110:100);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Road from Aiambak KM0 to West Bank KM183 with truck positions" style="${small?"min-width:0":""}">`;
   st.gaps.forEach(([a,b])=>{ g+=`<rect x="${x(a)}" y="${Y-14}" width="${x(b)-x(a)}" height="28" fill="var(--gap)" opacity=".55" rx="3"/>`; });
   g += `<line x1="${L}" y1="${Y}" x2="${R}" y2="${Y}" stroke="var(--road)" stroke-width="10" stroke-linecap="round"/>`;
-  for(let k=0;k<=180;k+=20){ g+=`<line x1="${x(k)}" y1="${Y+10}" x2="${x(k)}" y2="${Y+18}" stroke="var(--muted)"/><text x="${x(k)}" y="${Y+34}" text-anchor="middle" font-size="14" fill="var(--muted)" font-family="Barlow">${k}</text>`; }
-  st.holds.forEach(h=>{ g+=`<line x1="${x(h.km)}" y1="${Y-22}" x2="${x(h.km)}" y2="${Y+22}" stroke="var(--red)" stroke-width="3"/><text x="${x(h.km)}" y="${Y+56}" text-anchor="middle" font-size="14" fill="var(--red)" font-family="Barlow" font-weight="600">${esc(h.label)}</text>`; });
-  g += `<text x="${L}" y="${Y+80}" font-size="16" font-weight="600" fill="var(--ink)" font-family="Barlow">Aiambak</text>`;
-  g += `<text x="${R}" y="${Y+80}" text-anchor="end" font-size="16" font-weight="600" fill="var(--ink)" font-family="Barlow">Kiunga West Bank</text>`;
-  st.groups.filter(p=>p.km!=null).forEach(p=>{
-    const cx=x(p.km), move=p.kind==="move", fill=move?"var(--hivis)":"var(--paper)", stroke=move?"var(--hivis-ink)":"var(--ink)";
-    g+=`<line x1="${cx}" y1="${Y-6}" x2="${cx}" y2="${Y-30}" stroke="${stroke}" stroke-width="2"/>`;
+  for(let k=0;k<=180;k+=step){ g+=`<line x1="${x(k)}" y1="${Y+10}" x2="${x(k)}" y2="${Y+18}" stroke="var(--muted)"/><text x="${x(k)}" y="${Y+18+fs+2}" text-anchor="middle" font-size="${fs}" fill="var(--muted)" font-family="Barlow">${k}</text>`; }
+  st.holds.forEach(h=>{ g+=`<line x1="${x(h.km)}" y1="${Y-22}" x2="${x(h.km)}" y2="${Y+22}" stroke="var(--red)" stroke-width="3"/><text x="${x(h.km)}" y="${Y+18+2*fs+8}" text-anchor="middle" font-size="${fs}" fill="var(--red)" font-family="Barlow" font-weight="600">${esc(small?h.label.replace(" Moian Rd",""):h.label)}</text>`; });
+  g += `<text x="${L}" y="${H-6}" font-size="${fs+2}" font-weight="600" fill="var(--ink)" font-family="Barlow">Aiambak</text>`;
+  g += `<text x="${R}" y="${H-6}" text-anchor="end" font-size="${fs+2}" font-weight="600" fill="var(--ink)" font-family="Barlow">${small?"West Bank":"Kiunga West Bank"}</text>`;
+  pts.forEach(p=>{
+    const cx=p.cx, cy=Y-24-r-p.lv*(2*r+18), move=p.kind==="move";
+    const fill=move?"var(--hivis)":"var(--paper)", ink=move?"var(--hivis-ink)":"var(--ink)";
     const tip=`${p.name}: ${p.units.join(", ")}`;
-    g+=`<g class="dot" data-tip="${esc(tip)}" style="cursor:pointer"><title>${esc(tip)}</title><circle cx="${cx}" cy="${Y-46}" r="20" fill="${fill}" stroke="${p.units.some(u=>st.notOp&&st.notOp[u])?"var(--red)":stroke}" stroke-width="2.5"/>`;
-    g+=`<text x="${cx}" y="${Y-40}" text-anchor="middle" font-size="19" font-weight="700" fill="${move?"var(--hivis-ink)":"var(--ink)"}" font-family="Barlow Condensed">${p.units.length}</text>`;
+    const bad=p.units.some(u=>st.notOp&&st.notOp[u]);
+    g+=`<line x1="${cx}" y1="${Y-6}" x2="${cx}" y2="${cy+r}" stroke="${ink}" stroke-width="2"/>`;
+    g+=`<g class="dot" data-tip="${esc(tip)}" style="cursor:pointer"><title>${esc(tip)}</title>`;
+    g+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${bad?"var(--red)":ink}" stroke-width="${bad?4:2.5}"/>`;
+    g+=`<text x="${cx}" y="${cy+(small?7:6)}" text-anchor="middle" font-size="${small?22:19}" font-weight="700" fill="${ink}" font-family="Barlow Condensed">${p.units.length}</text>`;
+    // direction arrow drawn on the circle's own rim (inside its footprint), so it cannot be read as a neighbour's
+    if(move && p.dir==="south") g+=`<path d="M${cx-r-13} ${cy} l12 -8 v16 z" fill="${ink}"/>`;
+    else if(move && p.dir==="north") g+=`<path d="M${cx+r+13} ${cy} l-12 -8 v16 z" fill="${ink}"/>`;
     g+=`</g>`;
-    if(move && p.dir==="south") g+=`<path d="M${cx-26} ${Y-52} l-12 6 l12 6 z" fill="var(--ink)"/>`;
-    else if(move) g+=`<path d="M${cx+26} ${Y-52} l12 6 l-12 6 z" fill="var(--ink)"/>`;
   });
   return g+"</svg>";
 }
 
-let c0gen=Date.now();
 function render(){
   const f=D.fuel, b=D.bags, fa=D.fatigue;
   const below=fa.rows.filter(r=>r.score<fa.threshold), crossing=fa.rows.filter(r=>r.score>=fa.threshold && r.at);
@@ -336,7 +354,8 @@ function render(){
   </section>
 
   <section class="strip">
-    <div class="ph"><h2>Trucks on the road</h2><span class="state live">Trakpro ${esc(D.strip.asOfDate)} ${esc(new Date(c0gen).toLocaleDateString("en-AU",{month:"short",timeZone:"Pacific/Port_Moresby"}))}, ${esc(D.strip.asOf)}</span></div>
+    <div class="ph"><h2>Trucks on the road</h2>${(()=>{const ag=D.strip.asOfIso?Math.round((Date.now()-new Date(D.strip.asOfIso))/60000):null;
+      return `<span class="state ${ag!=null&&ag>20?"missing":"live"}">Trakpro ${esc(D.strip.asOfDate)} ${esc(new Date(c0gen).toLocaleDateString("en-AU",{month:"short",timeZone:"Pacific/Port_Moresby"}))}, ${esc(D.strip.asOf)}${ag!=null?` (${ag} min ago)`:""}</span>`;})()}</div>
     <div class="strip-scroll">${stripSVG(D.strip)}</div>
     <div id="stripTip" class="small" style="min-height:1.4em;margin:2px 0 4px"></div>
     <div class="legend"><span><i style="background:var(--road)"></i>Road, KM from Aiambak</span><span><i style="background:var(--gap)"></i>Weak tracker coverage</span><span><i style="background:var(--red)"></i>Usual rest or hold point</span><span><i style="background:var(--hivis)"></i>Moving (arrow left = southbound to Aiambak, right = northbound to West Bank)</span></div>
@@ -438,6 +457,16 @@ function render(){
     </section>
 
     <section class="panel">
+      <div class="ph"><h2>Field notes and files</h2>${D.inbox?stateBadge(D.inbox.state, D.inbox.as_of?D.inbox.as_of.slice(11,16):""):""}</div>
+      ${D.inbox&&D.inbox.notes?`
+        <p class="small muted">Drop .txt, .md, .xlsx, .csv or .ods files into OneDrive &gt; Documents &gt; OTML Data &gt; Corridor. Files from the last 3 days show here; a file starting "Daily inputs" feeds the performance table.${(D.inbox.inputs_files||[]).length?" Reading: "+esc(D.inbox.inputs_files.join(", "))+".":""}</p>
+        ${D.inbox.notes.map(n=>`<details><summary class="small"><b>${esc(n.file)}</b> <span class="muted">${esc(n.modified)}</span></summary><pre style="white-space:pre-wrap;font:13px/1.4 Barlow,sans-serif;margin:6px 0">${esc(n.text)}</pre></details>`).join("")}
+        ${D.inbox.tables.map(tb=>`<details><summary class="small"><b>${esc(tb.file)}</b> <span class="muted">${esc(tb.modified)}, ${tb.total_rows} rows</span></summary><div style="overflow-x:auto"><table class="small">${tb.rows.map((r,i)=>`<tr>${r.map(v=>i===0?`<th>${esc(v)}</th>`:`<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div></details>`).join("")}
+        ${!D.inbox.notes.length&&!D.inbox.tables.length?`<p class="muted small">No files in the last 3 days.</p>`:""}`
+      :`<p class="muted small">${esc((D.inbox&&D.inbox.note)||"Inbox not read yet.")}</p>`}
+    </section>
+
+    <section class="panel">
       <div class="ph"><h2>Road</h2>${stateBadge(D.road.state, D.road.asOf)}</div>
       <ul class="plain">${D.road.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
     </section>
@@ -529,7 +558,8 @@ document.getElementById("copyBtn").onclick=async e=>{
   setTimeout(()=>e.target.textContent="Copy text",1500);
 };
 load();
-setInterval(load, 5*60*1000);
+setInterval(load, 2*60*1000);
+if(typeof window!=="undefined" && window.addEventListener){ let rt; window.addEventListener("resize",()=>{clearTimeout(rt); rt=setTimeout(()=>{ if(D) render(); },300);}); }
 </script>
 </body>
 </html>
