@@ -33,10 +33,11 @@
 :root{--croad:#3a433d;--cweak:#d9c79b;--cbg:#eef0ea;--gA:#b8740a;--g1:#1c7086;--g2:#7a4790;--g3:#b0432c;--gx:#55606a;--stale:#8b938d;--okbg:#e2efe6;--okfg:#22573a;--errbg:#f6e3dd;--errfg:#8a2f1c}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--croad:#b9c2bb;--cweak:#5e5232;--cbg:#161a18;--gA:#e3a43a;--g1:#4fb3cc;--g2:#b98bd0;--g3:#e57a60;--gx:#9aa6b0;--stale:#6c756f;--okbg:#1f3328;--okfg:#9fd8b3;--errbg:#3a221c;--errfg:#f0a893}}
 :root[data-theme="dark"]{--croad:#b9c2bb;--cweak:#5e5232;--cbg:#161a18;--gA:#e3a43a;--g1:#4fb3cc;--g2:#b98bd0;--g3:#e57a60;--gx:#9aa6b0;--stale:#6c756f;--okbg:#1f3328;--okfg:#9fd8b3;--errbg:#3a221c;--errfg:#f0a893}
-.cgrid{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:20px;align-items:start}
-@media (max-width:860px){.cgrid{grid-template-columns:minmax(0,1fr)}}
+.cgrid{display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:1180px){.cgrid{grid-template-columns:minmax(0,1fr)}.cmapbox{max-width:640px;margin:0 auto;width:100%}}
+@media (max-width:700px){#cmap{max-height:68vh;width:auto;max-width:100%;margin:0 auto}.clegend{font-size:12px}}
 .cmapbox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px}
-.cmapbox svg{display:block;width:100%;height:auto}
+#cmap{display:block;width:100%;height:auto}
 .cmapbox .km{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--muted)}
 .cmapbox .lbl{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:15px}
 .cmapbox .units{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px}
@@ -47,7 +48,7 @@
 .ccard h3{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:20px;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .cpill{font:700 11px Barlow,sans-serif;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:99px;background:var(--c);color:var(--paper)}
 .ccard .csub{color:var(--muted);font-size:14px;margin:2px 0 8px}
-.ccard table td{white-space:nowrap}
+.ccard table td{white-space:nowrap} .ccard{overflow:hidden} .ccard>div{overflow-x:auto}
 .ccard td.u{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600}
 .cst{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700}
 .cst::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
@@ -55,6 +56,39 @@
 .cfs{display:inline-block;min-width:2.2em;text-align:center;font-weight:700;font-size:13px;padding:1px 6px;border-radius:4px}
 .cfs-ok{background:var(--okbg);color:var(--okfg)} .cfs-watch{background:color-mix(in srgb,var(--gA) 18%,transparent);color:var(--gA)} .cfs-low{background:var(--errbg);color:var(--errfg)}
 
+.apps{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 10px}
+.apps-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.app{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.86rem;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--paper);border-radius:99px;padding:4px 11px}
+.app i{width:8px;height:8px;border-radius:50%;background:var(--stale)}
+.app small{font-weight:600;font-size:.76rem;color:var(--muted)}
+.app.ok i{background:var(--okfg)} .app.feed i{background:var(--gA)} .app.login i{background:var(--g3)} .app.login small{color:var(--g3)}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin:0 0 14px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg,var(--paper));z-index:5;scrollbar-width:none}
+.tab{font:600 16px "Barlow Condensed",sans-serif;letter-spacing:.02em;background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tcount{display:inline-block;min-width:1.3em;background:var(--red);color:#fff;border-radius:99px;font-size:12px;padding:0 5px;margin-left:4px}
+.tcount:empty{display:none}
+[data-tab]{display:none} [data-tab].on{display:block} [data-tab]:not(.on){display:none!important}
+.ask{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.ask input[type=text]{flex:1;min-width:180px;font:16px inherit;padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.askmic{font-size:20px;width:48px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--paper);cursor:pointer}
+.askmic.rec{background:var(--red);border-color:var(--red)}
+.askv{font-size:13px;color:var(--muted)} .askout{flex-basis:100%;font-size:16px}
+.askq{color:var(--muted);font-size:14px} .aska{font-weight:600;margin-top:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:0 0 14px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;padding:12px 14px;cursor:pointer;color:var(--ink);font-family:inherit;min-height:112px}
+.tile.amber{border-left-color:#d6a21a} .tile.red{border-left-color:var(--red)}
+.tile:hover{border-color:var(--ink)}
+.tl{font:700 12px "Barlow",sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tb{font:700 38px/1.05 "Barlow Condensed",sans-serif} .tb small{font-size:20px;font-weight:600;color:var(--muted)}
+.ts{font-size:14px;color:var(--muted);line-height:1.3}
+@media (max-width:520px){.tb{font-size:30px}.ts{font-size:13px}.tile{min-height:100px;padding:10px}}
+.topalerts{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--red);border-radius:6px;padding:10px 14px;margin:0 0 14px}
+.ta{font-size:15px;padding:6px 0;border-top:1px solid var(--line)} .ta:first-of-type{border-top:0}
+.more{background:none;border:0;color:var(--ink);font-weight:700;text-decoration:underline;padding:6px 0;cursor:pointer}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px} .actions .ghost{border:1px solid var(--line);border-radius:6px;padding:10px 14px;color:var(--ink);text-decoration:none;font-weight:600}
+.srcline{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)} .srcline i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--red)} .srcline i.ok{background:var(--green)} .srcline i.feed{background:#d6a21a}
+section.flags[data-tab].on{display:grid}
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Barlow,"Segoe UI",Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums}
@@ -219,18 +253,18 @@ function toD(c, m){
   const drvMap=BD.drivers||{};
   const convoysOut=autoConv.map(cv=>{const mm=cv.date===t.today?manualBy[cv.name]:null;
     const dayTxt=cv.date===t.today?"":` (${cv.date.slice(8,10)}/${cv.date.slice(5,7)})`;
-    const parts=[`Departed ${cv.from} ${cv.departed[0]}${cv.departed[1]!==cv.departed[0]?" to "+cv.departed[1]:""}`+(cv.scheduled?` (scheduled ${cv.scheduled}, ${cv.delay_min>0?cv.delay_min+" min late":cv.delay_min<0?(-cv.delay_min)+" min early":"on time"})`:"")+"."];
+    const parts=[`Departed ${cv.from||(cv.direction==="north"?"Aiambak":"West Bank Kiunga")} ${cv.departed[0]}${cv.departed[1]!==cv.departed[0]?" to "+cv.departed[1]:""}`+(cv.scheduled?` (scheduled ${cv.scheduled}, ${cv.delay_min>0?cv.delay_min+" min late":cv.delay_min<0?(-cv.delay_min)+" min early":"on time"})`:"")+"."];
     if(cv.status==="on road"&&(cv.escort||[]).length) parts.push(`Escort ${cv.escort.join(", ")} travelling with the convoy.`);
-    if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}${cv.eta_miss_min?` (typically within ±${cv.eta_miss_min} min at this distance)`:""}.`);
-    if(cv.arrived) parts.push(`Arrived ${cv.to} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}.`);
+    if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}${cv.eta_miss_min?` (typically within ±${cv.eta_miss_min} min at this distance)`:""}.`);
+    if(cv.arrived) parts.push(`Arrived ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}.`);
     if((cv.stops||[]).length) parts.push("Stops: "+cv.stops.map(x=>`${x.at} KM${x.km_range&&x.km_range[0]!==x.km_range[1]?Math.round(x.km_range[0])+" to "+Math.round(x.km_range[1]):Math.round(x.km)} ${x.mins} min${x.type==="rest"?" (rest)":x.type==="hold"?" (hold point)":""}`).join(", ")+".");
-    return {name:cv.name+dayTxt, tag:`${cv.direction==="north"?"Northbound, loaded":"Southbound"}: ${cv.from} to ${cv.to}`,
+    return {name:cv.name+dayTxt, tag:`${cv.direction==="north"?"Northbound, loaded":"Southbound"}: ${cv.from} to ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")}`,
       units:cv.units.map(u=>(cv.date===t.today&&pairMap[u]?`${u} + ${pairMap[u].trailers.join("/")}`:u)+(cv.date===t.today&&(drvMap[u]||[]).length?` (${drvMap[u].join(", ")})`:"")).join(", ")+(cv.units.length?` (${cv.units.length})`:""), crew:mm?mm.crew||"":"", status:parts.join(" "), issues:cv.issues||[], live:cv.status==="on road"};});
   autoConv.filter(cv=>cv.date===t.today||cv.status==="on road").forEach(cv=>(cv.issues||[]).filter(i=>!/coverage gap/.test(i.text))
     .forEach(i=>flags.push({lvl:i.lvl,tag:cv.name,text:i.text})));
   const escAt=(lo,hi)=>(pos.escorts||[]).filter(e=>!e.silent&&e.off_km<=3&&e.km>=lo&&e.km<=hi).map(e=>e.unit);
   const parkedAt=w=>(pos.parked||[]).filter(x=>x.at===w).map(x=>`${x.unit} (last ${x.last_fix})`);
-  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:[escAt(0,2).length?`Escort ${escAt(0,2).join(", ")} here.`:"", parkedAt("Aiambak").length?`Parked, tracker asleep: ${parkedAt("Aiambak").join(", ")}.`:""].filter(Boolean).join(" ")}];
+  const groups=[{km:0,name:"At Aiambak",kind:"stop",units:pos.aiambak||[],note:["", parkedAt("Aiambak").length?`Parked, tracker asleep: ${parkedAt("Aiambak").join(", ")}.`:""].filter(Boolean).join(" ")}];
   clusterRoad(pos.on_road||[]).forEach(g=>{const k=g.units.map(u=>u.km), mv=g.units.some(u=>u.speed>5);
     const nm=g.dir==="south"?`Southbound to Aiambak, KM${Math.round(k[0])}`:g.dir==="north"?`Northbound to West Bank Kiunga, KM${Math.round(k[0])}`:`On road near KM${Math.round(k[0])}`;
     const cam=g.units.filter(u=>u.source==="dashcam").map(u=>u.unit);
@@ -247,7 +281,7 @@ function toD(c, m){
   const wbDown=(pos.west_bank||[]).filter(u=>downIds.has(u));
   const wbFar=(pos.west_bank_detail||[]).filter(u=>u.off_km>1).map(u=>`${u.unit} ${u.off_km} km off road`);
   groups.push({km:183,name:"At West Bank",kind:"stop",units:pos.west_bank||[],
-    note:[wbDown.length?`Down per shift report: ${wbDown.join(", ")}.`:"", wbFar.length?`Away from the road end: ${wbFar.join(", ")}.`:"", escAt(180,999).length?`Escort ${escAt(180,999).join(", ")} here.`:"", parkedAt("West Bank Kiunga").length?`Parked, tracker asleep: ${parkedAt("West Bank Kiunga").join(", ")}.`:""].filter(Boolean).join(" ")});
+    note:[wbDown.length?`Down per shift report: ${wbDown.join(", ")}.`:"", wbFar.length?`Away from the road end: ${wbFar.join(", ")}.`:"", "", parkedAt("West Bank Kiunga").length?`Parked, tracker asleep: ${parkedAt("West Bank Kiunga").join(", ")}.`:""].filter(Boolean).join(" ")});
   if((pos.off_corridor||[]).length) groups.push({km:null,name:"Off corridor",kind:"silent",units:pos.off_corridor.map(u=>u.unit),note:""});
   groups.push({km:null,name:"Not reporting",kind:"silent",units:pos.not_reporting||[],note:"No fix in the last 4 h, last seen away from Aiambak and West Bank."+((pos.silent_detail||[]).length?" "+pos.silent_detail.map(x=>`${x.unit} KM${Math.round(x.km)}${x.off_km>3?" ("+Math.round(x.off_km)+" km off road)":""} at ${x.last_fix}`).join(", ")+".":"")});
   const tank=(x)=>x?x.tanks.map(k=>({id:k.id,vol:k.vol,cap:k.cap,usable:k.usable_l,unusable:k.unusable_l,suction:k.suction_l,inService:k.in_service!==false,belowSuction:!!k.below_suction,
@@ -289,7 +323,7 @@ function toD(c, m){
           dir:cv.status==="on road"?(cv.direction==="north"?"N":"S"):"", color, sub, units:units.filter(u=>u.k!=null)}); });
       const rest=Object.keys(st).filter(u=>!used.has(u)&&st[u].km!=null);
       const wb=rest.filter(u=>st[u].km>=172), aia=rest.filter(u=>st[u].km<=10), road=rest.filter(u=>st[u].km>10&&st[u].km<172&&(st[u].off_km||0)<=3);
-      const escRest=Object.keys(escSt).filter(e=>!used.has(e)&&escSt[e].km!=null);
+      const escRest=[];   // LVs only appear when travelling with a convoy
       if(road.length) out.push({name:"Other trucks",status:"On road",dir:"",color:"x",sub:"",units:road.map(u=>unit(u,false))});
       const ew=escRest.filter(e=>escSt[e].km>=172), ea=escRest.filter(e=>escSt[e].km<=10);
       if(wb.length||ew.length) out.push({name:"Also at West Bank",status:"At West Bank",dir:"",color:"x",sub:"",units:wb.map(u=>unit(u,false)).concat(ew.map(e=>unit(e,true)))});
@@ -371,9 +405,10 @@ async function load(){
     const [c,m]=await Promise.all([fetch("corridor_latest.json"+bust).then(r=>r.json()), fetch("manual.json"+bust).then(r=>r.ok?r.json():{}).catch(()=>({}))]);
     try{ // newer truck positions (every 5 min) from the live branch
       const lv=await fetch("https://raw.githubusercontent.com/CCKIBG/otml-live/corridor-live/corridor/live.json"+bust,{cache:"no-store"}).then(r=>r.ok?r.json():null);
-      if(lv&&lv.positions&&c.trucks&&(!c.trucks.as_of||lv.generated>c.trucks.as_of)){ c.trucks.positions=lv.positions; c.trucks.as_of=lv.generated; }
+      if(lv&&lv.positions&&c.trucks&&(!c.trucks.as_of||lv.generated>c.trucks.as_of)){ c.trucks.positions=lv.positions; c.trucks.as_of=lv.generated;
+        if(lv.status){ c.trucks.raw=Object.assign({},c.trucks.raw||{},{status:lv.status,escorts:lv.escorts||{}}); } }
     }catch(e){}
-    c0gen=c.generated; D=toD(c,m); fatigueFlags(D); render();
+    c0gen=c.generated; c0raw=c; c0manual=m; D=toD(c,m); fatigueFlags(D); render();
   }catch(e){
     document.getElementById("app").innerHTML=`<h1>Corridor</h1><p>Could not load corridor_latest.json (${e}). The collector on the Claude PC may be stopped.</p>`;
   }
@@ -456,6 +491,20 @@ function drawConvoyMap(G, notOp){
     else m=el("circle",{cx:x,cy:y,r:5.5,fill:v(col),stroke:bad?v("--red"):v("--paper"),"stroke-width":bad?2.5:1.5},parent);
     el("title",{},m).textContent=`${u.n} · ${stateOf(u)} · ${u.drv?"Driver: "+u.drv+(u.fs&&u.fs.v!=null?" (Readi "+u.fs.v+")":""):"No driver recorded"} · KM${u.k} · ${u.s} km/h · ${u.t}${u.stale?" · no GPS 30+ min":""}${bad?" · "+bad:""}`;};
   const ends=u=>u.k<=2||u.k>=180, isWB=u=>u.k>=180, isAIA=u=>u.k<=2;
+  const small=typeof window!=="undefined"&&window.innerWidth&&window.innerWidth<700;
+  if(small){ const xs=pts.map(p=>p[0]); const x0=Math.min(...xs)-140, x1=Math.max(...xs)+60;
+    svg.setAttribute("viewBox",`${x0} 0 ${x1-x0} 1060`);
+    for(const g of G){const col=colOf(g); const road=g.units.filter(u=>!ends(u));
+      for(const u of road){const p=at(u.k);shape(u,p[0],p[1],col);}
+      const live=road.filter(u=>!u.stale);
+      if(road.length){const mid=(live.length?live:road)[0], p=at(mid.k), tag=g.name.replace(/Convoy /,"C").replace(/Southbound /,"S").replace(/Other trucks/,"").trim();
+        if(tag) txt({x:p[0]+12,y:p[1]+5,class:"lbl",fill:v(live.length?col:"--stale"),style:"font-size:18px"},tag+(g.dir==="N"?" ↑":g.dir==="S"?" ↓":""));}
+    }
+    const wbN=G.reduce((n,g)=>n+g.units.filter(u=>u.k>=180).length,0), aiN=G.reduce((n,g)=>n+g.units.filter(u=>u.k<=2).length,0);
+    const e1=pts[pts.length-1], e0=pts[0];
+    if(wbN) txt({x:e1[0]+12,y:e1[1]+5,class:"lbl",fill:v("--ink"),style:"font-size:18px"},String(wbN));
+    if(aiN) txt({x:e0[0]+12,y:e0[1]+5,class:"lbl",fill:v("--ink"),style:"font-size:18px"},String(aiN));
+  } else {
   const calls=[];
   for(const g of G){const col=colOf(g); const road=g.units.filter(u=>!ends(u));
     for(const u of road){const p=at(u.k);shape(u,p[0],p[1],col);}
@@ -475,16 +524,29 @@ function drawConvoyMap(G, notOp){
   const over=lastY-1052;if(over>0)for(const c of calls)c.ty-=over;
   for(const c of calls){const lx=330;el("path",{d:`M${c.x+9} ${c.y} L${lx-8} ${c.ty}`,stroke:v(c.col),"stroke-width":1.2,fill:"none"});
     let y=c.ty;if(c.title){txt({x:lx,y:y-4,class:"lbl",fill:v(c.col)},c.title);y+=11;}else{y+=4;}
-    for(const r of c.rows){txt({x:lx,y:y,class:"units",fill:v("--ink"),"xml:space":"preserve"},r);y+=13;}
+    for(const r of c.rows){txt({x:lx,y:y,class:"units",fill:v("--ink"),"xml:space":"preserve"},r.length>34?r.slice(0,33)+"…":r);y+=13;}
     if(c.line2)txt({x:lx,y:y+1,class:"km"},c.line2);}
-  {const ix=300,iy=20,iw=210,ih=150,box=el("g",{});
+  {const ix=330,iy=20,iw=240,ih=150,box=el("g",{});
    el("rect",{x:ix,y:iy,width:iw,height:ih,fill:v("--cbg"),stroke:v("--line"),rx:4},box);
    txt({x:ix+8,y:iy+16,class:"km",style:"fill:var(--ink);font-weight:600"},"WEST BANK",box);
    const wb=[];for(const g of G)for(const u of g.units)if(isWB(u))wb.push([u,colOf(g)]);
    wb.forEach(([u,col],gi)=>shape(u,ix+24+(gi%12)*14,iy+40+Math.floor(gi/12)*16,col,box));
    const ex=pts[pts.length-1];el("path",{d:`M${ex[0]+8} ${ex[1]-2} L${ix} ${iy+ih/2}`,stroke:v("--line"),"stroke-width":1,"stroke-dasharray":"3 3",fill:"none"});
    txt({x:ix+8,y:iy+ih-8,class:"km"},`${wb.length} vehicle${wb.length===1?"":"s"} at West Bank · see cards`,box);}
+  }
   const fsOf=u=>{const f=u.fs;if(!u.drv||!f||f.v==null)return {v:null};return {v:f.v,level:f.v<70?"low":f.v<80?"watch":"ok"}};
+  if(small){
+    for(const g of G){ if(!g.units.length) continue; const yard=/^Also at/.test(g.name);
+      const d=document.createElement(yard?"details":"section"); d.className="ccard"; d.style.setProperty("--c",v(colOf(g)));
+      const head=`<h3>${esc(g.name)} <span class="cpill">${esc(g.status)}</span> <span class="muted" style="font-size:15px">${g.units.length}</span></h3>`;
+      const rows=g.units.map(u=>{const fs=fsOf(u), bad=notOp&&notOp[u.n];
+        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:15px">
+          <span><b style="${bad?"color:var(--red)":""}">${esc(u.n)}</b>${u.esc?" <span class='muted'>escort</span>":""}${u.drv?` · ${esc(u.drv.split(" ")[0])}`:""}${fs.v!=null?` <span class="cfs cfs-${fs.level}">${fs.v}</span>`:""}</span>
+          <span class="muted" style="white-space:nowrap">${u.stale?`<span style="color:var(--g3)">no GPS ${esc(u.t)}</span>`:`KM${Math.round(u.k)} · ${u.s} km/h`}</span></div>`;}).join("");
+      d.innerHTML=(yard?`<summary>${head}</summary>`:head+(g.sub?`<p class="csub">${esc(g.sub.split(". ").slice(0,2).join(". "))}</p>`:""))+rows;
+      cards.appendChild(d);}
+    return;
+  }
   for(const g of G){ if(!g.units.length) continue; const d=document.createElement("section");d.className="ccard";d.style.setProperty("--c",v(colOf(g)));
     d.innerHTML=`<h3>${esc(g.name)} <span class="cpill">${esc(g.status)}</span></h3>${g.sub?`<p class="csub">${esc(g.sub)}</p>`:""}
     <div style="overflow-x:auto"><table class="small"><thead><tr><th>Unit</th><th>Status</th><th>Driver</th><th>Fatigue</th><th class="r">KM</th><th class="r">Speed</th><th>Last fix</th></tr></thead><tbody>
@@ -495,7 +557,84 @@ function drawConvoyMap(G, notOp){
     </tbody></table></div>`; cards.appendChild(d);}
 }
 
-let c0gen=Date.now();
+// ---------- Ask: type or speak a simple question, answered from the dashboard's own data ----------
+const NUMW={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,"twenty one":21,"twenty two":22,"twenty three":23,"twenty four":24};
+function askNormalise(q){
+  let x=" "+String(q||"").toLowerCase().replace(/[?.,!]/g," ")+" ";
+  for(const [w,n] of Object.entries(NUMW).sort((a,b)=>b[0].length-a[0].length)) x=x.replace(new RegExp("\\b"+w+"\\b","g"),String(n));
+  x=x.replace(/\b(i\s*t|eye\s*tee|i\s*tee|it)\s*0?(\d{1,2})\b/g,(m,a,n)=>" it"+String(n).padStart(2,"0")+" ")
+     .replace(/\bt\s*t\s*(\d{2})\b/g," tt$1 ").replace(/\bh\s*t\s*22\b/g," ht22 ").replace(/\bl\s*(\d{4})\b/g," l$1 ")
+     .replace(/\bt\s*(2\d\d)\b/g," t$1 ");
+  return x.replace(/\s+/g," ").trim();
+}
+function askAnswer(q0){
+  const q=askNormalise(q0), c=c0raw||{}, t=c.trucks||{}, raw=t.raw||{}, st=raw.status||{}, es=raw.escorts||{}, G=D.cmap||[];
+  const m=(c0manual||{}), roles=m.crew_roles||{}, people=Object.assign({},m.people||{});
+  const pairs=((c.prestarts||{}).pairs_today)||[];
+  const hm=ts=>ts?new Date((ts+36000)*1000).toISOString().slice(11,16):"";
+  const groupOf=u=>G.find(g=>g.units.some(x=>x.n===u));
+  const driverOf=u=>{const p=pairs.find(p=>p.trakpro_id===u); return p&&p.driver;};
+  const readiOf=name=>{if(!name) return null; const a=name.toLowerCase().split(/\s+/); return ((c.fatigue||{}).rows||[]).find(r=>{const b=r.name.toLowerCase(); return a.every(w=>b.includes(w.slice(0,4)));});};
+  const disp=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
+  const unitAns=u=>{
+    const x=st[u]||es[u]; if(!x||x.km==null) return `I have no position for ${disp(u)} right now.`;
+    const age=x.t?Math.round((Date.now()/1000-x.t)/60):null, g=groupOf(u), drv=driverOf(u), rd=readiOf(drv);
+    let where = x.km<=2?"at Aiambak":x.km>=180?"at West Bank Kiunga":`on the road at KM${Math.round(x.km)}`;
+    let move = x.km>2&&x.km<180 ? ((x.km_30min||0)<-1?", heading south to Aiambak":(x.km_30min||0)>1?", heading north to West Bank":", stopped") : "";
+    let speed = x.speed>3?` at ${x.speed} km/h`:"";
+    let s=`${disp(u)} is ${where}${move}${speed}`;
+    s+= age!=null&&age>30?`. No GPS for ${age} minutes, last fix ${hm(x.t)}`:`, last fix ${hm(x.t)}`;
+    if(g&&!/^Also at|^Other/.test(g.name)) s+=`. It is in ${g.name}`;
+    const cv=(D.convoys||[]).find(o=>g&&o.name&&o.name.startsWith(g.name)); const eta=cv&&(cv.status||"").match(/(Predicted arrival|ETA)[^.]*\./); if(eta&&x.km>2&&x.km<180) s+=`. ${eta[0].replace(/\.$/,"")}`;
+    if(drv) s+=`. Driver ${drv}${rd?`, Readi ${rd.score}`:""}`;
+    return s+".";
+  };
+  // 1. unit numbers
+  const um=q.match(/\b(it\d{2}|tt\d{2}|l\d{4}|ht22)\b/);
+  if(um){ let u=um[1].toUpperCase(); if(/^IT(1[5-9]|2\d)$/.test(u)) u="TT"+u.slice(2); return unitAns(u); }
+  // 2. people: escorts, crew roles, today's drivers
+  const names=new Set([...Object.keys(people),...Object.keys(roles),...pairs.map(p=>p.driver).filter(Boolean)]);
+  for(const nm of names){ const parts=nm.toLowerCase().split(/\s+/); if(parts.some(w=>w.length>2&&q.includes(w))){
+      let u=people[nm]||null; if(!u){const p=pairs.find(p=>p.driver===nm); u=p&&p.trakpro_id;}
+      const role=roles[nm]?` (${roles[nm]})`:"";
+      if(!u){const rm=(roles[nm]||"").match(/\b(IT\d\d|TT\d\d|L\d{4}|HT22)\b/); u=rm&&rm[1];}
+      return u?`${nm}${role} is in ${disp(u)}. `+unitAns(u):`I know ${nm}${role} but not which vehicle they are in today.`; } }
+  // 3. convoys
+  const cm=q.match(/\b(convoy|southbound|northbound)\s*(\d)\b/);
+  if(cm && /arriv|eta|what time|when|due/.test(q)){ const nm=(cm[1]==="southbound"?"Southbound ":"Convoy ")+cm[2];
+    const cv=((c0raw.trucks||{}).convoys||[]).filter(o=>o.name===nm).sort((a,b)=>a.date<b.date?1:-1)[0];
+    if(!cv) return `I can't see ${nm} today.`;
+    const dest=cv.to||(cv.direction==="north"?"West Bank":"Aiambak");
+    if(cv.arrived) return `${nm} arrived at ${dest} ${cv.arrived[0]}${cv.arrived[1]&&cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}, a ${cv.run_h} hour run.`;
+    if(cv.eta) return `${nm} is expected at ${dest} between ${cv.eta[0]} and ${cv.eta[1]}${cv.km?`. It is now at KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}`:""}${cv.eta_miss_min?`, usually within ${cv.eta_miss_min} minutes`:""}.`;
+    return `${nm} has left${cv.departed?" at "+cv.departed[0]:""}, but there is no arrival estimate yet.`; }
+  if(cm){ const nm=(cm[1]==="convoy"||cm[1]==="northbound"?"Convoy ":"Southbound ")+cm[2]; const cv=(D.convoys||[]).find(o=>o.name.startsWith(nm));
+    const g=G.find(g=>g.name.startsWith(nm)); return cv?`${nm}: ${g?g.units.filter(u=>!u.esc).map(u=>disp(u.n)).join(", ")+". ":""}${cv.status}`:`I can't see ${nm} today.`; }
+  // 4. fuel, bags
+  if(/fuel|diesel|tank/.test(q)){ const f=D.fuel; return `Fuel above safety buffers: ${f.availableTotal!=null?Math.round(f.availableTotal/1000).toLocaleString("en-AU")+" kL":"not known"}. ${(f.farms||[]).map(fm=>fm.x?`${fm.name} ${fm.x.available<0?"below buffer by "+Math.round(-fm.x.available/1000):"above buffer by "+Math.round(fm.x.available/1000)} kL`:"").filter(Boolean).join(". ")}.`; }
+  if(/bag|copper|cucon|concentrate/.test(q)){ const cu=D.cucon; if(!cu) return `Wakata shows ${D.bags.sinceOct1} bulka bags since 1 October.`;
+    const g=k=>(cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}; return `CuCon report ${cu.date.slice(8,10)}/${cu.date.slice(5,7)}: bagged ${g("bagged").day_bags} that day against ${g("bagged").target_bags}. To date ${g("bagged").ptd_bags} bagged, ${g("trucked").ptd_bags} trucked to Aiambak, ${g("loaded").ptd_bags} shipped.`; }
+  if(/how many|on the road|trucks/.test(q)){ const n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
+    return `${n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale)} trucks moving on the road, ${n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale)} with no GPS, ${n(u=>!u.esc&&u.k>=180)} at West Bank and ${n(u=>!u.esc&&u.k<=2)} at Aiambak.`; }
+  return `Try: where is IT15, what time will Convoy 1 arrive at West Bank, where is Southbound 1, how much fuel, how many bags, or how many trucks on the road.`;
+}
+function askRun(q){ const out=document.getElementById("askOut"); if(!out) return; const a=askAnswer(q);
+  out.innerHTML=`<div class="askq">“${esc(q)}”</div><div class="aska">${esc(a)}</div>`;
+  try{ if(document.getElementById("askVoice").checked && window.speechSynthesis){ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(a); u.lang="en-AU"; u.rate=1.0; speechSynthesis.speak(u);} }catch(e){} }
+function askWire(){
+  const inp=document.getElementById("askIn"), mic=document.getElementById("askMic"); if(!inp) return;
+  document.getElementById("askGo").onclick=()=>askRun(inp.value);
+  inp.onkeydown=e=>{ if(e.key==="Enter") askRun(inp.value); };
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ mic.title="Voice input is not supported in this browser; type the question instead."; mic.disabled=false; mic.onclick=()=>{document.getElementById("askOut").textContent="Voice input isn't available in this browser. Type the question, or use Chrome or Safari.";}; return; }
+  mic.onclick=()=>{ try{ const r=new SR(); r.lang="en-AU"; r.interimResults=false; r.maxAlternatives=1;
+      mic.classList.add("rec"); document.getElementById("askOut").textContent="Listening…";
+      r.onresult=e=>{ const q=e.results[0][0].transcript; inp.value=q; askRun(q); };
+      r.onerror=e=>{ document.getElementById("askOut").textContent=e.error==="not-allowed"?"Allow the microphone for this page, then try again.":"Didn't catch that. Try again or type it."; };
+      r.onend=()=>mic.classList.remove("rec"); r.start(); }catch(e){ document.getElementById("askOut").textContent="Couldn't start the microphone."; } };
+}
+
+let c0gen=Date.now(), c0raw={}, c0manual={};
 function render(){
   const f=D.fuel, b=D.bags, fa=D.fatigue;
   const below=fa.rows.filter(r=>r.score<fa.threshold), crossing=fa.rows.filter(r=>r.score>=fa.threshold && r.at);
@@ -503,18 +642,56 @@ function render(){
   const html = `
   <header>
     <div><h1>${esc(D.title)}</h1><div class="sub">${esc(D.day)}. Updated ${esc(D.updated)}. Trucks count by departure date (from midnight), fuel by the 13:00 to 13:00 day, bagging by the 06:00 production day.</div></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="${esc(D.adasUrl)}" target="_blank" rel="noopener" style="font:600 15px Barlow,sans-serif;border-radius:6px;padding:10px 16px;background:var(--paper);color:var(--ink);border:1px solid var(--line);text-decoration:none" title="Trakpro opens on the map. Click Video at the top, then Files for camera event clips, Playback for recorded video or Live for a live stream.">ADAS footage: Trakpro › Video › Files</a><button id="msgBtn">Make WhatsApp update</button></div>
   </header>
 
-  <section class="flags" aria-label="Flags">
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    ${[["summary","Summary"],["road","Road"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["plan","Plan"]].map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
+  </nav>
+
+  <section data-tab="summary">
+  <div class="ask"><button id="askMic" class="askmic" aria-label="Ask by voice">🎤</button><input id="askIn" type="text" placeholder="Ask: where is IT15? what time will Convoy 1 arrive at West Bank?" autocomplete="off"><button id="askGo">Ask</button>
+    <label class="askv"><input type="checkbox" id="askVoice" checked> Speak answer</label><div id="askOut" class="askout" aria-live="polite"></div></div>
+  ${(()=>{const G=D.cmap||[], n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
+    const road=n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale), wb=n(u=>!u.esc&&u.k>=180), ai=n(u=>!u.esc&&u.k<=2);
+    const kl=v=>v==null?"–":Math.round(v/1000).toLocaleString("en-AU");
+    const f=D.fuel, fk=(f.farms||[]).find(x=>/kiunga/i.test(x.name))||{}, ft=(f.farms||[]).find(x=>/tabubil/i.test(x.name))||{};
+    const pm=((D.fleet||{}).groups||{})["PRIME MOVERS"]||null;
+    const cu=D.cucon, g=k=>cu?((cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}):{};
+    const drv=D.drivers||[], alarm=drv.filter(x=>x.level==="alarm"||x.level==="warn").length, low=((D.fatigue||{}).rows||[]).filter(r=>r.score<70).length;
+    const pr=D.prestarts||{}, dep=(pr.departed||[]).length, nopre=(pr.noPre||[]).length, safety=((pr.issues||[]).filter(i=>i.safety)).length;
+    const reds=D.flags.filter(x=>x.lvl==="red");
+    const moving=(D.convoys||[]).filter(c=>/on road|Now KM/i.test(c.status||""));
+    const tile=(go,lbl,big,sub,lvl)=>`<button class="tile ${lvl||""}" data-go="${go}"><span class="tl">${lbl}</span><span class="tb">${big}</span><span class="ts">${sub}</span></button>`;
+    return `<div class="tiles">
+      ${tile("road","Convoys on the road",`${moving.length}`,`${road} trucks moving${sil?`, <b style="color:var(--red)">${sil} no GPS</b>`:""}`,sil?"amber":"")}
+      ${tile("road","Departures today",`${D.trucks.tripsNorth} <small>north</small> · ${D.trucks.tripsSouth} <small>south</small>`,`${wb} at West Bank, ${ai} at Aiambak`)}
+      ${tile("fleet","Prime movers available",pm?`${pm.available}<small>/${pm.total}</small>`:"–",pm?`${pm.pct}% from shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&pm.pct<80?"amber":"")}
+      ${tile("fuel","Fuel above buffers",`${kl(f.availableTotal)} <small>kL</small>`,`Kiunga ${fk.x?kl(fk.x.available):"–"} · Tabubil ${ft.x?kl(ft.x.available):"–"} kL`,fk.x&&fk.x.available<0?"red":fk.x&&fk.x.available<150000?"amber":"")}
+      ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
+      ${cu?tile("cucon","CuCon bagged",`${(g("bagged").day_bags??"–")}<small>/${g("bagged").target_bags||"–"}</small>`,`report ${esc((cu.date||"").slice(8,10))}/${esc((cu.date||"").slice(5,7))} · ${Math.round(g("bagged").ptd_bags||0).toLocaleString("en-AU")} to date`,(g("bagged").day_bags||0)<(g("bagged").target_bags||0)*0.85?"amber":""):tile("cucon","CuCon bags (Wakata)",(D.bags.sinceOct1||0).toLocaleString("en-AU"),"since 1 Oct")}
+      ${cu?tile("cucon","CuCon trucked to Aiambak",`${Math.round(g("trucked").ptd_bags||0).toLocaleString("en-AU")} <small>bags</small>`,`shipped ${Math.round(g("loaded").ptd_bags||0).toLocaleString("en-AU")} · at Kiunga ${Math.round(((cu.locations||[])[0]||{}).bags||0).toLocaleString("en-AU")}`):""}
+      ${tile("people","Fatigue",`${alarm}`,`drivers on the road with a fatigue sign · ${low} below 70 on Readi`,alarm?"red":low?"amber":"")}
+      ${tile("people","Pre-starts",`${dep-nopre}<small>/${dep}</small>`,`departed trucks with a pre-start · ${safety} open safety faults`,nopre?"red":safety?"amber":"")}
+    </div>
+    ${reds.length?`<div class="topalerts"><div class="tl">Needs attention</div>${reds.slice(0,4).map(x=>`<div class="ta"><b>${esc(x.tag)}</b> ${esc(x.text)}</div>`).join("")}${reds.length>4?`<button class="more" data-go="alerts">All ${reds.length} alerts</button>`:""}</div>`:""}
+    <div class="actions"><button id="msgBtn">Make WhatsApp update</button><a href="${esc(D.adasUrl)}" target="_blank" rel="noopener" class="ghost">ADAS footage (Trakpro › Video › Files)</a></div>
+    <p class="srcline">${[["Trakpro","trucks"],["ChekRite","prestarts"],["Readi","fatigue"],["Wakata","bags"],["Tanks","fuel"],["Shift report","fleet"]].map(([nm,k])=>{const st=(c0raw[k]||{}).state; return `<span><i class="${st==="live"?"ok":st==="cached_stale"?"feed":"bad"}"></i>${nm}</span>`;}).join("")}</p>`;})()}
+  </section>
+  <section class="flags" aria-label="Flags" data-tab="alerts">
     ${D.flags.map(fl=>`<div class="flag ${fl.lvl}"><b>${esc(fl.tag)}</b><span>${esc(fl.text)}</span></div>`).join("")}
   </section>
 
-  <section class="strip">
+  <section class="strip" data-tab="road">
     <div class="ph"><h2>Trucks on the road</h2>${(()=>{const ag=D.strip.asOfIso?Math.round((Date.now()-new Date(D.strip.asOfIso))/60000):null;
       return `<span class="state ${ag!=null&&ag>20?"missing":"live"}">Trakpro ${esc(D.strip.asOf)}${ag!=null?` (${ag} min ago)`:""}</span>`;})()}</div>
+    ${(()=>{const G=D.cmap||[], n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
+      const road=n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale), wb=n(u=>!u.esc&&u.k>=180), ai=n(u=>!u.esc&&u.k<=2);
+      const chip=(l,v,c)=>`<span style="display:inline-block;padding:4px 10px;margin:0 6px 6px 0;border-radius:99px;background:var(--paper);border:1px solid var(--line);font-size:15px"><b style="color:${c||"var(--ink)"}">${v}</b> ${l}</span>`;
+      const cu=D.cucon, g=k=>cu?((cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}):{};
+      const cuLine=cu?`<div class="small muted" style="margin:-2px 0 8px">CuCon to date: bagged <b>${(g("bagged").ptd_bags||0).toLocaleString("en-AU")}</b> → East Bank <b>${(g("east bank").ptd_bags||0).toLocaleString("en-AU")}</b> → trucked <b>${(g("trucked").ptd_bags||0).toLocaleString("en-AU")}</b> → shipped <b>${(g("loaded").ptd_bags||0).toLocaleString("en-AU")}</b> <a href="#cucon" onclick="document.querySelector('[data-t=cucon]').click();return false">details</a></div>`:"";
+      return `<div style="margin:2px 0 8px">${chip("on the road",road)}${sil?chip("no GPS",sil,"var(--g3)"):""}${chip("at West Bank",wb)}${chip("at Aiambak",ai)}</div>${cuLine}`;})()}
     <div class="cgrid">
-      <div class="cmapbox"><svg id="cmap" viewBox="0 0 520 1060" role="img" aria-label="Map of the Aiambak to Kiunga West Bank road with truck positions"></svg>
+      <div class="cmapbox"><svg id="cmap" viewBox="0 0 590 1060" role="img" aria-label="Map of the Aiambak to Kiunga West Bank road with truck positions"></svg>
         <div class="clegend">
           <span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="var(--g1)"/></svg>Truck</span>
           <span><svg width="14" height="14" aria-hidden="true"><rect x="2.5" y="2.5" width="9" height="9" transform="rotate(45 7 7)" fill="var(--g1)"/></svg>Escort LV</span>
@@ -529,7 +706,7 @@ function render(){
 
 
   <div class="grid">
-    <section class="panel wide">
+    <section class="panel wide" data-tab="road">
       <div class="ph"><h2>Convoys</h2>${stateBadge(D.trucks.state)}</div>
       <p class="small"><b>Departures today: ${fmt(D.trucks.tripsNorth)} northbound (loaded), ${fmt(D.trucks.tripsSouth)} southbound.</b> ${D.bindNote?`<span class="muted">${esc(D.bindNote)}</span>`:""} <span class="muted">${esc(D.trucks.note)}</span></p>
       ${D.baseline?`<details style="margin:6px 0 10px"><summary class="small"><b>14-day baseline (${esc(D.baseline.period)})</b>: typical run ${D.baseline.run_h_north} h northbound, ${D.baseline.run_h_south} h southbound; top speed usually ${D.baseline.typical_max_kmh} km/h. Flags: stop over ${D.restMin+5} min, speed over ${D.speedLimit} km/h.</summary>
@@ -539,7 +716,7 @@ function render(){
       ${D.convoys.map(c=>`<div class="convoy"><h3>${esc(c.name)} <span class="tag">${esc(c.tag)}</span></h3>${c.units?`<p><b>${esc(c.units)}</b></p>`:""}${c.crew?`<p>${esc(c.crew)}</p>`:""}<p class="muted">${esc(c.status)}</p>${(c.issues||[]).length?`<ul class="plain small">${c.issues.map(i=>`<li style="color:${i.lvl==="red"?"var(--red)":"inherit"}">${esc(i.text)}</li>`).join("")}</ul>`:""}</div>`).join("")}
     </section>
 
-    <section class="panel wide">
+    <section class="panel wide" data-tab="plan">
       <div class="ph"><h2>Performance vs plan, ${esc(D.perf.month)}</h2></div>
       <p><b>Typical travel time: ${D.baseline?D.baseline.run_h_north:7.5} h northbound, ${D.baseline?D.baseline.run_h_south:7.1} h southbound</b> <span class="muted small">(14-day median, Aiambak to West Bank Kiunga)</span></p>
       <details style="margin:0 0 12px"><summary class="small"><b>How accurate are the arrival times</b>${D.etaAcc&&D.etaAcc.trips?` <span class="muted">(${D.etaAcc.trips} trips scored live)</span>`:""}</summary>
@@ -562,7 +739,7 @@ function render(){
 
 
 
-    <section class="panel">
+    <section class="panel" data-tab="fuel">
       <div class="ph"><h2>Fuel</h2>${stateBadge(f.state)}</div>
       <table><tr><th>Fuel movements</th><th class="r">Last day</th><th class="r">Since 13:00</th></tr>
         <tr><td>Received into Kiunga tanks</td><td class="r num">${f.received==null?"TBC":kl(f.received)+" kL"}</td><td class="r num">${f.mv&&f.mv.so_far.kiunga?kl(f.mv.so_far.kiunga.in_l)+" kL":"–"}</td></tr>
@@ -577,7 +754,7 @@ function render(){
         ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%;${!t.inService?"background:var(--gap)":t.belowSuction?"background:var(--red)":""}"></span>${t.suction&&t.cap?`<i class="suction" style="left:${(t.suction/t.cap*100).toFixed(1)}%" title="Suction level ${kl(t.suction)} kL"></i>`:""}</div><span class="r muted small">${!t.inService?"out of service":t.belowSuction?"below suction":t.usable!=null?kl(t.usable)+" usable"+(t.liveMove?(t.mvIn>=t.mvOut?" (filling)":" (discharging)"):""):pct(t.vol,t.cap)+" %"}</span></div>`).join("")}</div>`;}).join("")}
     </section>
 
-    <section class="panel wide">
+    <section class="panel wide" data-tab="cucon">
       ${(()=>{const cu=D.cucon, n=v=>v==null?"–":Math.round(v).toLocaleString("en-AU"), t1=v=>v==null?"–":Number(v).toLocaleString("en-AU",{maximumFractionDigits:0});
         if(!cu) return `<div class="ph"><h2>CuCon bulka bags: ${fmt(b.sinceOct1)}</h2>${stateBadge(b.state)}</div>
           <p class="muted small">Wakata Bulka count. Drop the daily Cucon_bagging_operation workbook into the OneDrive Corridor folder for the full bagging and trucking figures.</p>`;
@@ -620,7 +797,7 @@ function render(){
       </details>
         </section>
 
-    <section class="panel">
+    <section class="panel" data-tab="people">
       <div class="ph"><h2>Fatigue</h2>${stateBadge(fa.state, fa.asOf)}</div>
       ${(()=>{const d=D.drivers||[]; if(!d.length) return `<p class="small"><b>Drivers today: none on ChekRite pre-starts yet.</b> Check ChekRite for who is driving and Readi for who has synced.</p>`;
         const lvl={alarm:["var(--red)","ALARM: Readi low and camera fatigue"],warn:["var(--red)","Driving with a fatigue sign"],watch:["#B08A00","Fatigue sign, not on the road"],ok:["var(--green)","No fatigue sign"]};
@@ -650,7 +827,7 @@ function render(){
           </details>
     </section>
 
-    <section class="panel">
+    <section class="panel" data-tab="fleet">
       <div class="ph"><h2>Fleet availability</h2>${stateBadge(D.fleet?D.fleet.state:"missing", D.fleet&&D.fleet.date?D.fleet.date.slice(8,10)+"/"+D.fleet.date.slice(5,7):"")}</div>
       ${D.fleet&&Object.keys(D.fleet.groups).length?`<table><tr><th>Fleet</th><th class="r">Total</th><th class="r">Down</th><th class="r">Avail</th></tr>
         ${Object.entries(D.fleet.groups).map(([k,g])=>`<tr${k==="TOTAL FLEETS"?' style="font-weight:600"':""}><td>${esc(k.charAt(0)+k.slice(1).toLowerCase())}</td><td class="r">${g.total}</td><td class="r">${g.down}</td><td class="r">${g.pct!=null?g.pct+" %":g.available}</td></tr>`).join("")}</table>
@@ -658,7 +835,7 @@ function render(){
         <p class="muted small">From ${esc(D.fleet.file||"the daily shift report")}.</p>`:`<p class="muted">${esc(D.fleet&&D.fleet.note||"No shift report yet.")}</p>`}
     </section>
 
-    <section class="panel">
+    <section class="panel" data-tab="fleet">
       <div class="ph"><h2>Field notes and files</h2>${D.inbox?stateBadge(D.inbox.state, D.inbox.as_of?D.inbox.as_of.slice(11,16):""):""}</div>
       ${D.inbox&&D.inbox.notes?`
         <p class="small muted">Drop .txt, .md, .xlsx, .csv or .ods files into OneDrive &gt; Documents &gt; OTML Data &gt; Corridor. Files from the last 3 days show here; a file starting "Daily inputs" feeds the performance table.${(D.inbox.inputs_files||[]).length?" Reading: "+esc(D.inbox.inputs_files.join(", "))+".":""}</p>
@@ -668,12 +845,12 @@ function render(){
       :`<p class="muted small">${esc((D.inbox&&D.inbox.note)||"Inbox not read yet.")}</p>`}
     </section>
 
-    <section class="panel">
+    <section class="panel" data-tab="fleet">
       <div class="ph"><h2>Road</h2>${stateBadge(D.road.state, D.road.asOf)}</div>
       <ul class="plain">${D.road.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
     </section>
 
-    <section class="panel">
+    <section class="panel" data-tab="people">
       <div class="ph"><h2>Pre-starts and faults (ChekRite)</h2>${stateBadge(D.prestarts.state, D.prestarts.asOf)}</div>
       ${D.prestarts.faults?`
       <p class="small"><b>Pre-starts today: ${D.prestarts.today.length}</b> ${D.prestarts.today.length?"("+D.prestarts.today.map(x=>`${esc(x.asset)} ${esc(x.submitted.slice(6))}${x.issues?`, ${x.issues} fail`:""}`).join("; ")+")":""}</p>
@@ -696,21 +873,24 @@ function render(){
       <p class="muted small">${D.prestarts.count} open faults on corridor assets. ${esc(D.prestarts.note||"")}</p>`:`<p class="muted">${esc(D.prestarts.note)}</p>`}
     </section>
 
-    <section class="panel third">
-      <div class="ph"><h2>Hotshot</h2></div>
-      <p><b>${esc(D.hotshot.next)}</b></p>
-      <p class="muted small">Runs Monday to Friday. ${esc(D.hotshot.cutoff)}</p>
-    </section>
+    
 
-    <section class="panel third">
-      <div class="ph"><h2>Sources</h2></div>
-      <p class="muted small">Trakpro, Veeder-Root TLS (Kiunga 10.35.20.16, Tabubil 10.13.20.123), Wakata, Readi Supervise, Chekrite, WhatsApp convoy and road groups. All times PNG.</p>
-    </section>
+    
   </div>
   <footer>${(D.notes||[]).map(esc).join(" ")} Collected by the Claude PC every 15 min, 24 hours a day (PNG time).</footer>`;
   document.getElementById("app").innerHTML = html;
   document.getElementById("msgBtn").onclick = openMsg;
+  {let cur="road"; try{cur=(location.hash||"").slice(1)||"summary";}catch(e){}
+   if(!document.querySelector('[data-t="'+cur+'"]')) cur="summary";
+   const show=t=>{document.querySelectorAll("[data-tab]").forEach(el=>{const on=el.getAttribute("data-tab")===t; el.classList.toggle("on",on); el.style.display=on?"":"none";});
+     document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("on",b.dataset.t===t);b.setAttribute("aria-selected",b.dataset.t===t);});
+     try{localStorage.setItem("corr_tab",t);}catch(e){} if(t==="road") drawConvoyMap(D.cmap||[], D.strip.notOp||{});};
+   const go=t=>{show(t); try{history.replaceState(null,"","#"+t);}catch(e){} try{window.scrollTo(0,0)}catch(e){};};
+   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>go(b.dataset.t));
+   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+   show(cur);}
   drawConvoyMap(D.cmap||[], D.strip.notOp||{});
+  askWire();
   if(document.querySelectorAll) document.querySelectorAll(".dot").forEach(el=>el.onclick=()=>{document.getElementById("stripTip").textContent=el.getAttribute("data-tip");});
 }
 
@@ -751,7 +931,6 @@ function buildMsg(){
     `• Reaching 70 later today: ${cross||"none"}`,
     ...(D.prestarts.faults?[`• Pre-starts today: ${D.prestarts.today.length}; departed without one: ${D.prestarts.noPre.join(", ")||"none"}`,
       `• Open ChekRite faults: ${D.prestarts.count} (${D.prestarts.faults.filter(u=>u.safety.length).map(u=>u.asset+": "+u.safety.join("/")).join("; ")||"no safety items"})`]:[`• Chekrite: TBC`]),
-    "", "*HOTSHOT*", `• Next run ${D.hotshot.next}. ${D.hotshot.cutoff}`,
     "", "*FLAGS*", ...D.flags.filter(x=>x.lvl!=="red").map(x=>"• "+x.text)
   ].join("\n");
 }
