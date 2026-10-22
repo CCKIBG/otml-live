@@ -65,6 +65,8 @@
 .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin:0 0 14px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg,var(--paper));z-index:5;scrollbar-width:none}
 .tab{font:600 16px "Barlow Condensed",sans-serif;letter-spacing:.02em;background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;color:var(--muted);cursor:pointer;white-space:nowrap}
 .tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+@media (max-width:700px){.tabs{display:grid;grid-template-columns:repeat(4,1fr);overflow:visible;gap:0;border-bottom:2px solid var(--line)}
+  .tab{padding:9px 4px;font-size:16px;text-align:center;border-bottom-width:3px}}
 .tcount{display:inline-block;min-width:1.3em;background:var(--red);color:#fff;border-radius:99px;font-size:12px;padding:0 5px;margin-left:4px}
 .tcount:empty{display:none}
 [data-tab]{display:none} [data-tab].on{display:block} [data-tab]:not(.on){display:none!important}
@@ -641,7 +643,14 @@ function askWire(){
 }
 
 let c0gen=Date.now(), c0raw={}, c0manual={};
-function render(){
+function render(){ // keep the tab bar and the page where the user left them across the 2-minute refreshes
+  let tabX=0, pageY=0; try{ const tb=document.querySelector(".tabs"); if(tb) tabX=tb.scrollLeft; pageY=window.scrollY||0; }catch(e){}
+  renderInner();
+  try{ const tb=document.querySelector(".tabs"); if(tb){ tb.scrollLeft=tabX; const on=tb.querySelector(".tab.on");
+        if(on){ const l=on.offsetLeft, r=l+on.offsetWidth; if(l<tb.scrollLeft||r>tb.scrollLeft+tb.clientWidth) tb.scrollLeft=Math.max(0,l-16); } }
+       if(pageY) window.scrollTo(0,pageY); }catch(e){}
+}
+function renderInner(){
   const f=D.fuel, b=D.bags, fa=D.fatigue;
   const below=fa.rows.filter(r=>r.score<fa.threshold), crossing=fa.rows.filter(r=>r.score>=fa.threshold && r.at);
   const avg=Math.round(b.sinceOct1/b.days);
@@ -903,7 +912,8 @@ function render(){
    const show=t=>{document.querySelectorAll("[data-tab]").forEach(el=>{const on=el.getAttribute("data-tab")===t; el.classList.toggle("on",on); el.style.display=on?"":"none";});
      document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("on",b.dataset.t===t);b.setAttribute("aria-selected",b.dataset.t===t);});
      try{localStorage.setItem("corr_tab",t);}catch(e){} if(t==="road") drawConvoyMap(D.cmap||[], D.strip.notOp||{});};
-   const go=t=>{show(t); try{history.replaceState(null,"","#"+t);}catch(e){} try{window.scrollTo(0,0)}catch(e){};};
+   const go=t=>{show(t); try{history.replaceState(null,"","#"+t);}catch(e){} try{window.scrollTo(0,0)}catch(e){};
+     try{const tb=document.querySelector(".tabs"), on=tb&&tb.querySelector(".tab.on"); if(on) on.scrollIntoView({block:"nearest",inline:"nearest"});}catch(e){} };
    document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>go(b.dataset.t));
    document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
    show(cur);}
