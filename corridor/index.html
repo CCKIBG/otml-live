@@ -223,6 +223,7 @@ function toD(c, m){
      (cu.checks||[]).filter(x=>!/estimates/.test(x)).forEach(x=>flags.push({lvl:"amber",tag:"CuCon",text:x}));
      const bp=(cu.stages||[]).find(x=>/bagged/i.test(x.name)), wk=(c.bags||{}).since_1_oct;
      if(bp&&wk&&bp.ptd_bags&&Math.abs(wk-bp.ptd_bags)/bp.ptd_bags>0.05) flags.push({lvl:"amber",tag:"CuCon",text:`Wakata shows ${wk.toLocaleString("en-AU")} Bulka bags but the bagging report says ${bp.ptd_bags.toLocaleString("en-AU")} bagged to ${cu.date.slice(8,10)}/${cu.date.slice(5,7)}. Wakata is ${Math.round(100*wk/bp.ptd_bags)} % of the report, so bag tags are not all being entered.`});}}
+  Object.entries(((c.fuel||{}).site_errors)||{}).forEach(([site,msg])=>flags.push({lvl:"amber",tag:"Fuel",text:`${site.charAt(0).toUpperCase()+site.slice(1)} tank console not reachable; its figures are from the last good reading. Check the console link or ask IT.`}));
   ((c.fleet||{}).checks||[]).forEach(x=>flags.push({lvl:"amber",tag:"Shift report",text:x}));
   ((c.fleet||{}).down||[]).filter(d=>d.today).forEach(d=>flags.push({lvl:"amber",tag:"Down today",text:`${d.id}: ${d.fault||""} at ${d.location||"?"}. ${d.comment||""}`.trim()}));
   const h=gen.getHours()+gen.getMinutes()/60;
