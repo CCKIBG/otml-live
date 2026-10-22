@@ -109,7 +109,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offse
 .strip{background:var(--paper);border-radius:10px;padding:18px 18px 10px;margin-bottom:22px}
 .strip h2{margin:0 0 4px;font-size:24px}
 .strip-scroll{overflow-x:auto}
-.strip svg{display:block;min-width:640px;width:100%;height:auto}
+.strip-scroll svg{display:block;min-width:640px;width:100%;height:auto} .clegend svg{width:14px;height:14px;flex:none}
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:14px;margin-top:6px}
 .legend i{display:inline-block;width:18px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
 .groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
@@ -433,9 +433,10 @@ const planTxt = p => Array.isArray(p) ? p.join(" to ") : (typeof p==="number" ? 
 const syncH = v => typeof v==="number" ? v : (m=>m? +m[1]*({m:1/60,h:1,d:24}[m[2]]) : 0)(String(v).match(/(\d+)\s*([mhd])/));
 const scoreColour = s => s<60 ? "var(--red)" : s<70 ? "#C9651D" : s<=75 ? "#B08A00" : "var(--green)";
 
+function isPhone(){ try{ if(window.matchMedia) return window.matchMedia("(max-width: 700px)").matches || Math.min(window.innerWidth||9999, (screen&&screen.width)||9999) < 700; }catch(e){} return typeof window!=="undefined" && window.innerWidth < 700; }
 function stripSVG(st){
   // compact layout on phones: narrower drawing, bigger text, fewer ticks
-  const small = typeof window!=="undefined" && window.innerWidth && window.innerWidth < 700;
+  const small = isPhone();
   const W=small?560:1000, L=small?28:40, R=W-(small?28:40), fs=small?20:14, r=small?24:20, step=small?40:20;
   const x=k=>L+(R-L)*k/st.len;
   // place circles, stacking upwards when they would overlap
@@ -496,7 +497,7 @@ function drawConvoyMap(G, notOp){
     else m=el("circle",{cx:x,cy:y,r:5.5,fill:v(col),stroke:bad?v("--red"):v("--paper"),"stroke-width":bad?2.5:1.5},parent);
     el("title",{},m).textContent=`${u.n} · ${stateOf(u)} · ${u.drv?"Driver: "+u.drv+(u.fs&&u.fs.v!=null?" (Readi "+u.fs.v+")":""):"No driver recorded"} · KM${u.k} · ${u.s} km/h · ${u.t}${u.stale?" · no GPS 30+ min":""}${bad?" · "+bad:""}`;};
   const ends=u=>u.k<=2||u.k>=180, isWB=u=>u.k>=180, isAIA=u=>u.k<=2;
-  const small=typeof window!=="undefined"&&window.innerWidth&&window.innerWidth<700;
+  const small=isPhone();
   if(small){ const xs=pts.map(p=>p[0]); const x0=Math.min(...xs)-140, x1=Math.max(...xs)+60;
     svg.setAttribute("viewBox",`${x0} 0 ${x1-x0} 1060`);
     for(const g of G){const col=colOf(g); const road=g.units.filter(u=>!ends(u));
