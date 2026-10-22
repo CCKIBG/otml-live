@@ -77,7 +77,9 @@
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:0 0 14px}
 @media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 .tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;padding:12px 14px;cursor:pointer;color:var(--ink);font-family:inherit;min-height:112px}
-.tile.amber{border-left-color:#d6a21a} .tile.red{border-left-color:var(--red)}
+.tile.amber{border-left-color:#d6a21a}
+.tile.standout,.standout{background:color-mix(in srgb,#d6a21a 14%,var(--paper))}
+.standout{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-left:5px solid #d6a21a;border-radius:6px;padding:10px 14px;margin:6px 0 12px;max-width:520px} .tile.red{border-left-color:var(--red)}
 .tile:hover{border-color:var(--ink)}
 .tl{font:700 12px "Barlow",sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .tb{font:700 38px/1.05 "Barlow Condensed",sans-serif} .tb small{font-size:20px;font-weight:600;color:var(--muted)}
@@ -674,6 +676,7 @@ function render(){
       ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
       ${cu?tile("cucon","CuCon bagged",`${(g("bagged").day_bags??"–")}<small>/${g("bagged").target_bags||"–"}</small>`,`report ${esc((cu.date||"").slice(8,10))}/${esc((cu.date||"").slice(5,7))} · ${Math.round(g("bagged").ptd_bags||0).toLocaleString("en-AU")} to date`,(g("bagged").day_bags||0)<(g("bagged").target_bags||0)*0.85?"amber":""):tile("cucon","CuCon bags (Wakata)",(D.bags.sinceOct1||0).toLocaleString("en-AU"),"since 1 Oct")}
       ${cu?tile("cucon","CuCon trucked to Aiambak",`${Math.round(g("trucked").ptd_bags||0).toLocaleString("en-AU")} <small>bags</small>`,`shipped ${Math.round(g("loaded").ptd_bags||0).toLocaleString("en-AU")} · at Kiunga ${Math.round(((cu.locations||[])[0]||{}).bags||0).toLocaleString("en-AU")}`):""}
+      ${cu&&cu.tarped?tile("cucon","Tarped stockpile",`${Math.round(cu.tarped.total).toLocaleString("en-AU")}`,`loose CuCon under tarps${cu.tarped.last?` · +${Math.round(cu.tarped.last.value)} on ${esc(cu.tarped.last.date.slice(8,10))}/${esc(cu.tarped.last.date.slice(5,7))} ${esc(cu.tarped.last.shift.toLowerCase())}`:""}`,"amber standout"):""}
       ${tile("people","Fatigue",`${alarm}`,`drivers on the road with a fatigue sign · ${low} below 70 on Readi`,alarm?"red":low?"amber":"")}
       ${tile("people","Pre-starts",`${dep-nopre}<small>/${dep}</small>`,`departed trucks with a pre-start · ${safety} open safety faults`,nopre?"red":safety?"amber":"")}
     </div>
@@ -776,6 +779,7 @@ function render(){
         const wx=D.wakataX||{};
         return `<div class="ph"><h2>CuCon bulka bags</h2><span class="state live">Report ${esc((cu.date||"").slice(8,10))}/${esc((cu.date||"").slice(5,7))}</span></div>
         <p><b>Bagged ${n(bg.ptd_bags)} → East Bank ${n(eb.ptd_bags)} → trucked ${n(tr.ptd_bags)} → shipped ${n(sh.ptd_bags)}</b> <span class="muted small">(project to date, ${t1(bg.ptd_t)} t bagged)</span></p>
+        ${cu.tarped?`<div class="standout"><span class="tl">Tarped stockpile</span><span class="tb">${Math.round(cu.tarped.total).toLocaleString("en-AU")}</span><span class="ts">loose CuCon under tarps, ELT Shift Register total${(cu.tarped.entries||[]).length?` · ${cu.tarped.entries.map(e=>`${e.date.slice(8,10)}/${e.date.slice(5,7)} ${e.shift.toLowerCase()} +${Math.round(e.value)}`).join(", ")}`:""}</span></div>`:""}
         <div style="overflow-x:auto"><table class="small"><tr><th>Stage</th><th class="r">Day</th><th class="r">MTD</th><th class="r">Avg/day</th><th class="r">Target</th><th class="r">Day t</th><th class="r">MTD t</th><th class="r">Avg t/day</th><th class="r">Target t</th></tr>
         ${S.map(x=>`<tr><td>${esc(x.name)}</td><td class="r" style="color:${col(x.day_bags,x.target_bags)};font-weight:600">${n(x.day_bags)}</td><td class="r">${n(x.mtd_bags)}</td><td class="r" style="color:${col(x.avg_bags,x.target_bags)}">${n(x.avg_bags)}</td><td class="r muted">${n(x.target_bags)}</td>
           <td class="r">${t1(x.day_t)}</td><td class="r">${t1(x.mtd_t)}</td><td class="r" style="color:${col(x.avg_t,x.target_t)}">${t1(x.avg_t)}</td><td class="r muted">${t1(x.target_t)}</td></tr>`).join("")}</table></div>
