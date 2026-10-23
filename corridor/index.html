@@ -228,7 +228,8 @@ function toD(c, m){
      const bp=(cu.stages||[]).find(x=>/bagged/i.test(x.name)), wk=(c.bags||{}).since_1_oct;
      if(bp&&wk&&bp.ptd_bags&&Math.abs(wk-bp.ptd_bags)/bp.ptd_bags>0.05) flags.push({lvl:"amber",tag:"CuCon",text:`Wakata shows ${wk.toLocaleString("en-AU")} Bulka bags but the bagging report says ${bp.ptd_bags.toLocaleString("en-AU")} bagged to ${cu.date.slice(8,10)}/${cu.date.slice(5,7)}. Wakata is ${Math.round(100*wk/bp.ptd_bags)} % of the report, so bag tags are not all being entered.`});}}
   Object.entries(((c.fuel||{}).site_errors)||{}).forEach(([site,msg])=>flags.push({lvl:"amber",tag:"Fuel",text:`${site.charAt(0).toUpperCase()+site.slice(1)} tank console not reachable; its figures are from the last good reading. Check the console link or ask IT.`}));
-  ((c.fleet||{}).checks||[]).forEach(x=>flags.push({lvl:"amber",tag:"Shift report",text:x}));
+  {const R=fleetRecon(c.fleet||{}, t); if(R){ R.rows.filter(r=>!r.ok).forEach(r=>flags.push({lvl:"amber",tag:"Shift report",text:`${r.label}: ${r.notes.join("; ")}.`})); R.issues.forEach(x=>flags.push({lvl:"amber",tag:"Shift report",text:x})); }
+   else ((c.fleet||{}).checks||[]).forEach(x=>flags.push({lvl:"amber",tag:"Shift report",text:x}));}
   ((c.fleet||{}).down||[]).filter(d=>d.today).forEach(d=>flags.push({lvl:"amber",tag:"Down today",text:`${d.id}: ${d.fault||""} at ${d.location||"?"}. ${d.comment||""}`.trim()}));
   const h=gen.getHours()+gen.getMinutes()/60;
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
@@ -339,7 +340,7 @@ function toD(c, m){
 
     strip:{asOf:hhmm(t.as_of), asOfDate:(t.as_of||"").slice(8,10), asOfIso:t.as_of||null, len:183,
       holds:((t.monitor&&t.monitor.rest_km)||[42.5,97,137]).map(k=>({km:k,label:k===137?"KM137 Moian Rd":`KM${k}`})), gaps:[[15,60],[64,68]], groups,
-      notOp:(()=>{const m={}; (fl.down||[]).forEach(a=>m[a.trakpro_id||a.id]="Down in the shift report"+(a.comment?": "+a.comment.replace(/^DOWN\s*:\s*/i,""):""));
+      notOp:(()=>{const m={}, RUN=runningDown(fl,t); (fl.down||[]).filter(a=>!RUN[a.id]).forEach(a=>m[a.trakpro_id||a.id]="Down in the shift report"+(a.comment?": "+a.comment.replace(/^DOWN\s*:\s*/i,""):""));
         ((c.prestarts||{}).open_faults||[]).forEach(u=>{ if(u.other.concat(u.safety).some(x=>/do not operate/i.test(x))) m[u.trakpro_id]="Do Not Operate in ChekRite"; }); return m;})()},
     baseline:(t.monitor||{}).baseline||null, etaAcc:t.eta_accuracy||null, restMin:(t.monitor||{}).rest_min, speedLimit:(t.monitor||{}).speed_limit,
     trucks:{state:t.state||"missing", tripsNorth:depT.north_departures||0, tripsSouth:depT.south_departures||0, moved:null,
@@ -352,7 +353,7 @@ function toD(c, m){
       availableTotal:f.available_total_l,
       farms:[{name:"Kiunga Tank Farm",asOf:hhmm(f.as_of),tanks:tank(fk),x:farmX(fk)},{name:"Tabubil Tank Farm",asOf:hhmm(f.as_of),tanks:tank(ft),x:farmX(ft)}]},
     bags:{state:b.state||"missing", sinceOct1:b.since_1_oct, days:Math.max(1,Math.round((gen-new Date("2026-10-01T00:00:00+10:00"))/864e5)), planPerDay:((m.targets||{})[c.generated.slice(0,7)]||{}).bags_per_day||200, today:b.filled_in_window, note:b.basis||""},
-    adas:t.adas||null,
+    adas:t.adas||null, trend:t.trend||null,
     drivers:(()=>{const pr=c.prestarts||{}, rows=(fa.rows||[]), nf=(fa.no_forecast_names||[]);
       const norm=x=>String(x||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
       const match=n=>{const a=norm(n); if(!a.length) return null; const last=a[a.length-1], first=a[0];
@@ -401,7 +402,7 @@ function toD(c, m){
       const checked=new Set(pr.assets_checked_today||[]);
       const noPre=departed.filter(u=>!checked.has(toCk(u))).map(u=>toCk(u)!==u?`${toCk(u)} (${u})`:u);
       return {state:pr.state, asOf:hhmm(pr.as_of), today:pr.inspections_today||[], faults:pr.open_faults||[], count:pr.open_fault_count, noPre, departed, note:pr.note, issues:pr.open_issues||null, pairs:pr.pairs_today||[], trailerIns:pr.trailer_inspections_today||[]};})(),
-    fleet:{state:fl.state||"missing", date:fl.report_date, file:fl.file, groups:fl.groups||{}, down:fl.down||[], note:fl.note||"", workshop:fl.workshop_today||[], checks:fl.checks||[]},
+    fleet:{state:fl.state||"missing", date:fl.report_date, file:fl.file, groups:fl.groups||{}, down:fl.down||[], note:fl.note||"", workshop:fl.workshop_today||[], checks:fl.checks||[], recon:fleetRecon(fl, t)},
     hotshot:{next:nextHotshot(gen), cutoff:(m.hotshot||{}).cutoff||""},
     notes:m.notes||[]
   };
@@ -415,6 +416,11 @@ async function load(){
       if(lv&&lv.positions&&c.trucks&&(!c.trucks.as_of||lv.generated>c.trucks.as_of)){ c.trucks.positions=lv.positions; c.trucks.as_of=lv.generated;
         if(lv.status){ c.trucks.raw=Object.assign({},c.trucks.raw||{},{status:lv.status,escorts:lv.escorts||{}}); } }
     }catch(e){}
+    try{ const h=await fetch("../otml-live.html"+bust,{cache:"no-store"}).then(r=>r.ok?r.text():"");
+      const grab=key=>{const i=h.indexOf('"'+key+'"'); if(i<0) return null; let j=h.indexOf("{",i), d=0, k=j; for(;k<h.length;k++){ if(h[k]==="{") d++; else if(h[k]==="}"){ d--; if(!d) break; } } try{return JSON.parse(h.slice(j,k+1));}catch(e){return null;}};
+      const hd=grab("headline"); const g=(h.match(/"generated_at"\s*:\s*"([^"]+)"/)||[])[1];
+      c0power=hd?Object.assign({},hd,{generated_at:g, flow:(h.match(/"ok_menga_flow_m3s"\s*:\s*([\d.]+)/)||[])[1], gh01:(h.match(/"gh01_mw"\s*:\s*([\d.]+)/)||[])[1], gh02:(h.match(/"gh02_mw"\s*:\s*([\d.]+)/)||[])[1], river_fc:grab("forecast"), river_d24:(h.match(/"kiunga_delta_24h_m"\s*:\s*(-?[\d.]+)/)||[])[1]}):null;
+    }catch(e){ c0power=null; }
     c0gen=c.generated; c0raw=c; c0manual=m; D=toD(c,m); fatigueFlags(D); render();
   }catch(e){
     document.getElementById("app").innerHTML=`<h1>Corridor</h1><p>Could not load corridor_latest.json (${e}). The collector on the Claude PC may be stopped.</p>`;
@@ -642,7 +648,57 @@ function askWire(){
       r.onend=()=>mic.classList.remove("rec"); r.start(); }catch(e){ document.getElementById("askOut").textContent="Couldn't start the microphone."; } };
 }
 
-let c0gen=Date.now(), c0raw={}, c0manual={};
+// ---------- Equipment down: reconcile the shift report's summary, job lists and asset list, and check against Trakpro ----------
+function trakRunning(T){ const out={}, now=Date.now()/1000, raw=(T||{}).raw||{}, ut=raw.unit_trips||{}, st=raw.status||{};
+  const fid=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
+  for(const [u,v] of Object.entries(ut)){ const tr=(v.trips||[]).filter(x=>x.dep&&now-x.dep<24*3600); if(tr.length) out[fid(u)]={trips:tr.length, last:Math.max(...tr.map(x=>x.dep))}; }
+  for(const [u,x] of Object.entries(st)){ if(x&&x.t&&now-x.t<3600&&(x.speed||0)>10&&x.km>2&&x.km<180&&!out[fid(u)]) out[fid(u)]={trips:0,last:x.t,moving:true}; }
+  return out; }
+
+function runningDown(F, T){ const R=trakRunning(T), out={}; ((F||{}).down||[]).forEach(d=>{ const r=R[d.id]; if(!r) return;
+  const endDay=d.since?new Date(d.since+"T23:59:59+10:00").getTime()/1000:0; if(r.moving||r.last>endDay) out[d.id]=r; }); return out; }
+function fleetRecon(F, T){
+  if(!F || !F.groups || !(F.down||F.assets_all)) return null;
+  const A=F.assets_all||[], D=(F.down||[]), tp=id=>/^IT(1[5-9]|2\d)$/.test(id)?"TT"+id.slice(2):id;
+  const tanker=id=>/^T25\d$/.test(id)||/^TR-?9(39|40|41)\d$/.test(id), flat=id=>/^T2(3[4-9]|4[0-2])$/.test(id), pm=id=>/^IT\d\d$/.test(id), esc=id=>/^(L\d{4}|HT2\d)$/.test(id);
+  // tanker identity by rego (T250 = TR-9395 ...), so a tanker listed under both names counts once
+  const regoOf={}; A.forEach(a=>{ if(a.rego) regoOf[a.id]=a.rego.replace(/^TR(\d)/,"TR-$1"); }); D.forEach(d=>{ if(d.rego) regoOf[d.id]=d.rego.replace(/\s/g,"").replace(/^TR(\d)/,"TR-$1"); });
+  const key=id=>tanker(id)?(regoOf[id]||id):id;
+  const cats=[["PRIME MOVERS","Prime movers",pm,[...Array(20)].map((_,i)=>"IT"+String(i+5).padStart(2,"0"))],["FUEL TANKERS","Fuel tankers",tanker,null],["FLAT DECK TRAILERS","Flat deck trailers",flat,null],["ESCORT VEHICLES","Escort vehicles",esc,null]];
+  const issues=[], rows=[], RUN0=trakRunning(T), RUN={};
+  // only count as running if it moved AFTER the day the job was raised (or is moving now), so a trip earlier that day doesn't count
+  D.forEach(d=>{ const r=RUN0[d.id]; if(!r) return; const endDay=d.since?new Date(d.since+"T23:59:59+10:00").getTime()/1000:0;
+    if(r.moving||r.last>endDay) RUN[d.id]=r; });
+  const running=D.filter(d=>RUN[d.id]).map(d=>d.id);
+  const seen={}; A.forEach(a=>{ seen[a.id]=(seen[a.id]||0)+1; }); Object.entries(seen).filter(([k,n])=>n>1).forEach(([k,n])=>issues.push(`${k} is listed ${n} times in the asset list.`));
+  const regoUse={}; A.filter(a=>a.rego).forEach(a=>{ (regoUse[a.rego]=regoUse[a.rego]||new Set()).add(a.id); });
+  Object.entries(regoUse).filter(([r,ids])=>ids.size>1).forEach(([r,ids])=>issues.push(`Rego ${r} is on ${[...ids].join(" and ")}.`));
+  for(const [g,label,test,expected] of cats){
+    const sum=F.groups[g]||null;
+    const jobs=[...new Set(D.filter(d=>test(d.id)&&!RUN[d.id]).map(d=>key(d.id)))];
+    const runIds=D.filter(d=>test(d.id)&&RUN[d.id]).map(d=>d.id);
+    const listedOp=[...new Set(A.filter(a=>test(a.id)&&a.status==="Operational").map(a=>key(a.id)))];
+    const opWithJob=listedOp.filter(k=>jobs.includes(k));
+    const avail=listedOp.filter(k=>!jobs.includes(k)).length;
+    const notes=[];
+    if(opWithJob.length) notes.push(`listed operational but has an open job: ${opWithJob.join(", ")}`);
+    if(expected){ const missing=expected.filter(x=>!A.some(a=>a.id===x)&&!jobs.includes(x)&&!runIds.includes(x)); if(missing.length) notes.push(`not on the report at all: ${missing.join(", ")}`); }
+    if(runIds.length) notes.push(`running on Trakpro, counted as available: ${runIds.join(", ")}`);
+    if(sum && sum.down!==jobs.length) notes.push(`summary says ${sum.down} down, job list shows ${jobs.length}${runIds.length?" after taking out the running ones":""}`);
+    {const onRep=new Set([...listedOp,...jobs,...runIds.map(key)]).size; if(sum && sum.total && onRep!==sum.total) notes.push(`${onRep} units on the report against ${sum.total} in the summary total`);}
+    rows.push({label, sumDown:sum?sum.down:null, jobs:jobs.length, jobIds:jobs, total:sum?sum.total:null, avail:avail+runIds.filter(x=>!listedOp.includes(key(x))).length, ok:!notes.length, notes});
+  }
+  // Trakpro: units on the down list that drove in the last 24 h
+  const ut=((T||{}).raw||{}).unit_trips||{}, now=Date.now()/1000;
+  running.forEach(id=>{ const d=D.find(x=>x.id===id), r=RUN[id], hm=new Date((r.last+36000)*1000).toISOString().slice(11,16);
+    issues.push(`${id} is on the down list (${(d.fault||"").toLowerCase()}) but Trakpro shows it running (${r.moving?"moving now":r.trips+" trip"+(r.trips>1?"s":"")+" in 24 h, last "+hm}). Counted as running, assumed repaired: check with the workshop.`); });
+  // Trakpro: prime movers listed operational whose tracker has been silent over a day
+  const st=((T||{}).raw||{}).status||{};
+  A.filter(a=>pm(a.id)&&a.status==="Operational").forEach(a=>{ const x=st[tp(a.id)]; if(x&&x.t&&now-x.t>24*3600) issues.push(`${a.id} is listed operational but its tracker has been silent for ${Math.round((now-x.t)/3600)} h.`); });
+  return {rows, issues, running};
+}
+
+let c0gen=Date.now(), c0raw={}, c0manual={}, c0power=null;
 function render(){ // keep the tab bar and the page where the user left them across the 2-minute refreshes
   let tabX=0, pageY=0; try{ const tb=document.querySelector(".tabs"); if(tb) tabX=tb.scrollLeft; pageY=window.scrollY||0; }catch(e){}
   renderInner();
@@ -678,17 +734,28 @@ function renderInner(){
     const moving=(D.convoys||[]).filter(c=>/on road|Now KM/i.test(c.status||""));
     const tile=(go,lbl,big,sub,lvl)=>`<button class="tile ${lvl||""}" data-go="${go}"><span class="tl">${lbl}</span><span class="tb">${big}</span><span class="ts">${sub}</span></button>`;
     return `<div class="tiles">
-      ${tile("road","Convoys on the road",`${moving.length}`,`${road} trucks moving${sil?`, <b style="color:var(--red)">${sil} no GPS</b>`:""}`,sil?"amber":"")}
+      ${tile("road","Convoys on the road",`${moving.length}`,road+sil===0?"no trucks between Aiambak and West Bank":`${road} truck${road===1?"":"s"} reporting${sil?`, <b style="color:var(--red)">${sil} with no GPS for 30+ min</b>${road===0?" (in the weak-coverage stretch or trackers asleep)":""}`:""}`,sil?"amber":"")}
       ${tile("road","Departures today",`${D.trucks.tripsNorth} <small>north</small> · ${D.trucks.tripsSouth} <small>south</small>`,`${wb} at West Bank, ${ai} at Aiambak`)}
-      ${(()=>{const pmDown=((D.fleet||{}).down||[]).filter(d=>/^IT\d\d$/.test(d.id)).length, av=pm?pm.total-Math.max(pm.down,pmDown):null;
+      ${(()=>{const RUNx=runningDown(c0raw.fleet,c0raw.trucks), pmDown=((D.fleet||{}).down||[]).filter(d=>/^IT\d\d$/.test(d.id)&&!RUNx[d.id]).length, av=pm?pm.total-Math.max(pm.down,pmDown):null;
         return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. today's breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
       ${tile("fuel","Fuel above buffers",`${kl(f.availableTotal)} <small>kL</small>`,`Kiunga ${fk.x?kl(fk.x.available):"–"} · Tabubil ${ft.x?kl(ft.x.available):"–"} kL`,fk.x&&fk.x.available<0?"red":fk.x&&fk.x.available<150000?"amber":"")}
       ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
+      ${(()=>{const mv=(f.mv||{}), w=((mv.window||{}).tabubil)||{}, sf=((mv.so_far||{}).tabubil)||{}, use=w.out_l, stale=((c0raw.fuel||{}).site_errors||{}).tabubil;
+        const cover=use>0&&f.availableTotal!=null?f.availableTotal/use:null;
+        return tile("fuel","TBG daily usage",use==null?"–":`${kl(use)} <small>kL/day</small>`,stale?"Tabubil console not reachable; last good reading":`drop in Tabubil tanks, 13:00 to 13:00 · ${sf.out_l!=null?kl(sf.out_l)+" kL since 13:00":""}${cover?` · ${cover.toFixed(1)} days above buffers`:""}`,stale?"amber":cover!=null&&cover<3?"red":cover!=null&&cover<5?"amber":"");})()}
+      ${(()=>{const P=c0power; if(!P) return tile("fuel","Power","–","OTML Live power data not available","amber");
+        const n=v=>v==null||v===""?"–":Number(v).toFixed(1), burn=P.tps_mw!=null?P.tps_mw*24*0.23:null;
+        const age=P.generated_at?Math.round((Date.now()-new Date(P.generated_at))/60000):null;
+        return tile("fuel","Power: TPS and Ok Menga",`${n(P.tps_mw)} <small>MW TPS</small>`,`Ok Menga hydro ${n(P.hydro_mw)} MW${P.menga_level_m!=null?` (level ${n(P.menga_level_m)} m)`:""} · load ${n(P.mill_mine_mw)} MW mill+mine, ${n(P.township_mw)} MW township${burn?` · TPS about ${Math.round(burn)} kL/day diesel at 0.23 L/kWh`:""}${age!=null?` · OTML Live ${age<90?age+" min":Math.round(age/60)+" h"} ago`:""}`,age!=null&&age>180?"amber":"");})()}
+      ${(()=>{const P=c0power; if(!P||P.kiunga_river_m==null) return tile("fuel","Kiunga river level","–","OTML Live river data not available","amber");
+        const F=P.river_fc||{}, d=P.river_d24!=null?Number(P.river_d24):null, trig=6.5;
+        return tile("fuel","Kiunga river level",`${Number(P.kiunga_river_m).toFixed(2)} <small>m</small>`,`${esc(P.kiunga_river_source||"")} shipping datum · ${esc(F.trend||"")}${d!=null?` (${d>=0?"+":""}${d.toFixed(2)} m in 24 h)`:""}${F.forecast_48h_m!=null?` · 48 h forecast ${Number(F.forecast_48h_m).toFixed(2)} m`:""} · shipping trigger ${trig} m`,P.kiunga_river_m<trig?"red":"");})()}
       ${cu?tile("cucon","CuCon bagged",`${(g("bagged").day_bags??"–")}<small>/${g("bagged").target_bags||"–"}</small>`,`report ${esc((cu.date||"").slice(8,10))}/${esc((cu.date||"").slice(5,7))} · ${Math.round(g("bagged").ptd_bags||0).toLocaleString("en-AU")} to date`,(g("bagged").day_bags||0)<(g("bagged").target_bags||0)*0.85?"amber":""):tile("cucon","CuCon bags (Wakata)",(D.bags.sinceOct1||0).toLocaleString("en-AU"),"since 1 Oct")}
-      ${cu?tile("cucon","CuCon trucked to Aiambak",`${Math.round(g("trucked").ptd_bags||0).toLocaleString("en-AU")} <small>bags</small>`,`shipped ${Math.round(g("loaded").ptd_bags||0).toLocaleString("en-AU")} · at Kiunga ${Math.round(((cu.locations||[])[0]||{}).bags||0).toLocaleString("en-AU")}`):""}
+      ${cu?(()=>{const L=cu.locations||[], b=i=>Math.round((L[i]||{}).bags||0), f=v=>v.toLocaleString("en-AU");
+        const kiu=b(0)+b(1), aia=b(2);
+        return tile("cucon","CuCon bags",`${f(Math.round(g("bagged").ptd_bags||0))}`,`Kiunga ${f(kiu)} (shed ${f(b(0))}, West Bank ${f(b(1))}) · Aiambak ${f(aia)} · shipped ${f(b(3))}`);})():""}
       ${cu&&cu.tarped?tile("cucon","Tarped stockpile",`${Math.round(cu.tarped.total).toLocaleString("en-AU")}`,`loose CuCon under tarps${cu.tarped.last?` · +${Math.round(cu.tarped.last.value)} on ${esc(cu.tarped.last.date.slice(8,10))}/${esc(cu.tarped.last.date.slice(5,7))} ${esc(cu.tarped.last.shift.toLowerCase())}`:""}`,"amber standout"):""}
-      ${tile("people","Fatigue",`${alarm}`,`drivers on the road with a fatigue sign · ${low} below 70 on Readi`,alarm?"red":low?"amber":"")}
-      ${tile("people","Pre-starts",`${dep-nopre}<small>/${dep}</small>`,`departed trucks with a pre-start · ${safety} open safety faults`,nopre?"red":safety?"amber":"")}
+      ${tile("people","Fatigue and pre-starts",`${alarm} <small>fatigue</small> · ${dep-nopre}<small>/${dep} pre-starts</small>`,`${alarm} driving with a fatigue sign · ${low} below 70 on Readi · ${nopre?`<b style="color:var(--red)">${nopre} departed without a pre-start</b> · `:""}${safety} open safety faults`,alarm||nopre?"red":(low||safety)?"amber":"")}
     </div>
     ${reds.length?`<div class="topalerts"><div class="tl">Needs attention</div>${reds.slice(0,4).map(x=>`<div class="ta"><b>${esc(x.tag)}</b> ${esc(x.text)}</div>`).join("")}${reds.length>4?`<button class="more" data-go="alerts">All ${reds.length} alerts</button>`:""}</div>`:""}
     <div class="actions"><button id="msgBtn">Make WhatsApp update</button><a href="${esc(D.adasUrl)}" target="_blank" rel="noopener" class="ghost">ADAS footage (Trakpro › Video › Files)</a></div>
@@ -735,7 +802,21 @@ function renderInner(){
 
     <section class="panel wide" data-tab="plan">
       <div class="ph"><h2>Performance vs plan, ${esc(D.perf.month)}</h2></div>
-      <p><b>Typical travel time: ${D.baseline?D.baseline.run_h_north:7.5} h northbound, ${D.baseline?D.baseline.run_h_south:7.1} h southbound</b> <span class="muted small">(14-day median, Aiambak to West Bank Kiunga)</span></p>
+      ${(()=>{const T=D.trend, bn=D.baseline?D.baseline.run_h_north:7.5, bs=D.baseline?D.baseline.run_h_south:7.1, h=v=>v==null?"–":v.toFixed(1);
+        const diff=(v,b)=>v==null?"":` <span style="color:${v<=b?"var(--green)":"var(--red)"}">(${v<=b?"":"+"}${(v-b).toFixed(1)} h vs ${b})</span>`;
+        if(!T||!T.days||!T.days.length) return `<p><b>Typical travel time: ${bn} h northbound, ${bs} h southbound</b> <span class="muted small">(14-day median 4 to 18 Oct)</span></p>`;
+        const W=560,H=150,P=28, xs=T.days.length, all=T.days.flatMap(d=>[d.north_h,d.south_h]).filter(v=>v!=null).concat([bn,bs]);
+        const lo=Math.floor(Math.min(...all)-0.3), hi=Math.ceil(Math.max(...all)+0.3), X=i=>P+(W-P-8)*(xs<2?0.5:i/(xs-1)), Y=v=>8+(H-24)*(1-(v-lo)/(hi-lo));
+        const line=(k,col)=>{const pts=T.days.map((d,i)=>d[k]!=null?`${X(i)},${Y(d[k])}`:null).filter(Boolean).join(" "); return `<polyline fill="none" stroke="${col}" stroke-width="2.5" points="${pts}"/>`+T.days.map((d,i)=>d[k]!=null?`<circle cx="${X(i)}" cy="${Y(d[k])}" r="3" fill="${col}"><title>${d.date.slice(8,10)}/${d.date.slice(5,7)} ${k.startsWith("north")?"north":"south"} ${d[k].toFixed(1)} h (${d[k.replace("_h","_n")]} trips)</title></circle>`:"").join("");};
+        const yt=[...Array(hi-lo+1)].map((_,i)=>lo+i);
+        return `<p><b>Travel time, last 7 days: ${h(T.last7_north_h)} h northbound${diff(T.last7_north_h,bn)}, ${h(T.last7_south_h)} h southbound${diff(T.last7_south_h,bs)}</b> <span class="muted small">(median of ${T.last7_north_n+T.last7_south_n} truck trips; baseline 4 to 18 Oct)</span></p>
+        <svg viewBox="0 0 ${W} ${H+18}" style="width:100%;max-width:640px;height:auto" role="img" aria-label="Daily median travel time north and south">
+          ${yt.map(v=>`<line x1="${P}" x2="${W-8}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${P-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="Barlow">${v} h</text>`).join("")}
+          <line x1="${P}" x2="${W-8}" y1="${Y(bn)}" y2="${Y(bn)}" stroke="var(--g1)" stroke-dasharray="4 4"/><line x1="${P}" x2="${W-8}" y1="${Y(bs)}" y2="${Y(bs)}" stroke="var(--gA)" stroke-dasharray="4 4"/>
+          ${line("north_h","var(--g1)")}${line("south_h","var(--gA)")}
+          ${T.days.map((d,i)=>i%Math.max(1,Math.ceil(xs/7))===0?`<text x="${X(i)}" y="${H+14}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="Barlow">${d.date.slice(8,10)}/${d.date.slice(5,7)}</text>`:"").join("")}
+        </svg>
+        <div class="legend"><span><i style="background:var(--g1)"></i>Northbound (dashed: ${bn} h baseline)</span><span><i style="background:var(--gA)"></i>Southbound (dashed: ${bs} h baseline)</span></div>`;})()}
       <details style="margin:0 0 12px"><summary class="small"><b>How accurate are the arrival times</b>${D.etaAcc&&D.etaAcc.trips?` <span class="muted">(${D.etaAcc.trips} trips scored live)</span>`:""}</summary>
       <p class="small muted">Estimates use the typical run time when a convoy is more than 4 h out, and the convoy’s own speed plus remaining stops after that. Error = predicted minus actual arrival.</p>
       <div class="grid" style="gap:12px">
@@ -854,10 +935,14 @@ function renderInner(){
         ${Object.entries(F.groups).map(([k,g])=>`<tr${k==="TOTAL FLEETS"?' style="font-weight:600"':""}><td>${esc(k.charAt(0)+k.slice(1).toLowerCase())}</td><td class="r">${g.total}</td><td class="r">${g.down}</td><td class="r">${g.available}</td><td class="r" style="color:${g.pct<80?"var(--red)":g.pct<90?"#B08A00":"var(--green)"}">${g.pct!=null?g.pct:"–"}</td></tr>`).join("")}</table></div>
         <h3 class="small" style="margin:12px 0 4px">Down now (${dn.length})</h3>
         <div style="overflow-x:auto"><table class="small"><tr><th>Unit</th><th>Fault</th><th>Where</th><th class="r">Days</th><th>Status</th></tr>
-        ${dn.map(d=>`<tr><td><b style="color:var(--red)">${esc(d.id)}</b>${d.trakpro_id&&d.trakpro_id!==d.id?` <span class="muted">(${esc(d.trakpro_id)})</span>`:""}${d.today?' <span class="cpill" style="--c:var(--gA)">new today</span>':""}<br><span class="muted">${esc([d.make,d.type].filter(Boolean).join(" ").toLowerCase())}</span></td>
-          <td>${esc(d.fault||"")}</td><td>${esc(d.location||"")}</td><td class="r">${days(d.since)!=null?days(d.since):"–"}</td><td class="muted">${esc(d.comment||"")}</td></tr>`).join("")}</table></div>
+        ${dn.map(d=>{const run=(F.recon&&F.recon.running||[]).includes(d.id); return `<tr><td><b style="color:${run?"var(--green)":"var(--red)"}">${esc(d.id)}</b>${run?' <span class="cpill" style="--c:var(--green)">running on Trakpro, check</span>':""}${d.trakpro_id&&d.trakpro_id!==d.id?` <span class="muted">(${esc(d.trakpro_id)})</span>`:""}${d.today?' <span class="cpill" style="--c:var(--gA)">new today</span>':""}<br><span class="muted">${esc([d.make,d.type].filter(Boolean).join(" ").toLowerCase())}</span></td>
+          <td>${esc(d.fault||"")}</td><td>${esc(d.location||"")}</td><td class="r">${days(d.since)!=null?days(d.since):"–"}</td><td class="muted">${esc(d.comment||"")}</td></tr>`;}).join("")}</table></div>
         ${F.workshop.filter(w=>w.released).length?`<p class="small" style="margin-top:8px"><b>Serviced and released today:</b> ${F.workshop.filter(w=>w.released).map(w=>esc(w.id+" ("+(w.fault||"").toLowerCase()+")")).join(", ")}.</p>`:""}
-        ${F.checks.length?`<p class="small" style="color:#B08A00">${F.checks.map(esc).join(" ")}</p>`:""}
+        ${F.recon?`<h3 class="small" style="margin:12px 0 4px">Check the numbers</h3>
+        <div style="overflow-x:auto"><table class="small"><tr><th>Fleet</th><th class="r">Summary down</th><th class="r">Job list down</th><th class="r">Operational, no job</th><th>Notes</th></tr>
+        ${F.recon.rows.map(r=>`<tr><td>${esc(r.label)}</td><td class="r">${r.sumDown??"–"}</td><td class="r" title="${esc(r.jobIds.join(", "))}">${r.jobs}</td><td class="r">${r.avail}${r.total?"/"+r.total:""}</td><td style="color:${r.ok?"var(--green)":"#B08A00"}">${r.ok?"agrees":esc(r.notes.join("; "))}</td></tr>`).join("")}</table></div>
+        ${F.recon.issues.length?`<ul class="plain small" style="color:#B08A00;margin-top:6px">${F.recon.issues.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}`
+        :(F.checks.length?`<p class="small" style="color:#B08A00">${F.checks.map(esc).join(" ")}</p>`:"")}
         <p class="muted small">From ${esc(F.file||"the daily shift report")}.</p>`;})()
       :`<p class="muted">${esc(D.fleet&&D.fleet.note||"No shift report yet.")}</p>`}
     </section>
