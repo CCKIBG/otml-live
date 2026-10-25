@@ -89,5 +89,59 @@
   "adas_footage_url": "https://locate.trakpro.com.pg/?lang=en",
   "_adas_note": "Trakpro's Video module has no direct address: the link opens Trakpro; click Video, then Files (event clips), Playback or Live.",
   "people": {},
-  "_people_note": "Who drives which escort or vehicle, for the Ask box (name: unit). Today's truck drivers come from ChekRite automatically."
+  "_people_note": "Who drives which escort or vehicle, for the Ask box (name: unit). Today's truck drivers come from ChekRite automatically.",
+  "fuel_vessels": {
+    "updated": "25 Oct 2026, WhatsApp",
+    "docked": {
+      "name": "Fly Resilience",
+      "cargo_l": 1200000,
+      "at": "Aiambak",
+      "docked_at": "2026-10-25T15:00+10:00"
+    },
+    "incoming": [
+      {
+        "name": "Swift 9",
+        "cargo_l": 250000,
+        "where": "Fly River system",
+        "eta": "by Tue 27 Oct"
+      },
+      {
+        "name": "Diamond barge",
+        "cargo_l": 950000,
+        "where": "Fly River system",
+        "eta": "by Tue 27 Oct"
+      },
+      {
+        "name": "Wonderland",
+        "cargo_l": 750000,
+        "where": "Fly River system",
+        "eta": "by Tue 27 Oct"
+      },
+      {
+        "name": "Elimbari",
+        "cargo_l": 1200000,
+        "where": "Crossing the Gulf",
+        "eta": "by Tue 27 Oct"
+      }
+    ],
+    "notes": "Plus some ISO tanks on Aird Hills (quantity not known).",
+    "_how": "Edit when vessels move: put the berthed vessel under docked with its cargo and docked_at time; remaining = cargo less fuel received into the Kiunga tanks since docked_at.",
+    "to_load": [
+      {
+        "name": "Amigo 1",
+        "type": "Barge",
+        "tug": "Shun Da Tuo Yi",
+        "mmsi": "511101696",
+        "plan_l": 2000000,
+        "load_at": "Johnny Traveller",
+        "destination": "Port Moresby",
+        "position": {
+          "lat": -10.2237,
+          "lon": 141.0297,
+          "at": "2026-10-25T11:02+10:00",
+          "note": "Entered PNG waters, Torres Strait; tug 5.4 kn, course 125°"
+        }
+      }
+    ]
+  }
 }
