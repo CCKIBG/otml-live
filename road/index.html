@@ -703,7 +703,7 @@ function fleetRecon(F, T){
   return {rows, issues, running};
 }
 
-const SHIP_STATES={to_jt:"Empty, heading to JT",loading:"Loading at JT",to_aiambak:"Loaded, heading to Aiambak",discharging:"Discharging at Aiambak"};
+const SHIP_STATES={watch:"Watching",to_jt:"Empty, heading to JT",loading:"Loading at JT",to_aiambak:"Loaded, heading to Aiambak",discharging:"Discharging at Aiambak"};
 function nmTo(v,p){const R=3440.1,k=Math.PI/180,dl=(p[0]-v.lat)*k,dn=(p[1]-v.lon)*k,h=Math.sin(dl/2)**2+Math.cos(v.lat*k)*Math.cos(p[0]*k)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
 function flyWatch(){ const F=((c0raw.vessels||{}).fly)||null; if(!F||!F.vessels) return null;
   const vs=Object.values(F.vessels).filter(v=>v.seen_now!==false);
@@ -727,9 +727,9 @@ function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return n
     if(v.state==="to_aiambak"&&v.nm_aiambak!=null&&v.nm_aiambak<=3) v.atAiambak=true;
     return v; });
   const by=k=>vs.filter(v=>v.state===k);
-  const dis=by("discharging"), toA=by("to_aiambak"), load=by("loading"), toJ=by("to_jt");
+  const dis=by("discharging"), toA=by("to_aiambak"), load=by("loading"), toJ=by("to_jt"), watch=by("watch");
   const aboard=dis.reduce((a,v)=>a+(v.left||0),0), loaded=toA.reduce((a,v)=>a+(v.cargo_l||v.capacity_l||0),0), filling=load.reduce((a,v)=>a+(v.capacity_l||0),0);
-  return {V,vs,dis,toA,load,toJ,aboard,loaded,filling,jtPos};
+  return {V,vs,dis,toA,load,toJ,watch,aboard,loaded,filling,jtPos};
 }
 
 const ROAD_MODE = typeof location!=="undefined" && /\/road\/?$|\/road\/index\.html$/.test(location.pathname);
@@ -917,6 +917,7 @@ function renderInner(){
         ${S.toA.length?`<p class="small"><b>On the way: ${kl(S.loaded)} kL</b> (${Math.round(S.loaded/40000)} tanker loads)</p>`:""}
         ${sec("Loading at JT",S.load,"Capacity (kL)")}
         ${sec("Empty, heading to JT",S.toJ,"Capacity (kL)")}
+        ${sec("Watching",S.watch,"Capacity (kL)")}
         ${(()=>{const W=flyWatch(); if(!W) return `<h3 class="small" style="margin:14px 0 4px">Fly River watch</h3><p class="muted small">Waiting for the first MarineTraffic map read (hourly, needs the MarineTraffic tab logged in).</p>`;
           const hm=d=>d?d.toISOString?new Date(d.getTime()+36e6).toISOString().slice(11,16):d.slice(11,16):"";
           const vrow=v=>`<tr><td><b>${esc(v.name)}</b>${v.type?` <span class="muted">${esc(String(v.type))}</span>`:""}</td><td class="r">${v.speed_kn!=null?v.speed_kn.toFixed(1)+" kn":"–"}</td><td><a href="https://maps.google.com/?q=${v.lat},${v.lon}" target="_blank" rel="noopener">${Math.abs(v.lat).toFixed(2)}°S ${v.lon.toFixed(2)}°E</a>${v.zone==="Fly River"?` <span class="muted">${Math.round(nmTo(v,CROUTE[0]))} nm from Aiambak</span>`:""}</td><td class="muted">${esc(v.dest||"")}${v.zone_since?` · since ${v.zone_since.slice(8,10)}/${v.zone_since.slice(5,7)} ${v.zone_since.slice(11,16)}`:""}</td></tr>`;
