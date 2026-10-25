@@ -168,6 +168,17 @@
           "at": "2026-10-25T21:16+10:00",
           "note": "Tug Shun Da Tuo Yi east of Cape York tip, 4.3 kn, course 92° (approximate, satellite AIS)"
         }
+      },
+      {
+        "name": "A.M.S. Shine",
+        "type": "Tug, PNG flag",
+        "tug": "",
+        "mmsi": "553112067",
+        "mmsi_alt": "503001960",
+        "imo": "9648219",
+        "state": "watch",
+        "where": "From Cairns (CNS)",
+        "note": "Cargo and tow not yet confirmed"
       }
     ],
     "_how": "Each vessel goes round: to_jt (empty, heading to JT) -> loading (at JT) -> to_aiambak (loaded) -> discharging (at Aiambak) -> to_jt. Change state as they move; for discharging give docked_at (time alongside at Aiambak) and cargo_l. tug and mmsi: the tug currently towing the barge (MarineTraffic tracks the mmsi); change them when tugs swap. Put JT's position in jt (lat, lon) and the dashboard will flag a vessel reaching it."
