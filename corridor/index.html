@@ -65,6 +65,7 @@
 .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin:0 0 14px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg,var(--paper));z-index:5;scrollbar-width:none}
 .tab{font:600 16px "Barlow Condensed",sans-serif;letter-spacing:.02em;background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;color:var(--muted);cursor:pointer;white-space:nowrap}
 .tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs.two{grid-template-columns:repeat(2,1fr)!important}
 @media (max-width:700px){.tabs{display:grid;grid-template-columns:repeat(5,1fr);overflow:visible;gap:0;border-bottom:2px solid var(--line)}
   .tab{padding:9px 2px;font-size:15px;text-align:center;border-bottom-width:3px}}
 .tcount{display:inline-block;min-width:1.3em;background:var(--red);color:#fff;border-radius:99px;font-size:12px;padding:0 5px;margin-left:4px}
@@ -414,13 +415,13 @@ function toD(c, m){
 async function load(){
   try{
     const bust="?t="+Date.now();
-    const [c,m]=await Promise.all([fetch("corridor_latest.json"+bust).then(r=>r.json()), fetch("manual.json"+bust).then(r=>r.ok?r.json():{}).catch(()=>({}))]);
+    const [c,m]=await Promise.all([fetch(DATA_BASE+"corridor_latest.json"+bust).then(r=>r.json()), fetch(DATA_BASE+"manual.json"+bust).then(r=>r.ok?r.json():{}).catch(()=>({}))]);
     try{ // newer truck positions (every 5 min) from the live branch
       const lv=await fetch("https://raw.githubusercontent.com/CCKIBG/otml-live/corridor-live/corridor/live.json"+bust,{cache:"no-store"}).then(r=>r.ok?r.json():null);
       if(lv&&lv.positions&&c.trucks&&(!c.trucks.as_of||lv.generated>c.trucks.as_of)){ c.trucks.positions=lv.positions; c.trucks.as_of=lv.generated;
         if(lv.status){ c.trucks.raw=Object.assign({},c.trucks.raw||{},{status:lv.status,escorts:lv.escorts||{}}); } }
     }catch(e){}
-    try{ const h=await fetch("../otml-live.html"+bust,{cache:"no-store"}).then(r=>r.ok?r.text():"");
+    try{ const h=await fetch((ROAD_MODE?"../":"../")+"otml-live.html"+bust,{cache:"no-store"}).then(r=>r.ok?r.text():"");
       const grab=key=>{const i=h.indexOf('"'+key+'"'); if(i<0) return null; let j=h.indexOf("{",i), d=0, k=j; for(;k<h.length;k++){ if(h[k]==="{") d++; else if(h[k]==="}"){ d--; if(!d) break; } } try{return JSON.parse(h.slice(j,k+1));}catch(e){return null;}};
       const hd=grab("headline"); const g=(h.match(/"generated_at"\s*:\s*"([^"]+)"/)||[])[1];
       c0power=hd?Object.assign({},hd,{generated_at:g, flow:(h.match(/"ok_menga_flow_m3s"\s*:\s*([\d.]+)/)||[])[1], gh01:(h.match(/"gh01_mw"\s*:\s*([\d.]+)/)||[])[1], gh02:(h.match(/"gh02_mw"\s*:\s*([\d.]+)/)||[])[1], river_fc:grab("forecast"), river_d24:(h.match(/"kiunga_delta_24h_m"\s*:\s*(-?[\d.]+)/)||[])[1]}):null;
@@ -724,6 +725,8 @@ function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return n
   return {V,vs,dis,toA,load,toJ,aboard,loaded,filling,jtPos};
 }
 
+const ROAD_MODE = typeof location!=="undefined" && /\/road\/?$|\/road\/index\.html$/.test(location.pathname);
+const DATA_BASE = ROAD_MODE ? "../corridor/" : "";
 let c0gen=Date.now(), c0raw={}, c0manual={}, c0power=null;
 function render(){ // keep the tab bar and the page where the user left them across the 2-minute refreshes
   let tabX=0, pageY=0; try{ const tb=document.querySelector(".tabs"); if(tb) tabX=tb.scrollLeft; pageY=window.scrollY||0; }catch(e){}
@@ -738,11 +741,11 @@ function renderInner(){
   const avg=Math.round(b.sinceOct1/b.days);
   const html = `
   <header>
-    <div><h1>${esc(D.title)}</h1><div class="sub">${esc(D.day)}. Updated ${esc(D.updated)}. Trucks count by departure date (from midnight), fuel by the 13:00 to 13:00 day, bagging by the 06:00 production day.</div></div>
+    <div><h1>${ROAD_MODE?"Aiambak–Kiunga Road":esc(D.title)}</h1><div class="sub">${esc(D.day)}. Updated ${esc(D.updated)}.${ROAD_MODE?" Road maintenance view: road team machines and where the convoys are.":" Trucks count by departure date (from midnight), fuel by the 13:00 to 13:00 day, bagging by the 06:00 production day."}</div></div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="Sections">
-    ${[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["shipping","Shipping"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]].map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
+  <nav class="tabs${ROAD_MODE?" two":""}" role="tablist" aria-label="Sections">
+    ${(ROAD_MODE?[["roads","Road"],["road","Convoys"]]:[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["shipping","Shipping"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]]).map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
   </nav>
 
   <section data-tab="summary">
@@ -811,7 +814,7 @@ function renderInner(){
       const road=n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale), wb=n(u=>!u.esc&&u.k>=180), ai=n(u=>!u.esc&&u.k<=2);
       const chip=(l,v,c)=>`<span style="display:inline-block;padding:4px 10px;margin:0 6px 6px 0;border-radius:99px;background:var(--paper);border:1px solid var(--line);font-size:15px"><b style="color:${c||"var(--ink)"}">${v}</b> ${l}</span>`;
       const cu=D.cucon, g=k=>cu?((cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}):{};
-      const cuLine=cu?`<div class="small muted" style="margin:-2px 0 8px">CuCon to date: bagged <b>${(g("bagged").ptd_bags||0).toLocaleString("en-AU")}</b> → East Bank <b>${(g("east bank").ptd_bags||0).toLocaleString("en-AU")}</b> → trucked <b>${(g("trucked").ptd_bags||0).toLocaleString("en-AU")}</b> → shipped <b>${(g("loaded").ptd_bags||0).toLocaleString("en-AU")}</b> <a href="#cucon" onclick="document.querySelector('[data-t=cucon]').click();return false">details</a></div>`:"";
+      const cuLine=cu&&!ROAD_MODE?`<div class="small muted" style="margin:-2px 0 8px">CuCon to date: bagged <b>${(g("bagged").ptd_bags||0).toLocaleString("en-AU")}</b> → East Bank <b>${(g("east bank").ptd_bags||0).toLocaleString("en-AU")}</b> → trucked <b>${(g("trucked").ptd_bags||0).toLocaleString("en-AU")}</b> → shipped <b>${(g("loaded").ptd_bags||0).toLocaleString("en-AU")}</b> <a href="#cucon" onclick="document.querySelector('[data-t=cucon]').click();return false">details</a></div>`:"";
       const R=((c0raw.inbox||{}).roadteam)||null, RE=R?R.equipment||[]:[];
       const rtLine=R?`<div class="small muted" style="margin:-2px 0 8px">Road team: <b>${RE.length}</b> machine${RE.length===1?"":"s"}, <b>${RE.filter(e=>e.available).length}</b> available${RE.length?" · "+[...RE].sort((a,b)=>(a.km??999)-(b.km??999)).slice(0,6).map(e=>`${esc(e.id)} KM${e.km==null?"?":Math.round(e.km)}`).join(", "):""} <a href="#roads" onclick="document.querySelector('[data-t=roads]').click();return false">details</a></div>`:"";
       return `<div style="margin:2px 0 8px">${chip("on the road"+(sil?` <span style="color:var(--g3)">(${sil} no GPS for 30+ min)</span>`:""),road+sil)}${chip("at West Bank",wb)}${chip("at Aiambak",ai)}</div>${cuLine}${rtLine}`;})()}
@@ -1072,8 +1075,8 @@ function renderInner(){
   <footer>${(D.notes||[]).map(esc).join(" ")} Collected by the Claude PC every 15 min, 24 hours a day (PNG time).</footer>`;
   document.getElementById("app").innerHTML = html;
   document.getElementById("msgBtn").onclick = openMsg;
-  {let cur="road"; try{cur=(location.hash||"").slice(1)||"summary";}catch(e){}
-   if(!document.querySelector('[data-t="'+cur+'"]')) cur="summary";
+  {let cur="road"; try{cur=(location.hash||"").slice(1)||(ROAD_MODE?"roads":"summary");}catch(e){}
+   if(!document.querySelector('[data-t="'+cur+'"]')) cur=ROAD_MODE?"roads":"summary";
    const show=t=>{document.querySelectorAll("[data-tab]").forEach(el=>{const on=el.getAttribute("data-tab")===t; el.classList.toggle("on",on); el.style.display=on?"":"none";});
      document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("on",b.dataset.t===t);b.setAttribute("aria-selected",b.dataset.t===t);});
      try{localStorage.setItem("corr_tab",t);}catch(e){} if(t==="road") drawConvoyMap(D.cmap||[], D.strip.notOp||{});};
