@@ -92,49 +92,70 @@
   "_people_note": "Who drives which escort or vehicle, for the Ask box (name: unit). Today's truck drivers come from ChekRite automatically.",
   "fuel_vessels": {
     "updated": "25 Oct 2026, WhatsApp",
-    "docked": {
-      "name": "Fly Resilience",
-      "cargo_l": 1200000,
-      "at": "Aiambak",
-      "docked_at": "2026-10-25T15:00+10:00"
+    "notes": "Plus some ISO tanks on Aird Hills (quantity not known).",
+    "jt": {
+      "name": "Johnny Traveller (JT)",
+      "lat": null,
+      "lon": null,
+      "mmsi": ""
     },
-    "incoming": [
+    "vessels": [
+      {
+        "name": "Fly Resilience",
+        "capacity_l": 1200000,
+        "cargo_l": 1200000,
+        "state": "discharging",
+        "docked_at": "2026-10-25T15:00+10:00",
+        "tug": "",
+        "mmsi": ""
+      },
       {
         "name": "Swift 9",
+        "capacity_l": 250000,
         "cargo_l": 250000,
+        "state": "to_aiambak",
         "where": "Fly River system",
-        "eta": "by Tue 27 Oct"
+        "eta": "by Tue 27 Oct",
+        "tug": "",
+        "mmsi": ""
       },
       {
         "name": "Diamond barge",
+        "capacity_l": 950000,
         "cargo_l": 950000,
+        "state": "to_aiambak",
         "where": "Fly River system",
-        "eta": "by Tue 27 Oct"
+        "eta": "by Tue 27 Oct",
+        "tug": "",
+        "mmsi": ""
       },
       {
         "name": "Wonderland",
+        "capacity_l": 750000,
         "cargo_l": 750000,
+        "state": "to_aiambak",
         "where": "Fly River system",
-        "eta": "by Tue 27 Oct"
+        "eta": "by Tue 27 Oct",
+        "tug": "",
+        "mmsi": ""
       },
       {
         "name": "Elimbari",
+        "capacity_l": 1200000,
         "cargo_l": 1200000,
+        "state": "to_aiambak",
         "where": "Crossing the Gulf",
-        "eta": "by Tue 27 Oct"
-      }
-    ],
-    "notes": "Plus some ISO tanks on Aird Hills (quantity not known).",
-    "_how": "Edit when vessels move: put the berthed vessel under docked with its cargo and docked_at time; remaining = cargo less fuel received into the Kiunga tanks since docked_at.",
-    "to_load": [
+        "eta": "by Tue 27 Oct",
+        "tug": "",
+        "mmsi": ""
+      },
       {
         "name": "Amigo 1",
         "type": "Barge",
         "tug": "Shun Da Tuo Yi",
         "mmsi": "511101696",
-        "plan_l": 2000000,
-        "load_at": "Johnny Traveller",
-        "destination": "Port Moresby",
+        "capacity_l": 2000000,
+        "state": "to_jt",
         "position": {
           "lat": -10.2237,
           "lon": 141.0297,
@@ -142,6 +163,7 @@
           "note": "Entered PNG waters, Torres Strait; tug 5.4 kn, course 125°"
         }
       }
-    ]
+    ],
+    "_how": "Each vessel goes round: to_jt (empty, heading to JT) -> loading (at JT) -> to_aiambak (loaded) -> discharging (at Aiambak) -> to_jt. Change state as they move; for discharging give docked_at (time alongside at Aiambak) and cargo_l. tug and mmsi: the tug currently towing the barge (MarineTraffic tracks the mmsi); change them when tugs swap. Put JT's position in jt (lat, lon) and the dashboard will flag a vessel reaching it."
   }
 }
