@@ -704,12 +704,19 @@ function fleetRecon(F, T){
 }
 
 const SHIP_STATES={to_jt:"Empty, heading to JT",loading:"Loading at JT",to_aiambak:"Loaded, heading to Aiambak",discharging:"Discharging at Aiambak"};
+function nmTo(v,p){const R=3440.1,k=Math.PI/180,dl=(p[0]-v.lat)*k,dn=(p[1]-v.lon)*k,h=Math.sin(dl/2)**2+Math.cos(v.lat*k)*Math.cos(p[0]*k)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function flyWatch(){ const F=((c0raw.vessels||{}).fly)||null; if(!F||!F.vessels) return null;
+  const vs=Object.values(F.vessels).filter(v=>v.seen_now!==false);
+  const at=vs.filter(v=>v.zone==="Aiambak"), river=vs.filter(v=>v.zone==="Fly River").sort((a,b)=>b.lon-a.lon), appr=vs.filter(v=>v.zone==="Approaching the Fly");
+  const cutoff=Date.now()-48*3600e3, ev=(F.events||[]).filter(e=>new Date(e.at).getTime()>=cutoff).reverse();
+  return {at,river,appr,ev,asof:F.at?new Date(F.at*1000):null,seen:F.seen_count};
+}
 function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return null;
   const list=V.vessels||[], fv=((c0raw.fuel||{}).vessel)||{}, T=c0raw.trucks||{};
   const MT=((c0raw.vessels||{}).positions)||{}, aia=CROUTE[0], jt=V.jt||{};
   const nm=(a,b)=>{const R=3440.1,k=Math.PI/180,dl=(b[0]-a[0])*k,dn=(b[1]-a[1])*k,h=Math.sin(dl/2)**2+Math.cos(a[0]*k)*Math.cos(b[0]*k)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
   const jtPos=(jt.mmsi&&MT[jt.mmsi])?[MT[jt.mmsi].lat,MT[jt.mmsi].lon]:(jt.lat!=null?[jt.lat,jt.lon]:null);
-  const vs=list.map(v0=>{ const v=Object.assign({},v0), q=v.mmsi&&MT[v.mmsi];
+  const vs=list.map(v0=>{ const v=Object.assign({},v0), q0=v.mmsi&&MT[v.mmsi], q=q0&&q0.lat<0&&q0.lat>-15&&q0.lon>130?q0:null;
     const p=q?{lat:q.lat,lon:q.lon,at:q.read_at,note:[q.status,q.speed_kn!=null?q.speed_kn+" kn":null,q.course!=null?"course "+q.course+"°":null,q.destination?"to "+q.destination:null,q.age_text?"AIS "+q.age_text:null].filter(Boolean).join(", "),src:"MarineTraffic"}:(v.position||null);
     v.position=p; if(p&&p.lat!=null){ v.nm_aiambak=Math.round(nm([p.lat,p.lon],aia)); if(jtPos) v.nm_jt=Math.round(nm([p.lat,p.lon],jtPos)); }
     if(v.state==="discharging"){ const recv=fv.name===v.name?fv.received_kiunga_l:null; v.recv=recv; v.left=Math.max(0,(v.cargo_l||v.capacity_l||0)-(recv||0)); v.loadsLeft=Math.ceil(v.left/40000);
@@ -781,6 +788,7 @@ function renderInner(){
       ${(()=>{const S=fuelShipping(); if(!S) return ""; const ML=v=>(v/1e6).toFixed(2), k=v=>Math.round(v/1000).toLocaleString("en-AU");
         const parts=[...S.dis.map(v=>`<b>${esc(v.name)}</b> at Aiambak: about ${k(v.left)} kL left (${v.loadsLeft} tanker loads)${v.nearlyEmpty?", nearly empty":""}`),
           S.toA.length?`${S.toA.length} loaded on the way, ${ML(S.loaded)} ML`:"", S.load.length?`${S.load.map(v=>esc(v.name)).join(", ")} loading at JT`:"", S.toJ.length?`${S.toJ.map(v=>esc(v.name)+(v.atJT?" (at JT?)":"")).join(", ")} heading to JT`:""].filter(Boolean);
+        const W=flyWatch(); if(W) parts.push(`At Aiambak: ${W.at.length?W.at.map(v=>esc(v.name)).join(", "):"none showing"} · ${W.river.length} in the Fly`);
         return tile("shipping","Shipping: fuel coming",`${ML(S.aboard+S.loaded)} <small>ML</small>`,parts.join(" · "),S.dis.some(v=>v.nearlyEmpty)?"amber":"");})()}
       ${(()=>{const mv=(f.mv||{}), w=((mv.window||{}).tabubil)||{}, sf=((mv.so_far||{}).tabubil)||{}, use=w.out_l, stale=((c0raw.fuel||{}).site_errors||{}).tabubil;
         const cover=use>0&&f.availableTotal!=null?f.availableTotal/use:null;
@@ -909,6 +917,15 @@ function renderInner(){
         ${S.toA.length?`<p class="small"><b>On the way: ${kl(S.loaded)} kL</b> (${Math.round(S.loaded/40000)} tanker loads)</p>`:""}
         ${sec("Loading at JT",S.load,"Capacity (kL)")}
         ${sec("Empty, heading to JT",S.toJ,"Capacity (kL)")}
+        ${(()=>{const W=flyWatch(); if(!W) return `<h3 class="small" style="margin:14px 0 4px">Fly River watch</h3><p class="muted small">Waiting for the first MarineTraffic map read (hourly, needs the MarineTraffic tab logged in).</p>`;
+          const hm=d=>d?d.toISOString?new Date(d.getTime()+36e6).toISOString().slice(11,16):d.slice(11,16):"";
+          const vrow=v=>`<tr><td><b>${esc(v.name)}</b>${v.type?` <span class="muted">${esc(String(v.type))}</span>`:""}</td><td class="r">${v.speed_kn!=null?v.speed_kn.toFixed(1)+" kn":"–"}</td><td><a href="https://maps.google.com/?q=${v.lat},${v.lon}" target="_blank" rel="noopener">${Math.abs(v.lat).toFixed(2)}°S ${v.lon.toFixed(2)}°E</a>${v.zone==="Fly River"?` <span class="muted">${Math.round(nmTo(v,CROUTE[0]))} nm from Aiambak</span>`:""}</td><td class="muted">${esc(v.dest||"")}${v.zone_since?` · since ${v.zone_since.slice(8,10)}/${v.zone_since.slice(5,7)} ${v.zone_since.slice(11,16)}`:""}</td></tr>`;
+          const tbl=a=>`<div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">Speed</th><th>Position</th><th>Destination / since</th></tr>${a.map(vrow).join("")}</table></div>`;
+          return `<h3 class="small" style="margin:14px 0 4px">At Aiambak now (${W.at.length})</h3>${W.at.length?tbl(W.at):`<p class="muted small">No vessels showing at Aiambak.</p>`}
+          <h3 class="small" style="margin:12px 0 4px">In the Fly River (${W.river.length}), mouth first</h3>${W.river.length?tbl(W.river):`<p class="muted small">None showing.</p>`}
+          ${W.appr.length?`<h3 class="small" style="margin:12px 0 4px">Approaching the Fly mouth (${W.appr.length})</h3>${tbl(W.appr)}`:""}
+          ${W.ev.length?`<h3 class="small" style="margin:12px 0 4px">Movements, last 48 h</h3><ul class="plain small">${W.ev.map(e=>`<li>${e.at.slice(8,10)}/${e.at.slice(5,7)} ${e.at.slice(11,16)} · <b>${esc(e.vessel)}</b> ${esc(e.event)}</li>`).join("")}</ul>`:""}
+          <p class="muted small">Fly River watch: every vessel MarineTraffic shows between the river mouth and Aiambak, read hourly${W.asof?`, last at ${hm(W.asof)}`:""}. Vessels without AIS, or with AIS off, won't appear.</p>`;})()}
         ${S.V.notes?`<p class="small muted">${esc(S.V.notes)}</p>`:""}
         <p class="muted small">Vessel states from manual.json (updated from WhatsApp); positions from MarineTraffic for vessels with a tug MMSI. "kL left" = cargo less fuel measured into the Kiunga tanks since docking.${S.jtPos?"":" Add JT's position (or its MMSI) and the page will flag a vessel arriving there."}</p>`;})()}
     </section>
@@ -1105,6 +1122,11 @@ function buildMsg(){
     `• Departures today: ${fmt(D.trucks.tripsNorth)} northbound loaded (Aiambak to WB Kiunga), ${fmt(D.trucks.tripsSouth)} southbound (WB Kiunga to Aiambak). Yesterday: ${D.trucks.yNorth??"–"} / ${D.trucks.ySouth??"–"}`,
     ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}${(c.issues||[]).filter(i=>!/coverage gap/.test(i.text)).length?" Issues: "+c.issues.filter(i=>!/coverage gap/.test(i.text)).map(i=>i.text).join(" "):""}`),
     `• At ${st.asOf}: Aiambak ${g("At Aiambak").units.length} | West Bank ${g("At West Bank").units.length} | On road ${st.groups.filter(p=>p.kind==="move").reduce((a,p)=>a+p.units.length,0)} | Not reporting ${g("Not reporting").units.join(", ")}`,
+    ...(()=>{const W=flyWatch(), S=fuelShipping(); const L=[];
+      if(S){ S.dis.forEach(v=>L.push(`• ${v.name} discharging at Aiambak: about ${Math.round(v.left/1000)} kL left`)); if(S.toA.length) L.push(`• Loaded on the way: ${S.toA.map(v=>v.name).join(", ")} (${(S.loaded/1e6).toFixed(2)} ML)`); }
+      if(W){ L.push(`• At Aiambak: ${W.at.length?W.at.map(v=>v.name).join(", "):"none showing"}`); L.push(`• In the Fly River: ${W.river.length?W.river.map(v=>v.name).join(", "):"none showing"}`);
+        W.ev.filter(e=>/entered|arrived|approaching/.test(e.event)).slice(0,5).forEach(e=>L.push(`• ${e.at.slice(11,16)} ${e.at.slice(8,10)}/${e.at.slice(5,7)}: ${e.vessel} ${e.event}`)); }
+      return L.length?["", "*SHIPPING*", ...L]:[];})(),
     "", "*CUCON BAGS*",
     ...(D.cucon?(()=>{const S=D.cucon.stages||[], g=k=>S.find(x=>x.name.toLowerCase().includes(k))||{}; const r=v=>v==null?"–":Math.round(v).toLocaleString("en-AU");
       return [`• Report ${D.cucon.date.slice(8,10)}/${D.cucon.date.slice(5,7)}: bagged ${r(g("bagged").day_bags)} (target ${r(g("bagged").target_bags)}), to East Bank ${r(g("east bank").day_bags)}, trucked ${r(g("trucked").day_bags)}, shipped ${r(g("loaded").day_bags)}`,
