@@ -231,6 +231,9 @@ function toD(c, m){
   Object.entries(((c.fuel||{}).site_errors)||{}).forEach(([site,msg])=>flags.push({lvl:"amber",tag:"Fuel",text:`${site.charAt(0).toUpperCase()+site.slice(1)} tank console not reachable; its figures are from the last good reading. Check the console link or ask IT.`}));
   {const R=fleetRecon(c.fleet||{}, t); if(R){ R.rows.filter(r=>!r.ok).forEach(r=>flags.push({lvl:"amber",tag:"Shift report",text:`${r.label}: ${r.notes.join("; ")}.`})); R.issues.forEach(x=>flags.push({lvl:"amber",tag:"Shift report",text:x})); }
    else ((c.fleet||{}).checks||[]).forEach(x=>flags.push({lvl:"amber",tag:"Shift report",text:x}));}
+  try{ const S=fuelShipping(); if(S){ S.vs.filter(v=>v.atJT).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} looks to be at JT (${v.nm_jt} nm). Change its state to loading in manual.json.`}));
+     S.vs.filter(v=>v.atAiambak).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} looks to be at Aiambak (${v.nm_aiambak} nm). Change its state to discharging with the docked time.`}));
+     S.dis.filter(v=>v.nearlyEmpty).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} is nearly empty at Aiambak (about ${Math.round(v.left/1000)} kL left). When she leaves, change her state to to_jt.`})); } }catch(e){}
   ((c.fleet||{}).down||[]).filter(d=>d.today).forEach(d=>flags.push({lvl:"amber",tag:"Down today",text:`${d.id}: ${d.fault||""} at ${d.location||"?"}. ${d.comment||""}`.trim()}));
   const h=gen.getHours()+gen.getMinutes()/60;
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
@@ -699,20 +702,26 @@ function fleetRecon(F, T){
   return {rows, issues, running};
 }
 
+const SHIP_STATES={to_jt:"Empty, heading to JT",loading:"Loading at JT",to_aiambak:"Loaded, heading to Aiambak",discharging:"Discharging at Aiambak"};
 function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return null;
-  const dk=V.docked||null, inc=V.incoming||[], fv=((c0raw.fuel||{}).vessel)||{};
-  const T=c0raw.trucks||{}, since=dk&&dk.docked_at?new Date(dk.docked_at).getTime():null;
-  const north=(T.convoys||[]).filter(v=>v.direction==="north"&&since&&new Date(v.date+"T"+(v.departed||["00:00"])[0]+":00+10:00").getTime()>=since);
-  const onRoad=north.filter(v=>v.status==="on road").reduce((n,v)=>n+v.units.length,0), departed=north.reduce((n,v)=>n+v.units.length,0);
-  const recv=fv.name&&dk&&fv.name===dk.name?fv.received_kiunga_l:null;
-  const left=dk&&recv!=null?Math.max(0,dk.cargo_l-recv):(dk?dk.cargo_l:null);
-  const incoming=inc.reduce((a,v)=>a+(v.cargo_l||0),0);
-  const MT=((c0raw.vessels||{}).positions)||{}, aia=CROUTE[0];
+  const list=V.vessels||[], fv=((c0raw.fuel||{}).vessel)||{}, T=c0raw.trucks||{};
+  const MT=((c0raw.vessels||{}).positions)||{}, aia=CROUTE[0], jt=V.jt||{};
   const nm=(a,b)=>{const R=3440.1,k=Math.PI/180,dl=(b[0]-a[0])*k,dn=(b[1]-a[1])*k,h=Math.sin(dl/2)**2+Math.cos(a[0]*k)*Math.cos(b[0]*k)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
-  const live=v=>{ if(!v) return v; const q=v.mmsi&&MT[v.mmsi]; const p=q?{lat:q.lat,lon:q.lon,at:q.read_at,note:[q.status,q.speed_kn!=null?q.speed_kn+" kn":null,q.course!=null?"course "+q.course+"°":null,q.destination?"to "+q.destination:null,q.age_text?"AIS "+q.age_text:null].filter(Boolean).join(", "),src:"MarineTraffic"}:(v.position||null);
-    return Object.assign({},v,{position:p, nm_to_aiambak:p&&p.lat!=null?Math.round(nm([p.lat,p.lon],aia)):null}); };
-  const toLoad=(V.to_load||[]).map(live);
-  return {V,dk,inc:inc.map(live),recv,left,incoming,onRoad,departed,loadsLeft:left!=null?Math.ceil(left/40000):null,toLoad,toLoadL:toLoad.reduce((a,v)=>a+(v.plan_l||0),0)};
+  const jtPos=(jt.mmsi&&MT[jt.mmsi])?[MT[jt.mmsi].lat,MT[jt.mmsi].lon]:(jt.lat!=null?[jt.lat,jt.lon]:null);
+  const vs=list.map(v0=>{ const v=Object.assign({},v0), q=v.mmsi&&MT[v.mmsi];
+    const p=q?{lat:q.lat,lon:q.lon,at:q.read_at,note:[q.status,q.speed_kn!=null?q.speed_kn+" kn":null,q.course!=null?"course "+q.course+"°":null,q.destination?"to "+q.destination:null,q.age_text?"AIS "+q.age_text:null].filter(Boolean).join(", "),src:"MarineTraffic"}:(v.position||null);
+    v.position=p; if(p&&p.lat!=null){ v.nm_aiambak=Math.round(nm([p.lat,p.lon],aia)); if(jtPos) v.nm_jt=Math.round(nm([p.lat,p.lon],jtPos)); }
+    if(v.state==="discharging"){ const recv=fv.name===v.name?fv.received_kiunga_l:null; v.recv=recv; v.left=Math.max(0,(v.cargo_l||v.capacity_l||0)-(recv||0)); v.loadsLeft=Math.ceil(v.left/40000);
+      const since=v.docked_at?new Date(v.docked_at).getTime():null;
+      v.onRoad=(T.convoys||[]).filter(c=>c.direction==="north"&&c.status==="on road"&&since&&new Date(c.date+"T"+(c.departed||["00:00"])[0]+":00+10:00").getTime()>=since).reduce((n,c)=>n+c.units.length,0);
+      v.nearlyEmpty=v.left<=0.05*(v.cargo_l||v.capacity_l||1); }
+    if(v.state==="to_jt"&&v.nm_jt!=null&&v.nm_jt<=3) v.atJT=true;
+    if(v.state==="to_aiambak"&&v.nm_aiambak!=null&&v.nm_aiambak<=3) v.atAiambak=true;
+    return v; });
+  const by=k=>vs.filter(v=>v.state===k);
+  const dis=by("discharging"), toA=by("to_aiambak"), load=by("loading"), toJ=by("to_jt");
+  const aboard=dis.reduce((a,v)=>a+(v.left||0),0), loaded=toA.reduce((a,v)=>a+(v.cargo_l||v.capacity_l||0),0), filling=load.reduce((a,v)=>a+(v.capacity_l||0),0);
+  return {V,vs,dis,toA,load,toJ,aboard,loaded,filling,jtPos};
 }
 
 let c0gen=Date.now(), c0raw={}, c0manual={}, c0power=null;
@@ -766,8 +775,10 @@ function renderInner(){
         return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. today's breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
       ${tile("fuel","Fuel above buffers",`${kl(f.availableTotal)} <small>kL</small>`,`Kiunga ${fk.x?kl(fk.x.available):"–"} · Tabubil ${ft.x?kl(ft.x.available):"–"} kL`,fk.x&&fk.x.available<0?"red":fk.x&&fk.x.available<150000?"amber":"")}
       ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
-      ${(()=>{const S=fuelShipping(); if(!S) return ""; const ML=v=>(v/1e6).toFixed(2);
-        return tile("shipping","Shipping: fuel coming",`${ML(S.incoming+(S.left||0))} <small>ML</small>`,`${S.dk?`<b>${esc(S.dk.name)}</b> at ${esc(S.dk.at)}: about ${Math.round((S.left||0)/1000).toLocaleString("en-AU")} kL left (${S.loadsLeft} tanker loads)`:""}${S.inc.length?` · ${S.inc.length} more on the way, ${ML(S.incoming)} ML ${esc((S.inc[0]||{}).eta||"")}`:""}${S.toLoad.length?` · then ${S.toLoad.map(v=>`${esc(v.name)} ${ML(v.plan_l)} ML from ${esc(v.load_at)}`).join(", ")}`:""}`,S.left!=null&&S.left<200000?"amber":"");})()}
+      ${(()=>{const S=fuelShipping(); if(!S) return ""; const ML=v=>(v/1e6).toFixed(2), k=v=>Math.round(v/1000).toLocaleString("en-AU");
+        const parts=[...S.dis.map(v=>`<b>${esc(v.name)}</b> at Aiambak: about ${k(v.left)} kL left (${v.loadsLeft} tanker loads)${v.nearlyEmpty?", nearly empty":""}`),
+          S.toA.length?`${S.toA.length} loaded on the way, ${ML(S.loaded)} ML`:"", S.load.length?`${S.load.map(v=>esc(v.name)).join(", ")} loading at JT`:"", S.toJ.length?`${S.toJ.map(v=>esc(v.name)+(v.atJT?" (at JT?)":"")).join(", ")} heading to JT`:""].filter(Boolean);
+        return tile("shipping","Shipping: fuel coming",`${ML(S.aboard+S.loaded)} <small>ML</small>`,parts.join(" · "),S.dis.some(v=>v.nearlyEmpty)?"amber":"");})()}
       ${(()=>{const mv=(f.mv||{}), w=((mv.window||{}).tabubil)||{}, sf=((mv.so_far||{}).tabubil)||{}, use=w.out_l, stale=((c0raw.fuel||{}).site_errors||{}).tabubil;
         const cover=use>0&&f.availableTotal!=null?f.availableTotal/use:null;
         return tile("fuel","TBG daily usage",use==null?"–":`${kl(use)} <small>kL/day</small>`,stale?"Tabubil console not reachable; last good reading":`drop in Tabubil tanks, 13:00 to 13:00 · ${sf.out_l!=null?kl(sf.out_l)+" kL since 13:00":""}${cover?` · ${cover.toFixed(1)} days above buffers`:""}`,stale?"amber":cover!=null&&cover<3?"red":cover!=null&&cover<5?"amber":"");})()}
@@ -883,18 +894,20 @@ function renderInner(){
     </section>
     <section class="panel wide" data-tab="shipping">
       ${(()=>{const S=fuelShipping(); if(!S) return `<div class="ph"><h2>Shipping</h2></div><p class="muted small">No vessels recorded.</p>`; const kl=v=>v==null?"–":Math.round(v/1000).toLocaleString("en-AU");
+        const pos=v=>{const p=v.position||{}; if(p.lat==null) return `<span class="muted">${esc(v.where||"")}</span>`; return `<a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">${Math.abs(p.lat).toFixed(2)}°${p.lat<0?"S":"N"} ${p.lon.toFixed(2)}°E</a>${p.at?` <span class="muted">${p.at.slice(8,10)}/${p.at.slice(5,7)} ${p.at.slice(11,16)}</span>`:""}${p.note?`<br><span class="muted">${esc(p.note)}</span>`:""}${v.nm_aiambak!=null?`<br><span class="muted">${v.nm_aiambak} nm from Aiambak${v.nm_jt!=null?`, ${v.nm_jt} nm from JT`:""}</span>`:""}`;};
+        const tow=v=>[v.type,v.tug?`tug ${v.tug}`:"",v.mmsi?`MMSI ${v.mmsi}`:""].filter(Boolean).join(", ");
+        const row=v=>`<tr><td><b>${esc(v.name)}</b>${tow(v)?`<br><span class="muted">${esc(tow(v))}</span>`:""}</td><td class="r">${kl(v.state==="to_aiambak"?(v.cargo_l||v.capacity_l):v.capacity_l)}</td><td>${pos(v)}</td><td>${esc(v.eta||"")}${v.atJT?' <b style="color:var(--green)">at JT?</b>':""}${v.atAiambak?' <b style="color:var(--green)">at Aiambak?</b>':""}</td></tr>`;
+        const sec=(title,arr,col)=>arr.length?`<h3 class="small" style="margin:12px 0 4px">${title} (${arr.length})</h3><div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">${col}</th><th>Position</th><th>Due / note</th></tr>${arr.map(row).join("")}</table></div>`:"";
         return `<div class="ph"><h2>Shipping</h2><span class="state live">${esc(S.V.updated||"")}</span></div>
-        ${S.dk?`<div class="standout"><span class="tl">At ${esc(S.dk.at)}: ${esc(S.dk.name)}</span><span class="tb">${kl(S.left)} <small>kL left</small></span>
-          <span class="ts">Cargo ${kl(S.dk.cargo_l)} kL · received into Kiunga tanks since docking ${S.dk.docked_at.slice(8,10)}/${S.dk.docked_at.slice(5,7)} ${S.dk.docked_at.slice(11,16)}: <b>${kl(S.recv)} kL</b> · about ${S.loadsLeft} tanker loads (40 kL) to go${S.onRoad?` · ${S.onRoad} trucks heading north now (fuel on the road not yet in the tanks)`:""}</span></div>`:""}
-        <div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">Fuel (kL)</th><th>Where</th><th>Due</th></tr>
-        ${S.inc.map(v=>`<tr><td><b>${esc(v.name)}</b></td><td class="r">${kl(v.cargo_l)}</td><td>${esc(v.where||"")}</td><td>${esc(v.eta||"")}</td></tr>`).join("")}
-        <tr style="font-weight:600"><td>Total on the way</td><td class="r">${kl(S.incoming)}</td><td colspan="2" class="muted">${Math.round(S.incoming/40000)} tanker loads</td></tr></table></div>
-        ${S.toLoad.length?`<h3 class="small" style="margin:12px 0 4px">Going to load (${kl(S.toLoadL)} kL planned)</h3>
-        <div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">To load (kL)</th><th>Load at</th><th>Last position</th></tr>
-        ${S.toLoad.map(v=>{const p=v.position||{}; return `<tr><td><b>${esc(v.name)}</b> <span class="muted">${esc(v.type||"")}${v.tug?`, tug ${esc(v.tug)}`:""}${v.mmsi?` (MMSI ${esc(v.mmsi)})`:""}</span></td><td class="r">${kl(v.plan_l)}</td><td>${esc(v.load_at||"")}${v.destination?` <span class="muted">via ${esc(v.destination)}</span>`:""}</td>
-          <td>${p.lat!=null?`<a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">${Math.abs(p.lat).toFixed(2)}°S ${p.lon.toFixed(2)}°E</a>`:"–"}${p.at?` <span class="muted">${p.at.slice(8,10)}/${p.at.slice(5,7)} ${p.at.slice(11,16)}</span>`:""}${p.note?`<br><span class="muted">${esc(p.note)}</span>`:""}${v.nm_to_aiambak!=null?`<br><span class="muted">about ${v.nm_to_aiambak} nm from Aiambak (straight line)</span>`:""}${p.src?` <span class="muted">· ${esc(p.src)}</span>`:""}</td></tr>`;}).join("")}</table></div>`:""}
+        <p class="small muted">Each vessel goes round: empty to JT → loading at JT → loaded to Aiambak → discharging at Aiambak → back to JT.</p>
+        ${S.dis.map(v=>`<div class="standout"><span class="tl">Discharging at Aiambak: ${esc(v.name)}</span><span class="tb">${kl(v.left)} <small>kL left</small></span>
+          <span class="ts">Cargo ${kl(v.cargo_l||v.capacity_l)} kL · into Kiunga tanks since docking ${v.docked_at?v.docked_at.slice(8,10)+"/"+v.docked_at.slice(5,7)+" "+v.docked_at.slice(11,16):""}: <b>${kl(v.recv)} kL</b> · about ${v.loadsLeft} tanker loads to go${v.onRoad?` · ${v.onRoad} trucks heading north now`:""}${v.nearlyEmpty?` · <b>nearly empty: next leg back to JT</b>`:""}</span></div>`).join("")}
+        ${sec("Loaded, heading to Aiambak",S.toA,"Fuel (kL)")}
+        ${S.toA.length?`<p class="small"><b>On the way: ${kl(S.loaded)} kL</b> (${Math.round(S.loaded/40000)} tanker loads)</p>`:""}
+        ${sec("Loading at JT",S.load,"Capacity (kL)")}
+        ${sec("Empty, heading to JT",S.toJ,"Capacity (kL)")}
         ${S.V.notes?`<p class="small muted">${esc(S.V.notes)}</p>`:""}
-        <p class="muted small">Vessel list from manual.json (WhatsApp); "kL left" = cargo less fuel measured into the Kiunga tanks since the vessel docked.</p>`;})()}
+        <p class="muted small">Vessel states from manual.json (updated from WhatsApp); positions from MarineTraffic for vessels with a tug MMSI. "kL left" = cargo less fuel measured into the Kiunga tanks since docking.${S.jtPos?"":" Add JT's position (or its MMSI) and the page will flag a vessel arriving there."}</p>`;})()}
     </section>
 
     <section class="panel wide" data-tab="cucon">
