@@ -737,7 +737,14 @@ function renderInner(){
     return `<div class="tiles">
       ${(()=>{const R=((c0raw.inbox||{}).roadteam)||null, RE=R?R.equipment||[]:[];
         const rt=R?`<br>Road maintenance: <b>${RE.length}</b> machine${RE.length===1?"":"s"}, ${RE.filter(e=>e.available).length} available${RE.length?" ("+[...RE].sort((a,b)=>(a.km??999)-(b.km??999)).slice(0,3).map(e=>`${esc(e.id)} KM${e.km==null?"?":Math.round(e.km)}`).join(", ")+(RE.length>3?"…":"")+")":""}`:"";
-        return tile("road","Convoys on the road",`${moving.length}`,(road+sil===0?"no trucks between Aiambak and West Bank":`${road} truck${road===1?"":"s"} reporting${sil?`, <b style="color:var(--red)">${sil} with no GPS for 30+ min</b>`:""}`)+rt,sil?"amber":"");})()}
+        const T=c0raw.trucks||{}, st=(T.raw||{}).status||{}, hm=x=>x?new Date((x+36000)*1000).toISOString().slice(11,16):"";
+        const disp=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
+        const cvs=(T.convoys||[]).filter(v=>v.status==="on road").map(v=>{const pos=v.units.map(u=>st[u]).filter(x=>x&&x.t);
+          const lead=pos.sort((a,b)=>v.direction==="north"?b.km-a.km:a.km-b.km)[0], last=Math.max(0,...pos.map(x=>x.t)), quiet=last&&Date.now()/1000-last>1800;
+          const dest=v.direction==="north"?"West Bank":"Aiambak";
+          return `<b>${esc(v.name)}</b> (${v.units.map(disp).join(", ")}) ${quiet?"last seen":"at"} KM${lead?Math.round(lead.km):"?"}${quiet?` at <span style="color:var(--red)">${hm(last)}</span>`:""}${v.eta?` · due ${dest} ${v.eta[0]}${v.eta[1]&&v.eta[1]!==v.eta[0]?"–"+v.eta[1]:""}`:""}`;});
+        const n=road+sil;
+        return tile("road","Convoys on the road",`${cvs.length}`,(cvs.length?cvs.join("<br>"):n?`${n} truck${n===1?"":"s"} between Aiambak and West Bank`:"no trucks between Aiambak and West Bank")+rt,sil?"amber":"");})()}
       ${tile("road","Departures today",`${D.trucks.tripsNorth} <small>north</small> · ${D.trucks.tripsSouth} <small>south</small>`,`${wb} at West Bank, ${ai} at Aiambak`)}
       ${(()=>{const RUNx=runningDown(c0raw.fleet,c0raw.trucks), pmDown=((D.fleet||{}).down||[]).filter(d=>/^IT\d\d$/.test(d.id)&&!RUNx[d.id]).length, av=pm?pm.total-Math.max(pm.down,pmDown):null;
         return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. today's breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
@@ -778,7 +785,7 @@ function renderInner(){
       const cuLine=cu?`<div class="small muted" style="margin:-2px 0 8px">CuCon to date: bagged <b>${(g("bagged").ptd_bags||0).toLocaleString("en-AU")}</b> → East Bank <b>${(g("east bank").ptd_bags||0).toLocaleString("en-AU")}</b> → trucked <b>${(g("trucked").ptd_bags||0).toLocaleString("en-AU")}</b> → shipped <b>${(g("loaded").ptd_bags||0).toLocaleString("en-AU")}</b> <a href="#cucon" onclick="document.querySelector('[data-t=cucon]').click();return false">details</a></div>`:"";
       const R=((c0raw.inbox||{}).roadteam)||null, RE=R?R.equipment||[]:[];
       const rtLine=R?`<div class="small muted" style="margin:-2px 0 8px">Road team: <b>${RE.length}</b> machine${RE.length===1?"":"s"}, <b>${RE.filter(e=>e.available).length}</b> available${RE.length?" · "+[...RE].sort((a,b)=>(a.km??999)-(b.km??999)).slice(0,6).map(e=>`${esc(e.id)} KM${e.km==null?"?":Math.round(e.km)}`).join(", "):""} <a href="#roads" onclick="document.querySelector('[data-t=roads]').click();return false">details</a></div>`:"";
-      return `<div style="margin:2px 0 8px">${chip("on the road",road)}${sil?chip("no GPS",sil,"var(--g3)"):""}${chip("at West Bank",wb)}${chip("at Aiambak",ai)}</div>${cuLine}${rtLine}`;})()}
+      return `<div style="margin:2px 0 8px">${chip("on the road"+(sil?` <span style="color:var(--g3)">(${sil} no GPS for 30+ min)</span>`:""),road+sil)}${chip("at West Bank",wb)}${chip("at Aiambak",ai)}</div>${cuLine}${rtLine}`;})()}
     <div class="cgrid">
       <div class="cmapbox"><svg id="cmap" viewBox="0 0 590 1060" role="img" aria-label="Map of the Aiambak to Kiunga West Bank road with truck positions"></svg>
         <div class="clegend">
