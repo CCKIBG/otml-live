@@ -65,8 +65,8 @@
 .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin:0 0 14px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg,var(--paper));z-index:5;scrollbar-width:none}
 .tab{font:600 16px "Barlow Condensed",sans-serif;letter-spacing:.02em;background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;color:var(--muted);cursor:pointer;white-space:nowrap}
 .tab.on{color:var(--ink);border-bottom-color:var(--ink)}
-@media (max-width:700px){.tabs{display:grid;grid-template-columns:repeat(4,1fr);overflow:visible;gap:0;border-bottom:2px solid var(--line)}
-  .tab{padding:9px 4px;font-size:16px;text-align:center;border-bottom-width:3px}}
+@media (max-width:700px){.tabs{display:grid;grid-template-columns:repeat(5,1fr);overflow:visible;gap:0;border-bottom:2px solid var(--line)}
+  .tab{padding:9px 2px;font-size:15px;text-align:center;border-bottom-width:3px}}
 .tcount{display:inline-block;min-width:1.3em;background:var(--red);color:#fff;border-radius:99px;font-size:12px;padding:0 5px;margin-left:4px}
 .tcount:empty{display:none}
 [data-tab]{display:none} [data-tab].on{display:block} [data-tab]:not(.on){display:none!important}
@@ -76,6 +76,7 @@
 .askmic.rec{background:var(--red);border-color:var(--red)}
 .askv{font-size:13px;color:var(--muted)} .askout{flex-basis:100%;font-size:16px}
 .askq{color:var(--muted);font-size:14px} .aska{font-weight:600;margin-top:2px}
+.chip{display:inline-block;padding:4px 10px;margin:0 6px 6px 0;border-radius:99px;background:var(--paper);border:1px solid var(--line);font-size:15px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:0 0 14px}
 @media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 .tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;padding:12px 14px;cursor:pointer;color:var(--ink);font-family:inherit;min-height:112px}
@@ -716,7 +717,7 @@ function renderInner(){
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    ${[["summary","Summary"],["road","Road"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["plan","Plan"]].map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
+    ${[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]].map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
   </nav>
 
   <section data-tab="summary">
@@ -734,7 +735,9 @@ function renderInner(){
     const moving=(D.convoys||[]).filter(c=>/on road|Now KM/i.test(c.status||""));
     const tile=(go,lbl,big,sub,lvl)=>`<button class="tile ${lvl||""}" data-go="${go}"><span class="tl">${lbl}</span><span class="tb">${big}</span><span class="ts">${sub}</span></button>`;
     return `<div class="tiles">
-      ${tile("road","Convoys on the road",`${moving.length}`,road+sil===0?"no trucks between Aiambak and West Bank":`${road} truck${road===1?"":"s"} reporting${sil?`, <b style="color:var(--red)">${sil} with no GPS for 30+ min</b>${road===0?" (in the weak-coverage stretch or trackers asleep)":""}`:""}`,sil?"amber":"")}
+      ${(()=>{const R=((c0raw.inbox||{}).roadteam)||null, RE=R?R.equipment||[]:[];
+        const rt=R?`<br>Road maintenance: <b>${RE.length}</b> machine${RE.length===1?"":"s"}, ${RE.filter(e=>e.available).length} available${RE.length?" ("+[...RE].sort((a,b)=>(a.km??999)-(b.km??999)).slice(0,3).map(e=>`${esc(e.id)} KM${e.km==null?"?":Math.round(e.km)}`).join(", ")+(RE.length>3?"…":"")+")":""}`:"";
+        return tile("road","Convoys on the road",`${moving.length}`,(road+sil===0?"no trucks between Aiambak and West Bank":`${road} truck${road===1?"":"s"} reporting${sil?`, <b style="color:var(--red)">${sil} with no GPS for 30+ min</b>`:""}`)+rt,sil?"amber":"");})()}
       ${tile("road","Departures today",`${D.trucks.tripsNorth} <small>north</small> · ${D.trucks.tripsSouth} <small>south</small>`,`${wb} at West Bank, ${ai} at Aiambak`)}
       ${(()=>{const RUNx=runningDown(c0raw.fleet,c0raw.trucks), pmDown=((D.fleet||{}).down||[]).filter(d=>/^IT\d\d$/.test(d.id)&&!RUNx[d.id]).length, av=pm?pm.total-Math.max(pm.down,pmDown):null;
         return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. today's breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
@@ -744,9 +747,9 @@ function renderInner(){
         const cover=use>0&&f.availableTotal!=null?f.availableTotal/use:null;
         return tile("fuel","TBG daily usage",use==null?"–":`${kl(use)} <small>kL/day</small>`,stale?"Tabubil console not reachable; last good reading":`drop in Tabubil tanks, 13:00 to 13:00 · ${sf.out_l!=null?kl(sf.out_l)+" kL since 13:00":""}${cover?` · ${cover.toFixed(1)} days above buffers`:""}`,stale?"amber":cover!=null&&cover<3?"red":cover!=null&&cover<5?"amber":"");})()}
       ${(()=>{const P=c0power; if(!P) return tile("fuel","Power","–","OTML Live power data not available","amber");
-        const n=v=>v==null||v===""?"–":Number(v).toFixed(1), burn=P.tps_mw!=null?P.tps_mw*24*0.23:null;
+        const n=v=>v==null||v===""?"–":Number(v).toFixed(1), use=((((f.mv||{}).window||{}).tabubil)||{}).out_l, mwh=P.tps_mw!=null?P.tps_mw*24:null, lpm=use&&mwh?use/mwh:null;
         const age=P.generated_at?Math.round((Date.now()-new Date(P.generated_at))/60000):null;
-        return tile("fuel","Power: TPS and Ok Menga",`${n(P.tps_mw)} <small>MW TPS</small>`,`Ok Menga hydro ${n(P.hydro_mw)} MW${P.menga_level_m!=null?` (level ${n(P.menga_level_m)} m)`:""} · load ${n(P.mill_mine_mw)} MW mill+mine, ${n(P.township_mw)} MW township${burn?` · TPS about ${Math.round(burn)} kL/day diesel at 0.23 L/kWh`:""}${age!=null?` · OTML Live ${age<90?age+" min":Math.round(age/60)+" h"} ago`:""}`,age!=null&&age>180?"amber":"");})()}
+        return tile("fuel","Power: TPS and Ok Menga",`${n(P.tps_mw)} <small>MW TPS</small>`,`Ok Menga hydro ${n(P.hydro_mw)} MW${P.menga_level_m!=null?` (level ${n(P.menga_level_m)} m)`:""} · load ${n(P.mill_mine_mw)} MW mill+mine, ${n(P.township_mw)} MW township${lpm?` · <b>${Math.round(lpm)} L/MWh</b> (TBG usage ${kl(use)} kL ÷ TPS ${Math.round(mwh)} MWh a day)`:""}${age!=null?` · OTML Live ${age<90?age+" min":Math.round(age/60)+" h"} ago`:""}`,age!=null&&age>180?"amber":"");})()}
       ${(()=>{const P=c0power; if(!P||P.kiunga_river_m==null) return tile("fuel","Kiunga river level","–","OTML Live river data not available","amber");
         const F=P.river_fc||{}, d=P.river_d24!=null?Number(P.river_d24):null, trig=6.5;
         return tile("fuel","Kiunga river level",`${Number(P.kiunga_river_m).toFixed(2)} <small>m</small>`,`${esc(P.kiunga_river_source||"")} shipping datum · ${esc(F.trend||"")}${d!=null?` (${d>=0?"+":""}${d.toFixed(2)} m in 24 h)`:""}${F.forecast_48h_m!=null?` · 48 h forecast ${Number(F.forecast_48h_m).toFixed(2)} m`:""} · shipping trigger ${trig} m`,P.kiunga_river_m<trig?"red":"");})()}
@@ -773,7 +776,9 @@ function renderInner(){
       const chip=(l,v,c)=>`<span style="display:inline-block;padding:4px 10px;margin:0 6px 6px 0;border-radius:99px;background:var(--paper);border:1px solid var(--line);font-size:15px"><b style="color:${c||"var(--ink)"}">${v}</b> ${l}</span>`;
       const cu=D.cucon, g=k=>cu?((cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}):{};
       const cuLine=cu?`<div class="small muted" style="margin:-2px 0 8px">CuCon to date: bagged <b>${(g("bagged").ptd_bags||0).toLocaleString("en-AU")}</b> → East Bank <b>${(g("east bank").ptd_bags||0).toLocaleString("en-AU")}</b> → trucked <b>${(g("trucked").ptd_bags||0).toLocaleString("en-AU")}</b> → shipped <b>${(g("loaded").ptd_bags||0).toLocaleString("en-AU")}</b> <a href="#cucon" onclick="document.querySelector('[data-t=cucon]').click();return false">details</a></div>`:"";
-      return `<div style="margin:2px 0 8px">${chip("on the road",road)}${sil?chip("no GPS",sil,"var(--g3)"):""}${chip("at West Bank",wb)}${chip("at Aiambak",ai)}</div>${cuLine}`;})()}
+      const R=((c0raw.inbox||{}).roadteam)||null, RE=R?R.equipment||[]:[];
+      const rtLine=R?`<div class="small muted" style="margin:-2px 0 8px">Road team: <b>${RE.length}</b> machine${RE.length===1?"":"s"}, <b>${RE.filter(e=>e.available).length}</b> available${RE.length?" · "+[...RE].sort((a,b)=>(a.km??999)-(b.km??999)).slice(0,6).map(e=>`${esc(e.id)} KM${e.km==null?"?":Math.round(e.km)}`).join(", "):""} <a href="#roads" onclick="document.querySelector('[data-t=roads]').click();return false">details</a></div>`:"";
+      return `<div style="margin:2px 0 8px">${chip("on the road",road)}${sil?chip("no GPS",sil,"var(--g3)"):""}${chip("at West Bank",wb)}${chip("at Aiambak",ai)}</div>${cuLine}${rtLine}`;})()}
     <div class="cgrid">
       <div class="cmapbox"><svg id="cmap" viewBox="0 0 590 1060" role="img" aria-label="Map of the Aiambak to Kiunga West Bank road with truck positions"></svg>
         <div class="clegend">
@@ -957,7 +962,29 @@ function renderInner(){
       :`<p class="muted small">${esc((D.inbox&&D.inbox.note)||"Inbox not read yet.")}</p>`}
     </section>
 
-    <section class="panel" data-tab="fleet">
+        <section class="panel wide" data-tab="roads">
+      ${(()=>{const R=((c0raw.inbox||{}).roadteam)||null;
+        if(!R) return `<div class="ph"><h2>Road maintenance team</h2><span class="state missing">no data</span></div><p class="muted small">Reads the RMT dashboard workbook from the Civil Engineering &amp; Roads SharePoint site once the collector has downloaded it.</p>`;
+        const E=[...R.equipment].sort((a,b)=>(a.km??999)-(b.km??999)), av=E.filter(e=>e.available===true).length, na=E.filter(e=>e.available===false).length, L=183;
+        const W=600, X=k=>20+(W-40)*Math.min(Math.max(k,0),L)/L;
+        let lvl=[]; const marks=E.filter(e=>e.km!=null).map(e=>{const x=X(e.km); let lv=0; while(lvl[lv]!=null&&x-lvl[lv]<70) lv++; lvl[lv]=x; return {e,x,lv};});
+        const H=60+18*Math.max(1,lvl.length);
+        const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:700px;height:auto" role="img" aria-label="Road team equipment by KM">
+          <line x1="20" x2="${W-20}" y1="${H-26}" y2="${H-26}" stroke="var(--road)" stroke-width="8" stroke-linecap="round"/>
+          ${[0,40,80,120,160].map(k=>`<text x="${X(k)}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="Barlow">KM${k}</text>`).join("")}
+          <text x="20" y="12" font-size="11" fill="var(--muted)" font-family="Barlow">Aiambak</text><text x="${W-20}" y="12" text-anchor="end" font-size="11" fill="var(--muted)" font-family="Barlow">West Bank KM183</text>
+          ${marks.map(({e,x,lv})=>{const y=H-38-lv*18, col=e.available===false?"var(--red)":"var(--green)";
+            return `<line x1="${x}" x2="${x}" y1="${y+4}" y2="${H-30}" stroke="${col}"/><circle cx="${x}" cy="${H-26}" r="5" fill="${col}"/><text x="${x}" y="${y}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)" font-family="Barlow"><title>${esc(e.id)} ${esc(e.type)} KM${e.km}${e.km>L?" (beyond KM183)":""}</title>${esc(e.id)}</text>`;}).join("")}
+        </svg>`;
+        return `<div class="ph"><h2>Road maintenance team</h2><span class="state live">Updated ${esc(R.updated)}</span></div>
+        <div style="margin:2px 0 8px"><span class="chip"><b>${E.length}</b> machines</span><span class="chip"><b style="color:var(--green)">${av}</b> available</span>${na?`<span class="chip"><b style="color:var(--red)">${na}</b> not available</span>`:""}</div>
+        ${svg}
+        <div style="overflow-x:auto"><table class="small"><tr><th>Equip</th><th>Type</th><th class="r">KM</th><th>Available</th><th>Notes</th></tr>
+        ${E.map(e=>`<tr><td><b>${esc(e.id)}</b></td><td>${esc(e.type)}</td><td class="r">${e.km==null?"–":e.km}${e.km>L?' <span style="color:#B08A00" title="Beyond the 183 km road">?</span>':""}</td><td style="color:${e.available===false?"var(--red)":e.available?"var(--green)":"inherit"}">${e.available==null?"–":e.available?"Yes":"No"}</td><td class="muted">${esc(e.notes)}</td></tr>`).join("")}</table></div>
+        ${E.some(e=>e.km>L)?`<p class="small" style="color:#B08A00">${E.filter(e=>e.km>L).map(e=>esc(e.id)).join(", ")}: location beyond KM183, the end of the road; check the entry.</p>`:""}
+        <p class="muted small">From ${esc(R.file)} on the Civil Engineering &amp; Roads SharePoint site, downloaded by the collector every 15 minutes.</p>`;})()}
+    </section>
+    <section class="panel" data-tab="roads">
       <div class="ph"><h2>Road</h2>${stateBadge(D.road.state, D.road.asOf)}</div>
       <ul class="plain">${D.road.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
     </section>
