@@ -699,6 +699,22 @@ function fleetRecon(F, T){
   return {rows, issues, running};
 }
 
+function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return null;
+  const dk=V.docked||null, inc=V.incoming||[], fv=((c0raw.fuel||{}).vessel)||{};
+  const T=c0raw.trucks||{}, since=dk&&dk.docked_at?new Date(dk.docked_at).getTime():null;
+  const north=(T.convoys||[]).filter(v=>v.direction==="north"&&since&&new Date(v.date+"T"+(v.departed||["00:00"])[0]+":00+10:00").getTime()>=since);
+  const onRoad=north.filter(v=>v.status==="on road").reduce((n,v)=>n+v.units.length,0), departed=north.reduce((n,v)=>n+v.units.length,0);
+  const recv=fv.name&&dk&&fv.name===dk.name?fv.received_kiunga_l:null;
+  const left=dk&&recv!=null?Math.max(0,dk.cargo_l-recv):(dk?dk.cargo_l:null);
+  const incoming=inc.reduce((a,v)=>a+(v.cargo_l||0),0);
+  const MT=((c0raw.vessels||{}).positions)||{}, aia=CROUTE[0];
+  const nm=(a,b)=>{const R=3440.1,k=Math.PI/180,dl=(b[0]-a[0])*k,dn=(b[1]-a[1])*k,h=Math.sin(dl/2)**2+Math.cos(a[0]*k)*Math.cos(b[0]*k)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
+  const live=v=>{ if(!v) return v; const q=v.mmsi&&MT[v.mmsi]; const p=q?{lat:q.lat,lon:q.lon,at:q.read_at,note:[q.status,q.speed_kn!=null?q.speed_kn+" kn":null,q.course!=null?"course "+q.course+"°":null,q.destination?"to "+q.destination:null,q.age_text?"AIS "+q.age_text:null].filter(Boolean).join(", "),src:"MarineTraffic"}:(v.position||null);
+    return Object.assign({},v,{position:p, nm_to_aiambak:p&&p.lat!=null?Math.round(nm([p.lat,p.lon],aia)):null}); };
+  const toLoad=(V.to_load||[]).map(live);
+  return {V,dk,inc:inc.map(live),recv,left,incoming,onRoad,departed,loadsLeft:left!=null?Math.ceil(left/40000):null,toLoad,toLoadL:toLoad.reduce((a,v)=>a+(v.plan_l||0),0)};
+}
+
 let c0gen=Date.now(), c0raw={}, c0manual={}, c0power=null;
 function render(){ // keep the tab bar and the page where the user left them across the 2-minute refreshes
   let tabX=0, pageY=0; try{ const tb=document.querySelector(".tabs"); if(tb) tabX=tb.scrollLeft; pageY=window.scrollY||0; }catch(e){}
@@ -717,7 +733,7 @@ function renderInner(){
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    ${[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]].map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
+    ${[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["shipping","Shipping"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]].map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
   </nav>
 
   <section data-tab="summary">
@@ -750,6 +766,8 @@ function renderInner(){
         return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. today's breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
       ${tile("fuel","Fuel above buffers",`${kl(f.availableTotal)} <small>kL</small>`,`Kiunga ${fk.x?kl(fk.x.available):"–"} · Tabubil ${ft.x?kl(ft.x.available):"–"} kL`,fk.x&&fk.x.available<0?"red":fk.x&&fk.x.available<150000?"amber":"")}
       ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
+      ${(()=>{const S=fuelShipping(); if(!S) return ""; const ML=v=>(v/1e6).toFixed(2);
+        return tile("shipping","Shipping: fuel coming",`${ML(S.incoming+(S.left||0))} <small>ML</small>`,`${S.dk?`<b>${esc(S.dk.name)}</b> at ${esc(S.dk.at)}: about ${Math.round((S.left||0)/1000).toLocaleString("en-AU")} kL left (${S.loadsLeft} tanker loads)`:""}${S.inc.length?` · ${S.inc.length} more on the way, ${ML(S.incoming)} ML ${esc((S.inc[0]||{}).eta||"")}`:""}${S.toLoad.length?` · then ${S.toLoad.map(v=>`${esc(v.name)} ${ML(v.plan_l)} ML from ${esc(v.load_at)}`).join(", ")}`:""}`,S.left!=null&&S.left<200000?"amber":"");})()}
       ${(()=>{const mv=(f.mv||{}), w=((mv.window||{}).tabubil)||{}, sf=((mv.so_far||{}).tabubil)||{}, use=w.out_l, stale=((c0raw.fuel||{}).site_errors||{}).tabubil;
         const cover=use>0&&f.availableTotal!=null?f.availableTotal/use:null;
         return tile("fuel","TBG daily usage",use==null?"–":`${kl(use)} <small>kL/day</small>`,stale?"Tabubil console not reachable; last good reading":`drop in Tabubil tanks, 13:00 to 13:00 · ${sf.out_l!=null?kl(sf.out_l)+" kL since 13:00":""}${cover?` · ${cover.toFixed(1)} days above buffers`:""}`,stale?"amber":cover!=null&&cover<3?"red":cover!=null&&cover<5?"amber":"");})()}
@@ -862,6 +880,21 @@ function renderInner(){
         return `<div class="farm"><h3>${esc(fm.name)}: ${kl(v)} kL in tanks <span class="muted small">(at ${esc(fm.asOf)})</span></h3>
         ${x?`<p class="small" style="margin:2px 0 6px">Usable ${kl(x.usable)} kL. Safety buffer ${kl(x.buffer)} kL. <b style="color:${x.available<0?"var(--red)":x.available<150000?"#B08A00":"var(--green)"}">${x.available<0?"Below buffer by "+kl(-x.available):"Above buffer "+kl(x.available)} kL</b></p>`:""}
         ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%;${!t.inService?"background:var(--gap)":t.belowSuction?"background:var(--red)":""}"></span>${t.suction&&t.cap?`<i class="suction" style="left:${(t.suction/t.cap*100).toFixed(1)}%" title="Suction level ${kl(t.suction)} kL"></i>`:""}</div><span class="r muted small">${!t.inService?"out of service":t.belowSuction?"below suction":t.usable!=null?kl(t.usable)+" usable"+(t.liveMove?(t.mvIn>=t.mvOut?" (filling)":" (discharging)"):""):pct(t.vol,t.cap)+" %"}</span></div>`).join("")}</div>`;}).join("")}
+    </section>
+    <section class="panel wide" data-tab="shipping">
+      ${(()=>{const S=fuelShipping(); if(!S) return `<div class="ph"><h2>Shipping</h2></div><p class="muted small">No vessels recorded.</p>`; const kl=v=>v==null?"–":Math.round(v/1000).toLocaleString("en-AU");
+        return `<div class="ph"><h2>Shipping</h2><span class="state live">${esc(S.V.updated||"")}</span></div>
+        ${S.dk?`<div class="standout"><span class="tl">At ${esc(S.dk.at)}: ${esc(S.dk.name)}</span><span class="tb">${kl(S.left)} <small>kL left</small></span>
+          <span class="ts">Cargo ${kl(S.dk.cargo_l)} kL · received into Kiunga tanks since docking ${S.dk.docked_at.slice(8,10)}/${S.dk.docked_at.slice(5,7)} ${S.dk.docked_at.slice(11,16)}: <b>${kl(S.recv)} kL</b> · about ${S.loadsLeft} tanker loads (40 kL) to go${S.onRoad?` · ${S.onRoad} trucks heading north now (fuel on the road not yet in the tanks)`:""}</span></div>`:""}
+        <div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">Fuel (kL)</th><th>Where</th><th>Due</th></tr>
+        ${S.inc.map(v=>`<tr><td><b>${esc(v.name)}</b></td><td class="r">${kl(v.cargo_l)}</td><td>${esc(v.where||"")}</td><td>${esc(v.eta||"")}</td></tr>`).join("")}
+        <tr style="font-weight:600"><td>Total on the way</td><td class="r">${kl(S.incoming)}</td><td colspan="2" class="muted">${Math.round(S.incoming/40000)} tanker loads</td></tr></table></div>
+        ${S.toLoad.length?`<h3 class="small" style="margin:12px 0 4px">Going to load (${kl(S.toLoadL)} kL planned)</h3>
+        <div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">To load (kL)</th><th>Load at</th><th>Last position</th></tr>
+        ${S.toLoad.map(v=>{const p=v.position||{}; return `<tr><td><b>${esc(v.name)}</b> <span class="muted">${esc(v.type||"")}${v.tug?`, tug ${esc(v.tug)}`:""}${v.mmsi?` (MMSI ${esc(v.mmsi)})`:""}</span></td><td class="r">${kl(v.plan_l)}</td><td>${esc(v.load_at||"")}${v.destination?` <span class="muted">via ${esc(v.destination)}</span>`:""}</td>
+          <td>${p.lat!=null?`<a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">${Math.abs(p.lat).toFixed(2)}°S ${p.lon.toFixed(2)}°E</a>`:"–"}${p.at?` <span class="muted">${p.at.slice(8,10)}/${p.at.slice(5,7)} ${p.at.slice(11,16)}</span>`:""}${p.note?`<br><span class="muted">${esc(p.note)}</span>`:""}${v.nm_to_aiambak!=null?`<br><span class="muted">about ${v.nm_to_aiambak} nm from Aiambak (straight line)</span>`:""}${p.src?` <span class="muted">· ${esc(p.src)}</span>`:""}</td></tr>`;}).join("")}</table></div>`:""}
+        ${S.V.notes?`<p class="small muted">${esc(S.V.notes)}</p>`:""}
+        <p class="muted small">Vessel list from manual.json (WhatsApp); "kL left" = cargo less fuel measured into the Kiunga tanks since the vessel docked.</p>`;})()}
     </section>
 
     <section class="panel wide" data-tab="cucon">
