@@ -95,9 +95,10 @@
     "notes": "Plus some ISO tanks on Aird Hills (quantity not known).",
     "jt": {
       "name": "Johnny Traveller (JT)",
-      "lat": null,
-      "lon": null,
-      "mmsi": ""
+      "lat": -9.47,
+      "lon": 147.15,
+      "mmsi": "",
+      "where": "Port Moresby (per the OTML Live fleet list, 16 Aug); confirm berth or anchorage"
     },
     "vessels": [
       {
@@ -181,6 +182,26 @@
         "note": "Cargo and tow not yet confirmed"
       }
     ],
-    "_how": "Each vessel goes round: to_jt (empty, heading to JT) -> loading (at JT) -> to_aiambak (loaded) -> discharging (at Aiambak) -> to_jt. Change state as they move; for discharging give docked_at (time alongside at Aiambak) and cargo_l. tug and mmsi: the tug currently towing the barge (MarineTraffic tracks the mmsi); change them when tugs swap. Put JT's position in jt (lat, lon) and the dashboard will flag a vessel reaching it."
+    "_how": "Each vessel goes round: to_jt (empty, heading to JT) -> loading (at JT) -> to_aiambak (loaded) -> discharging (at Aiambak) -> to_jt. Change state as they move; for discharging give docked_at (time alongside at Aiambak) and cargo_l. tug and mmsi: the tug currently towing the barge (MarineTraffic tracks the mmsi); change them when tugs swap. Put JT's position in jt (lat, lon) and the dashboard will flag a vessel reaching it.",
+    "otml_fleet": [
+      "FLY WARRIOR",
+      "FLY RESILIENCE",
+      "KIUNGA CHIEF",
+      "FLY ENTERPRISE",
+      "ELIMBARI",
+      "FLY ALLIANCE",
+      "FLY PROSPERITY",
+      "FLY CHALLENGER",
+      "FLY VALIANT",
+      "RAGGIANA ARROW",
+      "JOHNNY TRAVELLER",
+      "O.T.IDEAAL",
+      "GILUWE",
+      "AIRD HILLS",
+      "BBC GDANSK",
+      "HIRI CHIEF",
+      "FLY EXPLORER",
+      "TAMANOU"
+    ]
   }
 }
