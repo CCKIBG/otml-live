@@ -730,8 +730,16 @@ function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return n
   const MT=((c0raw.vessels||{}).positions)||{}, aia=CROUTE[0], jt=V.jt||{};
   const nm=(a,b)=>{const R=3440.1,k=Math.PI/180,dl=(b[0]-a[0])*k,dn=(b[1]-a[1])*k,h=Math.sin(dl/2)**2+Math.cos(a[0]*k)*Math.cos(b[0]*k)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
   const jtPos=(jt.mmsi&&MT[jt.mmsi])?[MT[jt.mmsi].lat,MT[jt.mmsi].lon]:(jt.lat!=null?[jt.lat,jt.lon]:null);
-  const vs=list.map(v0=>{ const v=Object.assign({},v0), q0=v.mmsi&&MT[v.mmsi], q=q0&&q0.lat<0&&q0.lat>-15&&q0.lon>130?q0:null;
-    const p=q?{lat:q.lat,lon:q.lon,at:q.read_at,note:[q.status,q.speed_kn!=null?q.speed_kn+" kn":null,q.course!=null?"course "+q.course+"°":null,q.destination?"to "+q.destination:null,q.age_text?"AIS "+q.age_text:null].filter(Boolean).join(", "),src:"MarineTraffic"}:(v.position||null);
+  const norm=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const FW=Object.values((((c0raw.vessels||{}).fly)||{}).vessels||{}), FV=(((c0raw.vessels||{}).favourites)||{}).vessels||[];
+  const byName=nm=>{ if(!nm) return null; const k=norm(nm); const c=[...FW.filter(x=>norm(x.name).startsWith(k)).map(x=>({lat:x.lat,lon:x.lon,at:x.last_seen,speed_kn:x.speed_kn,course:x.course,destination:x.dest,src:"MarineTraffic map"})),
+      ...FV.filter(x=>norm(x.name).startsWith(k)).map(x=>({lat:x.lat,lon:x.lon,at:(((c0raw.vessels||{}).favourites||{}).at?new Date(c0raw.vessels.favourites.at*1000).toISOString():null),speed_kn:x.speed_kn,course:x.course,destination:x.dest,src:"MarineTraffic favourites"}))];
+    return c.filter(x=>x.lat<0&&x.lat>-15).sort((a,b)=>String(b.at||"").localeCompare(String(a.at||"")))[0]||null; };
+  const vs=list.map(v0=>{ const v=Object.assign({},v0), q0=v.mmsi&&MT[v.mmsi], q1=q0&&q0.lat<0&&q0.lat>-15&&q0.lon>130?q0:null;
+    // a barge follows its tug: use the newest of the tug's MMSI read, the Fly watch and the favourites list (matched by tug name)
+    const t2=byName(v.tug)||byName(v.name), tq=q1?new Date(q1.read_at).getTime():0, t2t=t2&&t2.at?new Date(t2.at).getTime():0;
+    const q=t2&&t2t>tq?{lat:t2.lat,lon:t2.lon,read_at:t2.at,speed_kn:t2.speed_kn,course:t2.course,destination:t2.destination,src:t2.src}:q1;
+    const p=q?{lat:q.lat,lon:q.lon,at:q.read_at,note:[q.status,q.speed_kn!=null?q.speed_kn+" kn":null,q.course!=null?"course "+q.course+"°":null,q.destination?"to "+q.destination:null,q.age_text?"AIS "+q.age_text:null,v.tug?"tug "+v.tug:null].filter(Boolean).join(", "),src:q.src||"MarineTraffic"}:(v.position||null);
     v.position=p; if(p&&p.lat!=null){ v.nm_aiambak=Math.round(nm([p.lat,p.lon],aia)); if(jtPos) v.nm_jt=Math.round(nm([p.lat,p.lon],jtPos)); }
     if(v.state==="discharging"){ const recv=fv.name===v.name?fv.received_kiunga_l:null; v.recv=recv; v.left=Math.max(0,(v.cargo_l||v.capacity_l||0)-(recv||0)); v.loadsLeft=Math.ceil(v.left/40000);
       const since=v.docked_at?new Date(v.docked_at).getTime():null;
@@ -801,7 +809,7 @@ function renderInner(){
       ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
       ${(()=>{const S=fuelShipping(); if(!S) return ""; const ML=v=>(v/1e6).toFixed(2), k=v=>Math.round(v/1000).toLocaleString("en-AU");
         const parts=[...S.dis.map(v=>`<b>${esc(v.name)}</b> at Aiambak: about ${k(v.left)} kL left (${v.loadsLeft} tanker loads)${v.nearlyEmpty?", nearly empty":""}`),
-          S.toA.length?`${S.toA.length} loaded on the way, ${ML(S.loaded)} ML`:"", S.load.length?`${S.load.map(v=>esc(v.name)).join(", ")} loading at JT`:"", S.toJ.length?`${S.toJ.map(v=>esc(v.name)+(v.atJT?" (at JT?)":"")).join(", ")} heading to JT`:""].filter(Boolean);
+          S.toA.length?`${S.toA.length} loaded on the way, ${ML(S.loaded)} ML`:"", S.load.length?`${S.load.map(v=>esc(v.name)).join(", ")} loading at JT`:"", S.toJ.length?S.toJ.map(v=>`<b>${esc(v.name)}</b>${v.tug?` (tug ${esc(v.tug)})`:""} empty, heading to JT${v.atJT?" (at JT?)":v.nm_jt!=null?`, ${v.nm_jt} nm to go`:""}${v.position&&v.position.at?` · seen ${v.position.at.slice(8,10)}/${v.position.at.slice(5,7)} ${v.position.at.slice(11,16)}`:""}`).join(" · "):""].filter(Boolean);
         const W=flyWatch(); if(W) parts.push(`At Aiambak: ${W.at.length?W.at.map(v=>esc(v.name)).join(", "):"none showing"} · ${W.river.length} in the Fly`);
         return tile("shipping","Shipping: fuel coming",`${ML(S.aboard+S.loaded)} <small>ML</small>`,parts.join(" · "),S.dis.some(v=>v.nearlyEmpty)?"amber":"");})()}
       ${(()=>{const mv=(f.mv||{}), w=((mv.window||{}).tabubil)||{}, sf=((mv.so_far||{}).tabubil)||{}, use=w.out_l, stale=((c0raw.fuel||{}).site_errors||{}).tabubil;
@@ -845,7 +853,7 @@ function renderInner(){
         if(S){ S.dis.forEach(v=>rows.push(`<li><b>${esc(v.name)}</b> discharging at Aiambak: <b>${k(v.left)} kL</b> left of ${k(v.cargo_l||v.capacity_l)} kL, about ${v.loadsLeft} tanker loads${v.nearlyEmpty?", nearly empty":""}</li>`));
           S.toA.forEach(v=>rows.push(`<li><b>${esc(v.name)}</b> loaded, heading to Aiambak: ${k(v.cargo_l||v.capacity_l)} kL${v.position&&v.position.lat!=null&&v.nm_aiambak!=null?`, ${v.nm_aiambak} nm away`:v.where?`, ${esc(v.where)}`:""}${v.eta?` · ${esc(v.eta)}`:""}</li>`));
           S.load.forEach(v=>rows.push(`<li><b>${esc(v.name)}</b> loading at JT (${k(v.capacity_l)} kL)</li>`));
-          S.toJ.forEach(v=>rows.push(`<li><b>${esc(v.name)}</b> empty, heading to JT${v.nm_jt!=null?`, ${v.nm_jt} nm away`:""}</li>`)); }
+          S.toJ.forEach(v=>{const p=v.position||{}; rows.push(`<li><b>${esc(v.name)}</b>${v.tug?` (tug ${esc(v.tug)})`:""} empty, heading to JT${v.nm_jt!=null?`, ${v.nm_jt} nm away`:""}${p.lat!=null?` · <a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">${Math.abs(p.lat).toFixed(2)}°S ${p.lon.toFixed(2)}°E</a>${p.at?` ${p.at.slice(8,10)}/${p.at.slice(5,7)} ${p.at.slice(11,16)}`:""}`:""}</li>`);}); }
         if(W){ rows.push(`<li>At Aiambak now (MarineTraffic): ${W.at.length?W.at.map(v=>esc(v.name)).join(", "):"none showing"}</li>`); rows.push(`<li>In the Fly River: ${W.river.length?W.river.map(v=>esc(v.name)).join(", "):"none showing"}</li>`); }
         const FV=((c0raw.vessels||{}).favourites||{}).vessels||[];
         const favHtml=FV.length?`<details style="margin:4px 0 6px 12px"><summary class="small"><b>My MarineTraffic favourites (${FV.length})</b></summary><ul class="plain small" style="margin:6px 0">${FV.map(v=>`<li><a href="https://maps.google.com/?q=${v.lat},${v.lon}" target="_blank" rel="noopener"><b>${esc(v.name)}</b></a> · ${esc(v.zone||"elsewhere")}${v.speed_kn!=null?` · ${v.speed_kn.toFixed(1)} kn`:""}${v.dest?` · to ${esc(v.dest)}`:""}${v.zone==="Fly River"||v.zone==="Approaching the Fly"?` · ${Math.round(nmTo(v,CROUTE[0]))} nm from Aiambak`:""}</li>`).join("")}</ul></details>`:"";
@@ -946,7 +954,9 @@ function renderInner(){
         ${sec("Watching",S.watch,"Capacity (kL)")}
         ${(()=>{const W=flyWatch(); if(!W) return `<h3 class="small" style="margin:14px 0 4px">Fly River watch</h3><p class="muted small">Waiting for the first MarineTraffic map read (hourly, needs the MarineTraffic tab logged in).</p>`;
           const hm=d=>d?d.toISOString?new Date(d.getTime()+36e6).toISOString().slice(11,16):d.slice(11,16):"";
-          const vrow=v=>`<tr><td><b>${esc(v.name)}</b>${v.type?` <span class="muted">${esc(String(v.type))}</span>`:""}</td><td class="r">${v.speed_kn!=null?v.speed_kn.toFixed(1)+" kn":"–"}</td><td><a href="https://maps.google.com/?q=${v.lat},${v.lon}" target="_blank" rel="noopener">${Math.abs(v.lat).toFixed(2)}°S ${v.lon.toFixed(2)}°E</a>${v.zone==="Fly River"?` <span class="muted">${Math.round(nmTo(v,CROUTE[0]))} nm from Aiambak</span>`:""}</td><td class="muted">${esc(v.dest||"")}${v.zone_since?` · since ${v.zone_since.slice(8,10)}/${v.zone_since.slice(5,7)} ${v.zone_since.slice(11,16)}`:""}</td></tr>`;
+          const tows={}; (((c0manual.fuel_vessels||{}).vessels)||[]).forEach(b=>{ if(b.tug) tows[b.tug.toUpperCase().replace(/[^A-Z0-9]/g,"")]=b.name; });
+          const towOf=n=>{const k=String(n||"").toUpperCase().replace(/[^A-Z0-9]/g,""); const hit=Object.keys(tows).find(t=>k.startsWith(t)); return hit?tows[hit]:null;};
+          const vrow=v=>`<tr><td><b>${esc(v.name)}</b>${towOf(v.name)?` <span class="muted">towing ${esc(towOf(v.name))}</span>`:""}${v.type?` <span class="muted">${esc(String(v.type))}</span>`:""}</td><td class="r">${v.speed_kn!=null?v.speed_kn.toFixed(1)+" kn":"–"}</td><td><a href="https://maps.google.com/?q=${v.lat},${v.lon}" target="_blank" rel="noopener">${Math.abs(v.lat).toFixed(2)}°S ${v.lon.toFixed(2)}°E</a>${v.zone==="Fly River"?` <span class="muted">${Math.round(nmTo(v,CROUTE[0]))} nm from Aiambak</span>`:""}</td><td class="muted">${esc(v.dest||"")}${v.zone_since?` · since ${v.zone_since.slice(8,10)}/${v.zone_since.slice(5,7)} ${v.zone_since.slice(11,16)}`:""}</td></tr>`;
           const tbl=a=>`<div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th class="r">Speed</th><th>Position</th><th>Destination / since</th></tr>${a.map(vrow).join("")}</table></div>`;
           return `<h3 class="small" style="margin:14px 0 4px">At Aiambak now (${W.at.length})</h3>${W.at.length?tbl(W.at):`<p class="muted small">No vessels showing at Aiambak.</p>`}
           <h3 class="small" style="margin:12px 0 4px">In the Fly River (${W.river.length}), mouth first</h3>${W.river.length?tbl(W.river):`<p class="muted small">None showing.</p>`}
@@ -1070,22 +1080,38 @@ function renderInner(){
         <section class="panel wide" data-tab="roads">
       ${(()=>{const R=((c0raw.inbox||{}).roadteam)||null;
         if(!R) return `<div class="ph"><h2>Road maintenance team</h2><span class="state missing">no data</span></div><p class="muted small">Reads the RMT dashboard workbook from the Civil Engineering &amp; Roads SharePoint site once the collector has downloaded it.</p>`;
-        const E=[...R.equipment].sort((a,b)=>(a.km??999)-(b.km??999)), av=E.filter(e=>e.available===true).length, na=E.filter(e=>e.available===false).length, L=183;
-        const W=600, X=k=>20+(W-40)*Math.min(Math.max(k,0),L)/L;
-        let lvl=[]; const marks=E.filter(e=>e.km!=null).map(e=>{const x=X(e.km); let lv=0; while(lvl[lv]!=null&&x-lvl[lv]<70) lv++; lvl[lv]=x; return {e,x,lv};});
-        const H=60+18*Math.max(1,lvl.length);
-        const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:700px;height:auto" role="img" aria-label="Road team equipment by KM">
-          <line x1="20" x2="${W-20}" y1="${H-26}" y2="${H-26}" stroke="var(--road)" stroke-width="8" stroke-linecap="round"/>
-          ${[0,40,80,120,160].map(k=>`<text x="${X(k)}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="Barlow">KM${k}</text>`).join("")}
-          <text x="20" y="12" font-size="11" fill="var(--muted)" font-family="Barlow">Aiambak</text><text x="${W-20}" y="12" text-anchor="end" font-size="11" fill="var(--muted)" font-family="Barlow">West Bank KM183</text>
-          ${marks.map(({e,x,lv})=>{const y=H-38-lv*18, col=e.available===false?"var(--red)":"var(--green)";
-            return `<line x1="${x}" x2="${x}" y1="${y+4}" y2="${H-30}" stroke="${col}"/><circle cx="${x}" cy="${H-26}" r="5" fill="${col}"/><text x="${x}" y="${y}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)" font-family="Barlow"><title>${esc(e.id)} ${esc(e.type)} KM${e.km}${e.km>L?" (beyond KM183)":""}</title>${esc(e.id)}</text>`;}).join("")}
+        const L=183, CATS=["LVs","Excavators","Graders","Rollers","Dozers","Trucks","Loaders","Other"];
+        const cat=t=>{t=String(t||"").toLowerCase(); return /toyota|land ?cruiser|lc7|hilux|\blv\b|prado|ranger/.test(t)?"LVs":/excavat/.test(t)?"Excavators":/grader/.test(t)?"Graders":/roller|compactor/.test(t)?"Rollers":/dozer|\bd[0-9]\b/.test(t)?"Dozers":/truck|tipper|dump|water ?cart|prime ?mover|haul/.test(t)?"Trucks":/loader|backhoe|skid/.test(t)?"Loaders":"Other";};
+        const E=[...R.equipment].map(e=>Object.assign({},e,{cat:cat(e.type)})).sort((a,b)=>(a.km??999)-(b.km??999));
+        // locations: Aiambak (KM0-5), West Bank / Kiunga (KM175+), otherwise machines within 4 km of each other
+        const locs=[]; E.forEach(e=>{ const k=e.km; let name=k==null?"Location not given":k<=5?"Aiambak":k>=175?"West Bank / Kiunga":null;
+          let g=name?locs.find(l=>l.name===name):null;
+          if(!g&&!name){ g=locs.find(l=>!l.fixed&&k-l.hi<=4&&k>=l.lo); }
+          if(!g){ g={name,lo:k??999,hi:k??999,fixed:!!name,items:[]}; locs.push(g); }
+          g.items.push(e); if(k!=null){ g.lo=Math.min(g.lo,k); g.hi=Math.max(g.hi,k); } });
+        locs.forEach(l=>{ if(!l.name) l.name=l.lo===l.hi?`KM${Math.round(l.lo)}`:`KM${Math.round(l.lo)}–${Math.round(l.hi)}`; l.mid=l.items.some(e=>e.km!=null)?(l.lo+l.hi)/2:null; l.down=l.items.filter(e=>e.available===false).length; });
+        locs.sort((a,b)=>(a.mid??999)-(b.mid??999));
+        const W=640, X=k=>20+(W-40)*Math.min(Math.max(k,0),L)/L, H=96;
+        const tot=c=>E.filter(e=>e.cat===c).length;
+        const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:760px;height:auto" role="img" aria-label="Road team machines by location">
+          <line x1="20" x2="${W-20}" y1="56" y2="56" stroke="var(--road)" stroke-width="8" stroke-linecap="round"/>
+          ${[0,40,80,120,160].map(k=>`<text x="${X(k)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="Barlow">KM${k}</text>`).join("")}
+          ${locs.filter(l=>l.mid!=null).map((l,i)=>{const x=X(l.mid), up=i%2?30:12, col=l.down?"var(--red)":"var(--green)";
+            return `<g class="rloc" data-loc="${i}" style="cursor:pointer"><title>${esc(l.name)}: ${l.items.length} machines${l.down?`, ${l.down} down`:""}</title>
+              <line x1="${x}" x2="${x}" y1="${up+4}" y2="52" stroke="${col}"/><circle cx="${x}" cy="56" r="${Math.min(12,5+l.items.length)}" fill="${col}"/>
+              <text x="${x}" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="Barlow">${l.items.length}</text>
+              <text x="${x}" y="${up}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)" font-family="Barlow">${esc(l.name.replace("West Bank / Kiunga","West Bank"))}</text></g>`;}).join("")}
         </svg>`;
+        const row=e=>`<tr><td><b style="${e.available===false?"color:var(--red)":""}">${esc(e.id)}</b></td><td>${esc(e.type)}</td><td class="r">${e.km==null?"–":e.km}</td><td style="color:${e.available===false?"var(--red)":e.available?"var(--green)":"inherit"}">${e.available==null?"–":e.available?"Yes":"No"}</td><td class="muted">${esc(e.notes)}</td></tr>`;
         return `<div class="ph"><h2>Road maintenance team</h2><span class="state live">Updated ${esc(R.updated)}</span></div>
-        <div style="margin:2px 0 8px"><span class="chip"><b>${E.length}</b> machines</span><span class="chip"><b style="color:var(--green)">${av}</b> available</span>${na?`<span class="chip"><b style="color:var(--red)">${na}</b> not available</span>`:""}</div>
+        <div style="margin:2px 0 8px"><span class="chip"><b>${E.length}</b> machines</span><span class="chip"><b style="color:var(--green)">${E.filter(e=>e.available===true).length}</b> available</span>${E.some(e=>e.available===false)?`<span class="chip"><b style="color:var(--red)">${E.filter(e=>e.available===false).length}</b> down</span>`:""}</div>
+        <div class="small muted" style="margin:-2px 0 6px">${CATS.filter(c=>tot(c)).map(c=>`${c} <b>${tot(c)}</b>`).join(" · ")}</div>
         ${svg}
-        <div style="overflow-x:auto"><table class="small"><tr><th>Equip</th><th>Type</th><th class="r">KM</th><th>Available</th><th>Notes</th></tr>
-        ${E.map(e=>`<tr><td><b>${esc(e.id)}</b></td><td>${esc(e.type)}</td><td class="r">${e.km==null?"–":e.km}${e.km>L?' <span style="color:#B08A00" title="Beyond the 183 km road">?</span>':""}</td><td style="color:${e.available===false?"var(--red)":e.available?"var(--green)":"inherit"}">${e.available==null?"–":e.available?"Yes":"No"}</td><td class="muted">${esc(e.notes)}</td></tr>`).join("")}</table></div>
+        <p class="small muted" style="margin:2px 0 8px">Tap a location on the road or below, then a group, to see the machines.</p>
+        ${locs.map((l,i)=>{const groups=CATS.map(c=>[c,l.items.filter(e=>e.cat===c)]).filter(([c,a])=>a.length);
+          return `<details class="rlocd" id="rloc${i}" style="margin:6px 0;border:1px solid var(--line);border-radius:6px;padding:6px 10px"><summary><b>${esc(l.name)}</b> <span class="muted small">${l.items.length} machine${l.items.length===1?"":"s"} · ${groups.map(([c,a])=>`${a.length} ${(a.length===1?c.replace(/s$/,""):c).replace(/^(?!LV)\w/,x=>x.toLowerCase())}`).join(", ")}</span>${l.down?` <span class="small" style="color:var(--red)">· ${l.down} down</span>`:""}</summary>
+            ${groups.map(([c,a])=>`<details style="margin:6px 0 6px 12px"><summary class="small"><b>${c}</b> (${a.length})${a.some(e=>e.available===false)?` <span style="color:var(--red)">${a.filter(e=>e.available===false).length} down</span>`:""}</summary>
+              <div style="overflow-x:auto"><table class="small"><tr><th>Equip</th><th>Type</th><th class="r">KM</th><th>Available</th><th>Notes</th></tr>${a.map(row).join("")}</table></div></details>`).join("")}</details>`;}).join("")}
         ${E.some(e=>e.km>L)?`<p class="small" style="color:#B08A00">${E.filter(e=>e.km>L).map(e=>esc(e.id)).join(", ")}: location beyond KM183, the end of the road; check the entry.</p>`:""}
         <p class="muted small">From ${esc(R.file)} on the Civil Engineering &amp; Roads SharePoint site, downloaded by the collector every 15 minutes.</p>`;})()}
     </section>
@@ -1136,6 +1162,7 @@ function renderInner(){
    show(cur);}
   drawConvoyMap(D.cmap||[], D.strip.notOp||{});
   askWire();
+  try{ document.querySelectorAll(".rloc").forEach(g=>g.onclick=()=>{const d=document.getElementById("rloc"+g.dataset.loc); if(d){ d.open=true; d.scrollIntoView({behavior:"smooth",block:"start"}); }}); }catch(e){}
   if(document.querySelectorAll) document.querySelectorAll(".dot").forEach(el=>el.onclick=()=>{document.getElementById("stripTip").textContent=el.getAttribute("data-tip");});
 }
 
@@ -1155,7 +1182,8 @@ function buildMsg(){
     ...D.convoys.map(c=>`• ${c.name} (${c.tag}): ${[c.units,c.crew,c.status].filter(Boolean).join(" ")}${(c.issues||[]).filter(i=>!/coverage gap/.test(i.text)).length?" Issues: "+c.issues.filter(i=>!/coverage gap/.test(i.text)).map(i=>i.text).join(" "):""}`),
     `• At ${st.asOf}: Aiambak ${g("At Aiambak").units.length} | West Bank ${g("At West Bank").units.length} | On road ${st.groups.filter(p=>p.kind==="move").reduce((a,p)=>a+p.units.length,0)} | Not reporting ${g("Not reporting").units.join(", ")}`,
     ...(()=>{const W=flyWatch(), S=fuelShipping(); const L=[];
-      if(S){ S.dis.forEach(v=>L.push(`• ${v.name} discharging at Aiambak: about ${Math.round(v.left/1000)} kL left`)); if(S.toA.length) L.push(`• Loaded on the way: ${S.toA.map(v=>v.name).join(", ")} (${(S.loaded/1e6).toFixed(2)} ML)`); }
+      if(S){ S.dis.forEach(v=>L.push(`• ${v.name} discharging at Aiambak: about ${Math.round(v.left/1000)} kL left`)); if(S.toA.length) L.push(`• Loaded on the way: ${S.toA.map(v=>v.name).join(", ")} (${(S.loaded/1e6).toFixed(2)} ML)`);
+        S.toJ.forEach(v=>L.push(`• ${v.name}${v.tug?` (tug ${v.tug})`:""} empty, heading to JT${v.nm_jt!=null?`, ${v.nm_jt} nm to go`:""}`)); }
       if(W){ L.push(`• At Aiambak: ${W.at.length?W.at.map(v=>v.name).join(", "):"none showing"}`); L.push(`• In the Fly River: ${W.river.length?W.river.map(v=>v.name).join(", "):"none showing"}`);
         W.ev.filter(e=>/entered|arrived|approaching/.test(e.event)).slice(0,5).forEach(e=>L.push(`• ${e.at.slice(11,16)} ${e.at.slice(8,10)}/${e.at.slice(5,7)}: ${e.vessel} ${e.event}`)); }
       return L.length?["", "*SHIPPING*", ...L]:[];})(),
