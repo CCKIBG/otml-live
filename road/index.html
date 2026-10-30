@@ -178,6 +178,9 @@ footer{color:var(--muted);font-size:13px;margin-top:22px}
 <script>
 /* ---------- DATA: edit this block, or have the PC replace it daily ---------- */
 let D = null;
+const WB_KM = 175;   // West Bank area starts here (trucks park from about KM176); same boundary everywhere on the page
+const pngToday = () => new Date(Date.now()+36e6).toISOString().slice(0,10);
+const dayLbl = d => !d||d===pngToday() ? "today" : "on "+d.slice(8,10)+"/"+d.slice(5,7);
 const KL = l => l==null ? null : Math.round(l/1000);
 const hhmm = iso => iso ? iso.slice(11,16) : "";
 const to24 = s => String(s||"").replace(/(\d{1,2}):(\d{2})\s*([AP]M)/i,(x,h,mm,ap)=>String((+h%12)+(ap.toUpperCase()==="PM"?12:0)).padStart(2,"0")+":"+mm);
@@ -214,7 +217,7 @@ function toD(c, m){
     const st=(c[k]||{}).state; if(st && st!=="live") flags.push({lvl:"amber",tag:"Feed",text:`${label} ${st==="missing"?"not available":"stale"}: ${(c[k]||{}).note||""}`});
   }
   const lowNow=(fa.rows||[]).filter(r=>r.now_below);
-  const roles=m.crew_roles||{};
+  const rd=m.crew_roles_date||"", roles=(rd===t.today||rd===t.yesterday)?(m.crew_roles||{}):{};   // old crew lists name the wrong convoy
   lowNow.forEach(r=>flags.push({lvl:r.score<60||roles[r.name]?"red":"amber",tag:"Fatigue",text:`${r.name}${roles[r.name]?" ("+roles[r.name]+")":""} ReadiScore ${r.score} now (sync ${r.sync}).`}));
   (fa.rows||[]).filter(r=>!r.now_below && roles[r.name]).forEach(r=>flags.push({lvl:"amber",tag:"Fatigue",text:`${r.name} (${roles[r.name]}) reaches 70 at ${to24(r.when.replace("At ",""))}.`}));
   const stale=(pos.on_road||[]).filter(u=>u.fix_age_min>60);
@@ -238,7 +241,7 @@ function toD(c, m){
   try{ const S=fuelShipping(); if(S){ S.vs.filter(v=>v.atJT).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} looks to be at JT (${v.nm_jt} nm). Change its state to loading in manual.json.`}));
      S.vs.filter(v=>v.atAiambak).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} looks to be at Aiambak (${v.nm_aiambak} nm). Change its state to discharging with the docked time.`}));
      S.dis.filter(v=>v.nearlyEmpty).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} is nearly empty at Aiambak (about ${Math.round(v.left/1000)} kL left). When she leaves, change her state to to_jt.`})); } }catch(e){}
-  ((c.fleet||{}).down||[]).filter(d=>d.today).forEach(d=>flags.push({lvl:"amber",tag:"Down today",text:`${d.id}: ${d.fault||""} at ${d.location||"?"}. ${d.comment||""}`.trim()}));
+  ((c.fleet||{}).down||[]).filter(d=>d.today).forEach(d=>flags.push({lvl:"amber",tag:"Down "+(dayLbl((c.fleet||{}).report_date)==="today"?"today":(c.fleet||{}).report_date.slice(8,10)+"/"+(c.fleet||{}).report_date.slice(5,7)),text:`${d.id}: ${d.fault||""} at ${d.location||"?"}. ${d.comment||""}`.trim()}));
   const h=gen.getHours()+gen.getMinutes()/60;
   if((h>=20.5||h<5) && (pos.on_road||[]).length) flags.push({lvl:"red",tag:"Convoy",text:`${pos.on_road.length} trucks still on the road after the 20:30 cut-off.`});
   if(fk && fk.change_3h_l!=null && Math.abs(fk.change_3h_l)>=100000) flags.push({lvl:"amber",tag:"Fuel",text:`Kiunga tanks ${fk.change_3h_l<0?"down":"up"} ${Math.abs(KL(fk.change_3h_l))} kL in 3 h; Tabubil ${ft&&ft.change_3h_l!=null?(ft.change_3h_l<0?"down ":"up ")+Math.abs(KL(ft.change_3h_l))+" kL":"change unknown"}.`});
@@ -273,7 +276,7 @@ function toD(c, m){
     if(cv.status==="on road"&&(cv.escort||[]).length) parts.push(`Escort ${cv.escort.join(", ")} travelling with the convoy.`);
     if(cv.quiet) parts.push(`No GPS since ${new Date((cv.last_fix+36000)*1000).toISOString().slice(11,16)}, last at KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}.`);
     else if(cv.status==="on road") parts.push(`Now KM${cv.km[0]}${cv.km[1]!==cv.km[0]?" to "+cv.km[1]:""}. Predicted arrival ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")} ${cv.eta[0]}${cv.eta[1]!==cv.eta[0]?" to "+cv.eta[1]:""}${cv.eta_miss_min?` (typically within ±${cv.eta_miss_min} min at this distance)`:""}.`);
-    if(cv.arrived) parts.push(`Arrived ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}.`);
+    if(cv.arrived) parts.push(`Arrived ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")} ${cv.arrived[0]}${cv.arrived[1]!==cv.arrived[0]?" to "+cv.arrived[1]:""}${cv.run_h?`, ${cv.run_h} h`:""}${cv.parked_wb?` (parked at KM${cv.parked_wb.km}, inside the West Bank area, from ${cv.parked_wb.at}${cv.parked_wb.until?"; Trakpro had it reaching the road end at "+cv.parked_wb.until+(cv.parked_wb.door_h?", "+cv.parked_wb.door_h+" h door to door":""):""})`:""}.`);
     if((cv.stops||[]).length) parts.push("Stops: "+cv.stops.map(x=>`${x.at} KM${x.km_range&&x.km_range[0]!==x.km_range[1]?Math.round(x.km_range[0])+" to "+Math.round(x.km_range[1]):Math.round(x.km)} ${x.mins} min${x.type==="rest"?" (rest)":x.type==="hold"?" (hold point)":""}`).join(", ")+".");
     return {name:cv.name+dayTxt, tag:`${cv.direction==="north"?"Northbound, loaded":"Southbound"}: ${cv.from} to ${cv.to||(cv.direction==="north"?"West Bank Kiunga":"Aiambak")}`,
       units:cv.units.map(u=>(cv.date===t.today&&pairMap[u]?`${u} + ${pairMap[u].trailers.join("/")}`:u)+(cv.date===t.today&&(drvMap[u]||[]).length?` (${drvMap[u].join(", ")})`:"")).join(", ")+(cv.units.length?` (${cv.units.length})`:""), crew:mm?mm.crew||"":"", status:parts.join(" "), issues:cv.issues||[], live:cv.status==="on road"};});
@@ -339,10 +342,10 @@ function toD(c, m){
           status:cv.status==="on road"?(cv.direction==="north"?"Northbound":"Southbound"):(cv.direction==="north"?"At West Bank":"At Aiambak"),
           dir:cv.status==="on road"?(cv.direction==="north"?"N":"S"):"", color, sub, units:units.filter(u=>u.k!=null)}); });
       const rest=Object.keys(st).filter(u=>!used.has(u)&&st[u].km!=null);
-      const wb=rest.filter(u=>st[u].km>=172), aia=rest.filter(u=>st[u].km<=10), road=rest.filter(u=>st[u].km>10&&st[u].km<172&&(st[u].off_km||0)<=3);
+      const wb=rest.filter(u=>st[u].km>=WB_KM), aia=rest.filter(u=>st[u].km<=10), road=rest.filter(u=>st[u].km>10&&st[u].km<WB_KM&&(st[u].off_km||0)<=3);
       const escRest=[];   // LVs only appear when travelling with a convoy
       if(road.length) out.push({name:"Other trucks",status:"On road",dir:"",color:"x",sub:"",units:road.map(u=>unit(u,false))});
-      const ew=escRest.filter(e=>escSt[e].km>=172), ea=escRest.filter(e=>escSt[e].km<=10);
+      const ew=escRest.filter(e=>escSt[e].km>=WB_KM), ea=escRest.filter(e=>escSt[e].km<=10);
       if(wb.length||ew.length) out.push({name:"Also at West Bank",status:"At West Bank",dir:"",color:"x",sub:"",units:wb.map(u=>unit(u,false)).concat(ew.map(e=>unit(e,true)))});
       if(aia.length||ea.length) out.push({name:"Also at Aiambak",status:"At Aiambak",dir:"",color:"x",sub:"",units:aia.map(u=>unit(u,false)).concat(ea.map(e=>unit(e,true)))});
       return out;})(),
@@ -430,11 +433,24 @@ async function load(){
       const hd=grab("headline"); const g=(h.match(/"generated_at"\s*:\s*"([^"]+)"/)||[])[1];
       c0power=hd?Object.assign({},hd,{generated_at:g, flow:(h.match(/"ok_menga_flow_m3s"\s*:\s*([\d.]+)/)||[])[1], gh01:(h.match(/"gh01_mw"\s*:\s*([\d.]+)/)||[])[1], gh02:(h.match(/"gh02_mw"\s*:\s*([\d.]+)/)||[])[1], river_fc:grab("forecast"), river_d24:(h.match(/"kiunga_delta_24h_m"\s*:\s*(-?[\d.]+)/)||[])[1]}):null;
     }catch(e){ c0power=null; }
+    try{ // a northbound convoy that parks inside the West Bank area (KM175+) has arrived; the wait there is not part of the run
+      const T=c.trucks||{}, mn=s=>{const [h,m]=s.split(":").map(Number); return h*60+m;}, f1=v=>Math.round(v*10)/10;
+      (T.convoys||[]).forEach(cv=>{ if(cv.direction!=="north"||!(cv.stops||[]).length||!(cv.departed||[]).length) return;
+        const i=cv.stops.findIndex(x=>(x.km_range?x.km_range[0]:x.km)>=WB_KM && x.mins>=30); if(i<0) return;
+        const x=cv.stops[i], km=Math.round(x.km_range?x.km_range[0]:x.km);
+        let run=(mn(x.at)-mn(cv.departed[0]))/60; if(run<0) run+=24;
+        const base=cv.baseline_h||7.5;
+        cv.parked_wb={km, at:x.at, mins:x.mins, until:cv.arrived?cv.arrived[0]:null, door_h:cv.run_h||null};
+        cv.stops=cv.stops.slice(0,i);
+        cv.arrived=[x.at,x.at]; cv.run_h=f1(run); cv.status="arrived"; cv.quiet=false;
+        cv.issues=(cv.issues||[]).filter(it=>{ if(/^Run took/.test(it.text)) return false; const k=(it.text.match(/stop \d+ min at KM(\d+(?:\.\d+)?)/)||[])[1]; return !(k&&Math.abs(+k-x.km)<1.5); });
+        if(run>base+2.5) cv.issues.unshift({lvl:"amber",text:`Run took ${cv.run_h} h to the West Bank area (14-day typical ${base} h).`}); });
+    }catch(e){}
     try{ // a convoy whose trucks have gone quiet (no GPS 3 h+) is still on the road until it arrives
       const T=c.trucks||{}, st=(T.raw||{}).status||{}, nowS=Date.now()/1000;
       (T.convoys||[]).forEach(cv=>{ if(cv.status!=="no position"||cv.arrived) return;
         const dep=new Date(cv.date+"T"+(cv.departed||["00:00"])[0]+":00+10:00").getTime()/1000; if(nowS-dep>20*3600) return;
-        const P=cv.units.map(u=>st[u]).filter(x=>x&&x.km!=null&&x.km>2&&x.km<180);
+        const P=cv.units.map(u=>st[u]).filter(x=>x&&x.km!=null&&x.km>2&&x.km<WB_KM);
         if(!P.length) return;
         cv.status="on road"; cv.quiet=true; const ks=P.map(x=>Math.round(x.km)); cv.km=[Math.min(...ks),Math.max(...ks)];
         cv.last_fix=Math.max(...P.map(x=>x.t||0)); });
@@ -522,7 +538,7 @@ function drawConvoyMap(G, notOp){
     else if(u.esc)m=el("rect",{x:x-5,y:y-5,width:10,height:10,transform:`rotate(45 ${x} ${y})`,fill:v(col),stroke:v("--paper"),"stroke-width":1.5},parent);
     else m=el("circle",{cx:x,cy:y,r:5.5,fill:v(col),stroke:bad?v("--red"):v("--paper"),"stroke-width":bad?2.5:1.5},parent);
     el("title",{},m).textContent=`${u.n} · ${stateOf(u)} · ${u.drv?"Driver: "+u.drv+(u.fs&&u.fs.v!=null?" (Readi "+u.fs.v+")":""):"No driver recorded"} · KM${u.k} · ${u.s} km/h · ${u.t}${u.stale?" · no GPS 30+ min":""}${bad?" · "+bad:""}`;};
-  const ends=u=>u.k<=2||u.k>=180, isWB=u=>u.k>=180, isAIA=u=>u.k<=2;
+  const ends=u=>u.k<=2||u.k>=WB_KM, isWB=u=>u.k>=WB_KM, isAIA=u=>u.k<=2;
   const small=isPhone();
   if(small){ const xs=pts.map(p=>p[0]); const x0=Math.min(...xs)-140, x1=Math.max(...xs)+60;
     svg.setAttribute("viewBox",`${x0} 0 ${x1-x0} 1060`);
@@ -532,7 +548,7 @@ function drawConvoyMap(G, notOp){
       if(road.length){const mid=(live.length?live:road)[0], p=at(mid.k), tag=g.name.replace(/Convoy /,"C").replace(/Southbound /,"S").replace(/Other trucks/,"").trim();
         if(tag) txt({x:p[0]+12,y:p[1]+5,class:"lbl",fill:v(live.length?col:"--stale"),style:"font-size:18px"},tag+(g.dir==="N"?" ↑":g.dir==="S"?" ↓":""));}
     }
-    const wbN=G.reduce((n,g)=>n+g.units.filter(u=>u.k>=180).length,0), aiN=G.reduce((n,g)=>n+g.units.filter(u=>u.k<=2).length,0);
+    const wbN=G.reduce((n,g)=>n+g.units.filter(u=>u.k>=WB_KM).length,0), aiN=G.reduce((n,g)=>n+g.units.filter(u=>u.k<=2).length,0);
     const e1=pts[pts.length-1], e0=pts[0];
     if(wbN) txt({x:e1[0]+12,y:e1[1]+5,class:"lbl",fill:v("--ink"),style:"font-size:18px"},String(wbN));
     if(aiN) txt({x:e0[0]+12,y:e0[1]+5,class:"lbl",fill:v("--ink"),style:"font-size:18px"},String(aiN));
@@ -611,13 +627,13 @@ function askAnswer(q0){
   const unitAns=u=>{
     const x=st[u]||es[u]; if(!x||x.km==null) return `I have no position for ${disp(u)} right now.`;
     const age=x.t?Math.round((Date.now()/1000-x.t)/60):null, g=groupOf(u), drv=driverOf(u), rd=readiOf(drv);
-    let where = x.km<=2?"at Aiambak":x.km>=180?"at West Bank Kiunga":`on the road at KM${Math.round(x.km)}`;
-    let move = x.km>2&&x.km<180 ? ((x.km_30min||0)<-1?", heading south to Aiambak":(x.km_30min||0)>1?", heading north to West Bank":", stopped") : "";
+    let where = x.km<=2?"at Aiambak":x.km>=WB_KM?"at West Bank Kiunga":`on the road at KM${Math.round(x.km)}`;
+    let move = x.km>2&&x.km<WB_KM ? ((x.km_30min||0)<-1?", heading south to Aiambak":(x.km_30min||0)>1?", heading north to West Bank":", stopped") : "";
     let speed = x.speed>3?` at ${x.speed} km/h`:"";
     let s=`${disp(u)} is ${where}${move}${speed}`;
     s+= age!=null&&age>30?`. No GPS for ${age} minutes, last fix ${hm(x.t)}`:`, last fix ${hm(x.t)}`;
     if(g&&!/^Also at|^Other/.test(g.name)) s+=`. It is in ${g.name}`;
-    const cv=(D.convoys||[]).find(o=>g&&o.name&&o.name.startsWith(g.name)); const eta=cv&&(cv.status||"").match(/(Predicted arrival|ETA)[^.]*\./); if(eta&&x.km>2&&x.km<180) s+=`. ${eta[0].replace(/\.$/,"")}`;
+    const cv=(D.convoys||[]).find(o=>g&&o.name&&o.name.startsWith(g.name)); const eta=cv&&(cv.status||"").match(/(Predicted arrival|ETA)[^.]*\./); if(eta&&x.km>2&&x.km<WB_KM) s+=`. ${eta[0].replace(/\.$/,"")}`;
     if(drv) s+=`. Driver ${drv}${rd?`, Readi ${rd.score}`:""}`;
     return s+".";
   };
@@ -647,7 +663,7 @@ function askAnswer(q0){
   if(/bag|copper|cucon|concentrate/.test(q)){ const cu=D.cucon; if(!cu) return `Wakata shows ${D.bags.sinceOct1} bulka bags since 1 October.`;
     const g=k=>(cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}; return `CuCon report ${cu.date.slice(8,10)}/${cu.date.slice(5,7)}: bagged ${g("bagged").day_bags} that day against ${g("bagged").target_bags}. To date ${g("bagged").ptd_bags} bagged, ${g("trucked").ptd_bags} trucked to Aiambak, ${g("loaded").ptd_bags} shipped.`; }
   if(/how many|on the road|trucks/.test(q)){ const n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
-    return `${n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale)} trucks moving on the road, ${n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale)} with no GPS, ${n(u=>!u.esc&&u.k>=180)} at West Bank and ${n(u=>!u.esc&&u.k<=2)} at Aiambak.`; }
+    return `${n(u=>!u.esc&&u.k>2&&u.k<WB_KM&&!u.stale)} trucks moving on the road, ${n(u=>!u.esc&&u.k>2&&u.k<WB_KM&&u.stale)} with no GPS, ${n(u=>!u.esc&&u.k>=WB_KM)} at West Bank and ${n(u=>!u.esc&&u.k<=2)} at Aiambak.`; }
   return `Try: where is IT15, what time will Convoy 1 arrive at West Bank, where is Southbound 1, how much fuel, how many bags, or how many trucks on the road.`;
 }
 function askRun(q){ const out=document.getElementById("askOut"); if(!out) return; const a=askAnswer(q);
@@ -670,7 +686,7 @@ function askWire(){
 function trakRunning(T){ const out={}, now=Date.now()/1000, raw=(T||{}).raw||{}, ut=raw.unit_trips||{}, st=raw.status||{};
   const fid=u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u;
   for(const [u,v] of Object.entries(ut)){ const tr=(v.trips||[]).filter(x=>x.dep&&now-x.dep<24*3600); if(tr.length) out[fid(u)]={trips:tr.length, last:Math.max(...tr.map(x=>x.dep))}; }
-  for(const [u,x] of Object.entries(st)){ if(x&&x.t&&now-x.t<3600&&(x.speed||0)>10&&x.km>2&&x.km<180&&!out[fid(u)]) out[fid(u)]={trips:0,last:x.t,moving:true}; }
+  for(const [u,x] of Object.entries(st)){ if(x&&x.t&&now-x.t<3600&&(x.speed||0)>10&&x.km>2&&x.km<WB_KM&&!out[fid(u)]) out[fid(u)]={trips:0,last:x.t,moving:true}; }
   return out; }
 
 function runningDown(F, T){ const R=trakRunning(T), out={}; ((F||{}).down||[]).forEach(d=>{ const r=R[d.id]; if(!r) return;
@@ -781,7 +797,7 @@ function renderInner(){
   <div class="ask"><button id="askMic" class="askmic" aria-label="Ask by voice">🎤</button><input id="askIn" type="text" placeholder="Ask: where is IT15? what time will Convoy 1 arrive at West Bank?" autocomplete="off"><button id="askGo">Ask</button>
     <label class="askv"><input type="checkbox" id="askVoice" checked> Speak answer</label><div id="askOut" class="askout" aria-live="polite"></div></div>
   ${(()=>{const G=D.cmap||[], n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
-    const road=n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale), wb=n(u=>!u.esc&&u.k>=180), ai=n(u=>!u.esc&&u.k<=2);
+    const road=n(u=>!u.esc&&u.k>2&&u.k<WB_KM&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<WB_KM&&u.stale), wb=n(u=>!u.esc&&u.k>=WB_KM), ai=n(u=>!u.esc&&u.k<=2);
     const kl=v=>v==null?"–":Math.round(v/1000).toLocaleString("en-AU");
     const f=D.fuel, fk=(f.farms||[]).find(x=>/kiunga/i.test(x.name))||{}, ft=(f.farms||[]).find(x=>/tabubil/i.test(x.name))||{};
     const pm=((D.fleet||{}).groups||{})["PRIME MOVERS"]||null;
@@ -804,7 +820,7 @@ function renderInner(){
         return tile("road","Convoys on the road",`${cvs.length}`,(cvs.length?cvs.join("<br>"):n?`${n} truck${n===1?"":"s"} between Aiambak and West Bank`:"no trucks between Aiambak and West Bank")+rt,sil?"amber":"");})()}
       ${tile("road","Departures today",`${D.trucks.tripsNorth} <small>north</small> · ${D.trucks.tripsSouth} <small>south</small>`,`${wb} at West Bank, ${ai} at Aiambak`)}
       ${(()=>{const RUNx=runningDown(c0raw.fleet,c0raw.trucks), pmDown=((D.fleet||{}).down||[]).filter(d=>/^IT\d\d$/.test(d.id)&&!RUNx[d.id]).length, av=pm?pm.total-Math.max(pm.down,pmDown):null;
-        return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. today's breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
+        return tile("fleet","Prime movers available",pm?`${av}<small>/${pm.total}</small>`:"–",pm?`${pmDown} down incl. ${dayLbl(D.fleet.date)==="today"?"today's":"that day's"} breakdowns · shift report ${esc((D.fleet.date||"").slice(8,10))}/${esc((D.fleet.date||"").slice(5,7))}`:"no shift report",pm&&av/pm.total<0.8?"red":pm&&av/pm.total<0.9?"amber":"");})()}
       ${tile("fuel","Fuel above buffers",`${kl(f.availableTotal)} <small>kL</small>`,`Kiunga ${fk.x?kl(fk.x.available):"–"} · Tabubil ${ft.x?kl(ft.x.available):"–"} kL`,fk.x&&fk.x.available<0?"red":fk.x&&fk.x.available<150000?"amber":"")}
       ${tile("fuel","Fuel into Kiunga",`${f.received==null?"–":kl(f.received)} <small>kL</small>`,`last 13:00 to 13:00 day`)}
       ${(()=>{const S=fuelShipping(); if(!S) return ""; const ML=v=>(v/1e6).toFixed(2), k=v=>Math.round(v/1000).toLocaleString("en-AU");
@@ -841,7 +857,7 @@ function renderInner(){
     <div class="ph"><h2>Trucks on the road</h2>${(()=>{const ag=D.strip.asOfIso?Math.round((Date.now()-new Date(D.strip.asOfIso))/60000):null;
       return `<span class="state ${ag!=null&&ag>20?"missing":"live"}">Trakpro ${esc(D.strip.asOf)}${ag!=null?` (${ag} min ago)`:""}</span>`;})()}</div>
     ${(()=>{const G=D.cmap||[], n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
-      const road=n(u=>!u.esc&&u.k>2&&u.k<180&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<180&&u.stale), wb=n(u=>!u.esc&&u.k>=180), ai=n(u=>!u.esc&&u.k<=2);
+      const road=n(u=>!u.esc&&u.k>2&&u.k<WB_KM&&!u.stale), sil=n(u=>!u.esc&&u.k>2&&u.k<WB_KM&&u.stale), wb=n(u=>!u.esc&&u.k>=WB_KM), ai=n(u=>!u.esc&&u.k<=2);
       const chip=(l,v,c)=>`<span style="display:inline-block;padding:4px 10px;margin:0 6px 6px 0;border-radius:99px;background:var(--paper);border:1px solid var(--line);font-size:15px"><b style="color:${c||"var(--ink)"}">${v}</b> ${l}</span>`;
       const cu=D.cucon, g=k=>cu?((cu.stages||[]).find(x=>x.name.toLowerCase().includes(k))||{}):{};
       const cuLine=cu&&!ROAD_MODE?`<div class="small muted" style="margin:-2px 0 8px">CuCon to date: bagged <b>${(g("bagged").ptd_bags||0).toLocaleString("en-AU")}</b> → East Bank <b>${(g("east bank").ptd_bags||0).toLocaleString("en-AU")}</b> → trucked <b>${(g("trucked").ptd_bags||0).toLocaleString("en-AU")}</b> → shipped <b>${(g("loaded").ptd_bags||0).toLocaleString("en-AU")}</b> <a href="#cucon" onclick="document.querySelector('[data-t=cucon]').click();return false">details</a></div>`:"";
@@ -1055,9 +1071,9 @@ function renderInner(){
         ${Object.entries(F.groups).map(([k,g])=>`<tr${k==="TOTAL FLEETS"?' style="font-weight:600"':""}><td>${esc(k.charAt(0)+k.slice(1).toLowerCase())}</td><td class="r">${g.total}</td><td class="r">${g.down}</td><td class="r">${g.available}</td><td class="r" style="color:${g.pct<80?"var(--red)":g.pct<90?"#B08A00":"var(--green)"}">${g.pct!=null?g.pct:"–"}</td></tr>`).join("")}</table></div>
         <h3 class="small" style="margin:12px 0 4px">Down now (${dn.length})</h3>
         <div style="overflow-x:auto"><table class="small"><tr><th>Unit</th><th>Fault</th><th>Where</th><th class="r">Days</th><th>Status</th></tr>
-        ${dn.map(d=>{const run=(F.recon&&F.recon.running||[]).includes(d.id); return `<tr><td><b style="color:${run?"var(--green)":"var(--red)"}">${esc(d.id)}</b>${run?' <span class="cpill" style="--c:var(--green)">running on Trakpro, check</span>':""}${d.trakpro_id&&d.trakpro_id!==d.id?` <span class="muted">(${esc(d.trakpro_id)})</span>`:""}${d.today?' <span class="cpill" style="--c:var(--gA)">new today</span>':""}<br><span class="muted">${esc([d.make,d.type].filter(Boolean).join(" ").toLowerCase())}</span></td>
+        ${dn.map(d=>{const run=(F.recon&&F.recon.running||[]).includes(d.id); return `<tr><td><b style="color:${run?"var(--green)":"var(--red)"}">${esc(d.id)}</b>${run?' <span class="cpill" style="--c:var(--green)">running on Trakpro, check</span>':""}${d.trakpro_id&&d.trakpro_id!==d.id?` <span class="muted">(${esc(d.trakpro_id)})</span>`:""}${d.today?' <span class="cpill" style="--c:var(--gA)">new '+esc(dayLbl(D.fleet.date))+'</span>':""}<br><span class="muted">${esc([d.make,d.type].filter(Boolean).join(" ").toLowerCase())}</span></td>
           <td>${esc(d.fault||"")}</td><td>${esc(d.location||"")}</td><td class="r">${days(d.since)!=null?days(d.since):"–"}</td><td class="muted">${esc(d.comment||"")}</td></tr>`;}).join("")}</table></div>
-        ${F.workshop.filter(w=>w.released).length?`<p class="small" style="margin-top:8px"><b>Serviced and released today:</b> ${F.workshop.filter(w=>w.released).map(w=>esc(w.id+" ("+(w.fault||"").toLowerCase()+")")).join(", ")}.</p>`:""}
+        ${F.workshop.filter(w=>w.released).length?`<p class="small" style="margin-top:8px"><b>Serviced and released ${esc(dayLbl(D.fleet.date))}:</b> ${F.workshop.filter(w=>w.released).map(w=>esc(w.id+" ("+(w.fault||"").toLowerCase()+")")).join(", ")}.</p>`:""}
         ${F.recon?`<h3 class="small" style="margin:12px 0 4px">Check the numbers</h3>
         <div style="overflow-x:auto"><table class="small"><tr><th>Fleet</th><th class="r">Summary down</th><th class="r">Job list down</th><th class="r">Operational, no job</th><th>Notes</th></tr>
         ${F.recon.rows.map(r=>`<tr><td>${esc(r.label)}</td><td class="r">${r.sumDown??"–"}</td><td class="r" title="${esc(r.jobIds.join(", "))}">${r.jobs}</td><td class="r">${r.avail}${r.total?"/"+r.total:""}</td><td style="color:${r.ok?"var(--green)":"#B08A00"}">${r.ok?"agrees":esc(r.notes.join("; "))}</td></tr>`).join("")}</table></div>
