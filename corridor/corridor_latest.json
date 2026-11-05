@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-05T21:00+10:00",
+  "generated": "2026-11-05T21:15+10:00",
   "window": {
     "from": "2026-11-04T13:00+10:00",
     "to": "2026-11-05T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-05T21:00+10:00",
+    "as_of": "2026-11-05T21:15+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -14,10 +14,10 @@
             "id": "T4",
             "product": "DIESEL",
             "vol": 59882.0,
-            "ullage": 2197720.0,
+            "ullage": 2197721.0,
             "height_mm": 188.1,
-            "cap": 2257602.0,
-            "console_time": "2026-11-05T21:00+10:00",
+            "cap": 2257603.0,
+            "console_time": "2026-11-05T21:15+10:00",
             "moved_24h_l": {
               "in": 0,
               "out": 0
@@ -33,11 +33,11 @@
           {
             "id": "T5",
             "product": "DIESEL",
-            "vol": 369982.0,
-            "ullage": 1891218.0,
-            "height_mm": 1162.5,
-            "cap": 2261200.0,
-            "console_time": "2026-11-05T21:00+10:00",
+            "vol": 369703.0,
+            "ullage": 1891498.0,
+            "height_mm": 1161.6,
+            "cap": 2261201.0,
+            "console_time": "2026-11-05T21:15+10:00",
             "moved_24h_l": {
               "in": 0,
               "out": 40704
@@ -47,17 +47,17 @@
             "live_by_movement": false,
             "suction_l": 188495,
             "unusable_l": 188495,
-            "usable_l": 181487.0,
+            "usable_l": 181208.0,
             "below_suction": false
           },
           {
             "id": "T6",
             "product": "DIESEL",
             "vol": 547206.0,
-            "ullage": 1723272.0,
+            "ullage": 1723271.0,
             "height_mm": 1630.5,
-            "cap": 2270478.0,
-            "console_time": "2026-11-05T21:00+10:00",
+            "cap": 2270477.0,
+            "console_time": "2026-11-05T21:15+10:00",
             "moved_24h_l": {
               "in": 468946,
               "out": 445196
@@ -73,11 +73,11 @@
           {
             "id": "T7",
             "product": "DIESEL",
-            "vol": 79008.0,
-            "ullage": 828000.0,
-            "height_mm": 625.9,
+            "vol": 79047.0,
+            "ullage": 827961.0,
+            "height_mm": 626.3,
             "cap": 907008.0,
-            "console_time": "2026-11-05T21:00+10:00",
+            "console_time": "2026-11-05T21:15+10:00",
             "moved_24h_l": {
               "in": 0,
               "out": 0
@@ -85,18 +85,18 @@
             "configured_in_service": false,
             "in_service": false,
             "live_by_movement": false,
-            "suction_l": 32820,
-            "unusable_l": 79008.0,
+            "suction_l": 32815,
+            "unusable_l": 79047.0,
             "usable_l": 0.0,
             "below_suction": false
           }
         ],
-        "total_l": 1056078.0,
-        "usable_l": 540198.0,
+        "total_l": 1055838.0,
+        "usable_l": 539919.0,
         "buffer_l": 400000,
-        "available_l": 140198.0,
+        "available_l": 139919.0,
         "net_l": 100919.0,
-        "change_3h_l": 136564.0
+        "change_3h_l": 105799.0
       },
       "tabubil": {
         "tanks": [
@@ -174,7 +174,7 @@
     "site_errors": {
       "tabubil": "logged out: log in again in this tab"
     },
-    "available_total_l": 996633.0,
+    "available_total_l": 996354.0,
     "vessel": {
       "name": "Fly Resilience",
       "docked_at": "2026-10-25T15:00+10:00",
@@ -263,7 +263,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-05T21:00+10:00",
+    "as_of": "2026-11-05T21:15+10:00",
     "since_1_oct": 4508,
     "filled_in_window": 150,
     "wakata": {
@@ -332,7 +332,7 @@
   },
   "trucks": {
     "state": "live",
-    "as_of": "2026-11-05T21:01+10:00",
+    "as_of": "2026-11-05T21:16+10:00",
     "positions": {
       "aiambak": [
         "IT02",
@@ -354,7 +354,6 @@
         "TT15",
         "TT16",
         "TT19",
-        "TT20",
         "TT22",
         "TT23"
       ],
@@ -366,17 +365,29 @@
           "km_30min": -11.8,
           "dir": "south",
           "last_fix": "20:10",
-          "fix_age_min": 49,
+          "fix_age_min": 64,
           "source": "dashcam",
           "departed": "18:47",
           "eta": "01:53"
+        },
+        {
+          "unit": "TT20",
+          "km": 176.6,
+          "speed": 37,
+          "km_30min": -6.1,
+          "dir": "south",
+          "last_fix": "21:15",
+          "fix_age_min": 0,
+          "source": "tracker",
+          "departed": "21:06",
+          "eta": "04:12"
         }
       ],
       "off_corridor": [
         {
           "unit": "IT14",
           "off_km": 94.8,
-          "last_fix": "20:58"
+          "last_fix": "21:12"
         }
       ],
       "not_reporting": [
@@ -424,13 +435,13 @@
         {
           "unit": "IT04",
           "off_km": 0,
-          "last_fix": "20:59",
+          "last_fix": "21:14",
           "source": "tracker"
         },
         {
           "unit": "IT07",
           "off_km": 0.1,
-          "last_fix": "20:58",
+          "last_fix": "21:15",
           "source": "tracker"
         },
         {
@@ -442,25 +453,19 @@
         {
           "unit": "TT16",
           "off_km": 0,
-          "last_fix": "20:58",
+          "last_fix": "21:06",
           "source": "tracker"
         },
         {
           "unit": "TT19",
           "off_km": 0.1,
-          "last_fix": "20:56",
-          "source": "tracker"
-        },
-        {
-          "unit": "TT20",
-          "off_km": 0,
-          "last_fix": "20:59",
+          "last_fix": "21:13",
           "source": "tracker"
         },
         {
           "unit": "TT23",
           "off_km": 0.1,
-          "last_fix": "20:59",
+          "last_fix": "21:14",
           "source": "tracker"
         }
       ],
@@ -477,343 +482,343 @@
           "km": 183.3,
           "off_km": 0.5,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L1730",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:12"
         },
         {
           "unit": "L1847",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L1883",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L1911",
-          "km": 0.2,
-          "off_km": 0.1,
+          "km": 0,
+          "off_km": 0.2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:15"
         },
         {
           "unit": "L1914",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:11"
         },
         {
           "unit": "L1932",
           "km": 183.3,
           "off_km": 1.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:12"
         },
         {
           "unit": "L1933",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:14"
         },
         {
           "unit": "L1940",
           "km": 0,
           "off_km": 0.2,
           "speed": 0,
-          "last_fix": "21:00"
+          "last_fix": "21:11"
         },
         {
           "unit": "L1946",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:14"
         },
         {
           "unit": "L1980",
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:06"
         },
         {
           "unit": "L1981",
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2002",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "21:00"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2011",
           "km": 183.3,
           "off_km": 0.5,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:11"
         },
         {
           "unit": "L2012",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2013",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2015",
           "km": 183.3,
           "off_km": 1.9,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2018",
           "km": 183.3,
           "off_km": 2.1,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2025",
           "km": 183.3,
           "off_km": 2.2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:12"
         },
         {
           "unit": "L2036",
           "km": 183.3,
-          "off_km": 1.2,
-          "speed": 3,
-          "last_fix": "20:59"
+          "off_km": 1.9,
+          "speed": 12,
+          "last_fix": "21:15"
         },
         {
           "unit": "L2049",
           "km": 183.3,
           "off_km": 0.6,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2052",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:15"
         },
         {
           "unit": "L2053",
           "km": 183.3,
-          "off_km": 1.2,
-          "speed": 0,
-          "last_fix": "20:59"
+          "off_km": 0.5,
+          "speed": 8,
+          "last_fix": "21:14"
         },
         {
           "unit": "L2060",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:10"
         },
         {
           "unit": "L2064",
           "km": 183.3,
           "off_km": 0.5,
           "speed": 0,
-          "last_fix": "20:55"
+          "last_fix": "21:10"
         },
         {
           "unit": "L2066",
           "km": 183.3,
           "off_km": 2.1,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:02"
         },
         {
           "unit": "L2072",
           "km": 183.3,
           "off_km": 1.1,
           "speed": 0,
-          "last_fix": "21:00"
+          "last_fix": "21:08"
         },
         {
           "unit": "L2078",
           "km": 178.2,
           "off_km": 0,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2082",
           "km": 183.3,
           "off_km": 2.2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:12"
         },
         {
           "unit": "L2084",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:55"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2089",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2090",
           "km": 183.3,
           "off_km": 1,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2095",
           "km": 183.3,
           "off_km": 2.2,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2107",
           "km": 183.3,
           "off_km": 1.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2117",
           "km": 182.7,
           "off_km": 0,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:00"
         },
         {
           "unit": "L2121",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:11"
         },
         {
           "unit": "L2136",
           "km": 183.3,
           "off_km": 1.3,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2143",
           "km": 183.3,
-          "off_km": 0.6,
-          "speed": 27,
-          "last_fix": "20:59"
+          "off_km": 1.2,
+          "speed": 0,
+          "last_fix": "21:14"
         },
         {
           "unit": "L2157",
           "km": 183.3,
           "off_km": 1.9,
           "speed": 0,
-          "last_fix": "20:56"
+          "last_fix": "21:12"
         },
         {
           "unit": "L2159",
           "km": 183.3,
-          "off_km": 1.9,
-          "speed": 39,
-          "last_fix": "21:00"
+          "off_km": 2,
+          "speed": 0,
+          "last_fix": "21:11"
         },
         {
           "unit": "L2160",
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:12"
         },
         {
           "unit": "L2161",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:58"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2175",
           "km": 183.3,
           "off_km": 2.1,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2190",
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
-          "last_fix": "20:56"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2195",
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:12"
         },
         {
           "unit": "L2197",
           "km": 183.3,
-          "off_km": 1.3,
-          "speed": 27,
-          "last_fix": "20:59"
+          "off_km": 2,
+          "speed": 0,
+          "last_fix": "21:13"
         },
         {
           "unit": "L2200",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:14"
         },
         {
           "unit": "L2202",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:57"
+          "last_fix": "21:13"
         },
         {
           "unit": "L2208",
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
-          "last_fix": "20:59"
+          "last_fix": "21:13"
         }
       ]
     },
@@ -1417,7 +1422,12 @@
           "18:47"
         ],
         "loaded": false,
-        "issues": [],
+        "issues": [
+          {
+            "lvl": "amber",
+            "text": "IT11: no position for 64 min (last at KM131)."
+          }
+        ],
         "name": "Southbound 3",
         "lost": [],
         "status": "on road",
@@ -1446,6 +1456,37 @@
           }
         ],
         "max_speed": 60
+      },
+      {
+        "date": "2026-11-05",
+        "direction": "south",
+        "from": "West Bank Kiunga",
+        "to": "Aiambak",
+        "units": [
+          "TT20"
+        ],
+        "departed": [
+          "21:06",
+          "21:06"
+        ],
+        "loaded": false,
+        "issues": [],
+        "name": "Southbound 4",
+        "lost": [],
+        "status": "on road",
+        "km": [
+          177,
+          177
+        ],
+        "escort": [],
+        "eta": [
+          "04:12",
+          "04:12"
+        ],
+        "eta_miss_min": 121,
+        "eta_within_60_pct": 76,
+        "stops": [],
+        "max_speed": 54
       }
     ],
     "departures": {
@@ -1471,7 +1512,7 @@
       },
       "2026-11-05": {
         "north_departures": 6,
-        "south_departures": 8,
+        "south_departures": 9,
         "north_units": [
           "TT16",
           "IT11",
@@ -1488,7 +1529,8 @@
           "IT09",
           "TT24",
           "IT05",
-          "IT11"
+          "IT11",
+          "TT20"
         ]
       }
     },
@@ -1717,7 +1759,7 @@
       "note": "error = predicted minus actual arrival; positive means the truck arrived earlier than predicted"
     },
     "adas": {
-      "as_of": "20:15",
+      "as_of": "21:15",
       "units": [
         {
           "unit": "TT24",
@@ -1748,7 +1790,7 @@
           "unit": "IT11",
           "types": {
             "YAWNING": {
-              "n24": 3,
+              "n24": 2,
               "n12": 0,
               "last": "04/11 22:47",
               "where": "Aiambak"
@@ -1825,7 +1867,7 @@
           "unit": "TT23",
           "types": {
             "YAWNING": {
-              "n24": 3,
+              "n24": 1,
               "n12": 0,
               "last": "04/11 21:55",
               "where": "Kiunga-Tabubil Highway"
@@ -2402,33 +2444,6 @@
           "where": "Kiunga-Tabubil Highway",
           "map": "https://maps.google.com/?q=-6.144947,141.295107",
           "fatigue": true
-        },
-        {
-          "unit": "TT23",
-          "type": "YAWNING",
-          "time": "2026-11-04 21:12:36",
-          "label": "04/11 21:12:36",
-          "where": "Moian Road",
-          "map": "https://maps.google.com/?q=-6.308887,141.306065",
-          "fatigue": true
-        },
-        {
-          "unit": "TT23",
-          "type": "YAWNING",
-          "time": "2026-11-04 21:05:07",
-          "label": "04/11 21:05:07",
-          "where": "Moian Road",
-          "map": "https://maps.google.com/?q=-6.344267,141.286327",
-          "fatigue": true
-        },
-        {
-          "unit": "IT11",
-          "type": "YAWNING",
-          "time": "2026-11-04 20:55:19",
-          "label": "04/11 20:55:19",
-          "where": "Maka",
-          "map": "https://maps.google.com/?q=-6.904267,141.313040",
-          "fatigue": true
         }
       ],
       "cameras": 24,
@@ -2440,7 +2455,7 @@
       "trailers_defined": 0,
       "drivers_defined": 9,
       "errors": [],
-      "as_of": "20:15"
+      "as_of": "21:15"
     },
     "trend": {
       "days": [
@@ -2595,7 +2610,7 @@
           "off_km": 93.3
         },
         "IT02": {
-          "t": 1793876400,
+          "t": 1793877302,
           "km": 1,
           "off_km": 0.1,
           "speed": 0,
@@ -2611,7 +2626,7 @@
           "km_30min": 0
         },
         "IT04": {
-          "t": 1793876396,
+          "t": 1793877296,
           "km": 183.3,
           "off_km": 0,
           "speed": 0,
@@ -2619,7 +2634,7 @@
           "km_30min": 0
         },
         "IT05": {
-          "t": 1793876157,
+          "t": 1793877193,
           "km": 0,
           "off_km": 0.2,
           "speed": 0,
@@ -2627,7 +2642,7 @@
           "km_30min": 0
         },
         "IT06": {
-          "t": 1793876316,
+          "t": 1793877021,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -2635,7 +2650,7 @@
           "km_30min": 0
         },
         "IT07": {
-          "t": 1793876334,
+          "t": 1793877305,
           "km": 182.7,
           "off_km": 0.1,
           "speed": 0,
@@ -2643,7 +2658,7 @@
           "km_30min": 0
         },
         "IT08": {
-          "t": 1793876336,
+          "t": 1793877236,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -2651,7 +2666,7 @@
           "km_30min": 0
         },
         "IT09": {
-          "t": 1793876192,
+          "t": 1793877245,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -2683,15 +2698,15 @@
           "off_km": 0.1
         },
         "IT13": {
-          "t": 1793876386,
+          "t": 1793877204,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
-          "source": "dashcam",
+          "source": "tracker",
           "km_30min": 0
         },
         "IT14": {
-          "t": 1793876323,
+          "t": 1793877165,
           "km": 183.3,
           "off_km": 94.8,
           "speed": 0,
@@ -2705,7 +2720,7 @@
           "off_km": 2.2
         },
         "TT16": {
-          "t": 1793876335,
+          "t": 1793876783,
           "km": 182.7,
           "off_km": 0,
           "speed": 0,
@@ -2713,7 +2728,7 @@
           "km_30min": 0
         },
         "TT17": {
-          "t": 1793876383,
+          "t": 1793877280,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -2721,7 +2736,7 @@
           "km_30min": 0
         },
         "TT18": {
-          "t": 1793876310,
+          "t": 1793877121,
           "km": 0,
           "off_km": 0.1,
           "speed": 0,
@@ -2729,7 +2744,7 @@
           "km_30min": 0
         },
         "TT19": {
-          "t": 1793876201,
+          "t": 1793877212,
           "km": 182.8,
           "off_km": 0.1,
           "speed": 0,
@@ -2737,12 +2752,14 @@
           "km_30min": 0
         },
         "TT20": {
-          "t": 1793876384,
-          "km": 182.7,
-          "off_km": 0,
-          "speed": 0,
+          "t": 1793877304,
+          "km": 176.6,
+          "off_km": 0.1,
+          "speed": 37,
           "source": "tracker",
-          "km_30min": 0
+          "km_30min": -6.1,
+          "eta": 1793896984,
+          "eta_ref": "TT20 run arriving 2026-11-04T13:09:22.000Z"
         },
         "TT21": {
           "silent": true,
@@ -2757,7 +2774,7 @@
           "off_km": 0.1
         },
         "TT23": {
-          "t": 1793876346,
+          "t": 1793877256,
           "km": 183.3,
           "off_km": 0.1,
           "speed": 0,
@@ -2765,7 +2782,7 @@
           "km_30min": 0
         },
         "TT24": {
-          "t": 1793876179,
+          "t": 1793877302,
           "km": 0,
           "off_km": 0.2,
           "speed": 0,
@@ -2783,7 +2800,7 @@
           "km_30min": -12.4
         },
         "L1631": {
-          "t": 1793876386,
+          "t": 1793877280,
           "km": 183.3,
           "off_km": 0.5,
           "speed": 0,
@@ -2791,7 +2808,7 @@
           "km_30min": 0
         },
         "L1730": {
-          "t": 1793876284,
+          "t": 1793877126,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -2799,15 +2816,15 @@
           "km_30min": 0
         },
         "L1847": {
-          "t": 1793876340,
+          "t": 1793877242,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
           "source": "tracker",
-          "km_30min": -0.2
+          "km_30min": 0
         },
         "L1883": {
-          "t": 1793876364,
+          "t": 1793877264,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -2815,15 +2832,15 @@
           "km_30min": 0
         },
         "L1911": {
-          "t": 1793876274,
-          "km": 0.2,
-          "off_km": 0.1,
+          "t": 1793877305,
+          "km": 0,
+          "off_km": 0.2,
           "speed": 0,
           "source": "tracker",
-          "km_30min": 0
+          "km_30min": -0.2
         },
         "L1914": {
-          "t": 1793876352,
+          "t": 1793877108,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -2831,7 +2848,7 @@
           "km_30min": 0
         },
         "L1932": {
-          "t": 1793876394,
+          "t": 1793877145,
           "km": 183.3,
           "off_km": 1.1,
           "speed": 0,
@@ -2839,7 +2856,7 @@
           "km_30min": 0
         },
         "L1933": {
-          "t": 1793876252,
+          "t": 1793877291,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -2847,7 +2864,7 @@
           "km_30min": 0
         },
         "L1940": {
-          "t": 1793876402,
+          "t": 1793877062,
           "km": 0,
           "off_km": 0.2,
           "speed": 0,
@@ -2855,7 +2872,7 @@
           "km_30min": 0
         },
         "L1946": {
-          "t": 1793876326,
+          "t": 1793877283,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -2863,7 +2880,7 @@
           "km_30min": 0
         },
         "L1980": {
-          "t": 1793876334,
+          "t": 1793876770,
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
@@ -2871,7 +2888,7 @@
           "km_30min": 0
         },
         "L1981": {
-          "t": 1793876300,
+          "t": 1793877256,
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
@@ -2879,7 +2896,7 @@
           "km_30min": 0
         },
         "L2002": {
-          "t": 1793876401,
+          "t": 1793877186,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -2887,7 +2904,7 @@
           "km_30min": 0
         },
         "L2011": {
-          "t": 1793876245,
+          "t": 1793877060,
           "km": 183.3,
           "off_km": 0.5,
           "speed": 0,
@@ -2895,7 +2912,7 @@
           "km_30min": 0
         },
         "L2012": {
-          "t": 1793876326,
+          "t": 1793877225,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -2903,7 +2920,7 @@
           "km_30min": 0
         },
         "L2013": {
-          "t": 1793876286,
+          "t": 1793877186,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -2911,7 +2928,7 @@
           "km_30min": 0
         },
         "L2015": {
-          "t": 1793876377,
+          "t": 1793877264,
           "km": 183.3,
           "off_km": 1.9,
           "speed": 0,
@@ -2919,7 +2936,7 @@
           "km_30min": 0
         },
         "L2018": {
-          "t": 1793876245,
+          "t": 1793877242,
           "km": 183.3,
           "off_km": 2.1,
           "speed": 0,
@@ -2927,7 +2944,7 @@
           "km_30min": 0
         },
         "L2025": {
-          "t": 1793876241,
+          "t": 1793877127,
           "km": 183.3,
           "off_km": 2.2,
           "speed": 0,
@@ -2935,15 +2952,15 @@
           "km_30min": 0
         },
         "L2036": {
-          "t": 1793876378,
+          "t": 1793877302,
           "km": 183.3,
-          "off_km": 1.2,
-          "speed": 3,
+          "off_km": 1.9,
+          "speed": 12,
           "source": "tracker",
           "km_30min": 0
         },
         "L2049": {
-          "t": 1793876381,
+          "t": 1793877278,
           "km": 183.3,
           "off_km": 0.6,
           "speed": 0,
@@ -2951,7 +2968,7 @@
           "km_30min": 0
         },
         "L2052": {
-          "t": 1793876360,
+          "t": 1793877302,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -2959,15 +2976,15 @@
           "km_30min": 0
         },
         "L2053": {
-          "t": 1793876397,
+          "t": 1793877283,
           "km": 183.3,
-          "off_km": 1.2,
-          "speed": 0,
+          "off_km": 0.5,
+          "speed": 8,
           "source": "tracker",
           "km_30min": 0
         },
         "L2060": {
-          "t": 1793876274,
+          "t": 1793877024,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -2975,7 +2992,7 @@
           "km_30min": 0
         },
         "L2064": {
-          "t": 1793876123,
+          "t": 1793877041,
           "km": 183.3,
           "off_km": 0.5,
           "speed": 0,
@@ -2983,7 +3000,7 @@
           "km_30min": 0
         },
         "L2066": {
-          "t": 1793876261,
+          "t": 1793876548,
           "km": 183.3,
           "off_km": 2.1,
           "speed": 0,
@@ -2991,7 +3008,7 @@
           "km_30min": 0
         },
         "L2072": {
-          "t": 1793876404,
+          "t": 1793876880,
           "km": 183.3,
           "off_km": 1.1,
           "speed": 0,
@@ -2999,7 +3016,7 @@
           "km_30min": 0
         },
         "L2078": {
-          "t": 1793876310,
+          "t": 1793877210,
           "km": 178.2,
           "off_km": 0,
           "speed": 0,
@@ -3007,7 +3024,7 @@
           "km_30min": 0
         },
         "L2082": {
-          "t": 1793876277,
+          "t": 1793877177,
           "km": 183.3,
           "off_km": 2.2,
           "speed": 0,
@@ -3015,7 +3032,7 @@
           "km_30min": 0
         },
         "L2084": {
-          "t": 1793876140,
+          "t": 1793877228,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -3023,7 +3040,7 @@
           "km_30min": 0
         },
         "L2089": {
-          "t": 1793876274,
+          "t": 1793877197,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -3031,7 +3048,7 @@
           "km_30min": 0
         },
         "L2090": {
-          "t": 1793876248,
+          "t": 1793877255,
           "km": 183.3,
           "off_km": 1,
           "speed": 0,
@@ -3039,7 +3056,7 @@
           "km_30min": 0
         },
         "L2095": {
-          "t": 1793876396,
+          "t": 1793877241,
           "km": 183.3,
           "off_km": 2.2,
           "speed": 0,
@@ -3047,7 +3064,7 @@
           "km_30min": 0
         },
         "L2107": {
-          "t": 1793876399,
+          "t": 1793877299,
           "km": 183.3,
           "off_km": 1.1,
           "speed": 0,
@@ -3055,7 +3072,7 @@
           "km_30min": 0
         },
         "L2117": {
-          "t": 1793876398,
+          "t": 1793876458,
           "km": 182.7,
           "off_km": 0,
           "speed": 0,
@@ -3063,7 +3080,7 @@
           "km_30min": 0
         },
         "L2121": {
-          "t": 1793876355,
+          "t": 1793877105,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -3071,7 +3088,7 @@
           "km_30min": 0
         },
         "L2136": {
-          "t": 1793876339,
+          "t": 1793877238,
           "km": 183.3,
           "off_km": 1.3,
           "speed": 0,
@@ -3079,15 +3096,15 @@
           "km_30min": 0
         },
         "L2143": {
-          "t": 1793876392,
+          "t": 1793877281,
           "km": 183.3,
-          "off_km": 0.6,
-          "speed": 27,
+          "off_km": 1.2,
+          "speed": 0,
           "source": "tracker",
           "km_30min": 0
         },
         "L2157": {
-          "t": 1793876172,
+          "t": 1793877131,
           "km": 183.3,
           "off_km": 1.9,
           "speed": 0,
@@ -3095,15 +3112,15 @@
           "km_30min": 0
         },
         "L2159": {
-          "t": 1793876405,
+          "t": 1793877106,
           "km": 183.3,
-          "off_km": 1.9,
-          "speed": 39,
+          "off_km": 2,
+          "speed": 0,
           "source": "tracker",
-          "km_30min": 0.5
+          "km_30min": 0
         },
         "L2160": {
-          "t": 1793876344,
+          "t": 1793877169,
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
@@ -3111,7 +3128,7 @@
           "km_30min": 0
         },
         "L2161": {
-          "t": 1793876297,
+          "t": 1793877186,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -3119,7 +3136,7 @@
           "km_30min": 0
         },
         "L2175": {
-          "t": 1793876272,
+          "t": 1793877194,
           "km": 183.3,
           "off_km": 2.1,
           "speed": 0,
@@ -3127,7 +3144,7 @@
           "km_30min": 0
         },
         "L2195": {
-          "t": 1793876222,
+          "t": 1793877122,
           "km": 183.3,
           "off_km": 2,
           "speed": 0,
@@ -3135,15 +3152,15 @@
           "km_30min": 0
         },
         "L2197": {
-          "t": 1793876386,
+          "t": 1793877186,
           "km": 183.3,
-          "off_km": 1.3,
-          "speed": 27,
+          "off_km": 2,
+          "speed": 0,
           "source": "tracker",
           "km_30min": 0
         },
         "L2200": {
-          "t": 1793876369,
+          "t": 1793877269,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -3151,7 +3168,7 @@
           "km_30min": 0
         },
         "L2202": {
-          "t": 1793876246,
+          "t": 1793877199,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -3159,7 +3176,7 @@
           "km_30min": 0
         },
         "L2208": {
-          "t": 1793876362,
+          "t": 1793877188,
           "km": 0.2,
           "off_km": 0.1,
           "speed": 0,
@@ -3167,7 +3184,7 @@
           "km_30min": 0
         },
         "L2190": {
-          "t": 1793876185,
+          "t": 1793877265,
           "km": 183.3,
           "off_km": 1.2,
           "speed": 0,
@@ -4268,6 +4285,19 @@
                   "type": "rest"
                 }
               ]
+            },
+            {
+              "from": "W",
+              "dep": 1793876807,
+              "arr": null,
+              "last_t": 1793877304,
+              "km": 176.6,
+              "km_done": 6.7,
+              "moving_h": 0.14,
+              "avg_moving_kmh": null,
+              "max_speed": 54,
+              "overspeed_pts": 0,
+              "stops": []
             }
           ]
         },
@@ -4396,10 +4426,10 @@
         "trailers_defined": 0,
         "drivers_defined": 9,
         "errors": [],
-        "as_of": "20:15"
+        "as_of": "21:15"
       },
       "adas": {
-        "at": 1793873705,
+        "at": 1793877305,
         "events": {
           "IT01": [],
           "IT02": [],
@@ -4432,12 +4462,6 @@
           "IT09": [],
           "IT10": [],
           "IT11": [
-            {
-              "type": "YAWNING",
-              "t": "2026-11-04 20:55:19",
-              "where": "Maka",
-              "map": "https://maps.google.com/?q=-6.904267,141.313040"
-            },
             {
               "type": "YAWNING",
               "t": "2026-11-04 22:18:52",
@@ -4809,18 +4833,6 @@
           "TT21": [],
           "TT22": [],
           "TT23": [
-            {
-              "type": "YAWNING",
-              "t": "2026-11-04 21:05:07",
-              "where": "Moian Road",
-              "map": "https://maps.google.com/?q=-6.344267,141.286327"
-            },
-            {
-              "type": "YAWNING",
-              "t": "2026-11-04 21:12:36",
-              "where": "Moian Road",
-              "map": "https://maps.google.com/?q=-6.308887,141.306065"
-            },
             {
               "type": "YAWNING",
               "t": "2026-11-04 21:55:03",
@@ -5467,7 +5479,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-05T21:04+10:00",
+    "as_of": "2026-11-05T21:20+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -6795,19 +6807,19 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21293,
-        "at": "2026-11-05T21:04+10:00"
+        "at": "2026-11-05T21:20+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
         "bytes": 507122,
-        "at": "2026-11-05T21:04+10:00"
+        "at": "2026-11-05T21:20+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-05T21:04+10:00",
-    "as_of_readi": "05 Nov 2026, 9:04PM",
+    "as_of": "2026-11-05T21:20+10:00",
+    "as_of_readi": "05 Nov 2026, 9:20PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
@@ -6883,7 +6895,7 @@
       },
       {
         "name": "George Penrose",
-        "sync": "3h",
+        "sync": "4h",
         "source": "Wearable Only",
         "score": 72,
         "group": "below",
@@ -6893,7 +6905,7 @@
       },
       {
         "name": "Eric Nathan Gebob",
-        "sync": "3h",
+        "sync": "4h",
         "source": "Wearable Only",
         "score": 88,
         "group": "below",
@@ -6983,7 +6995,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-11-05T21:04+10:00",
+    "as_of": "2026-11-05T21:20+10:00",
     "pairs_today": [
       {
         "truck": "IT16",
@@ -8237,7 +8249,7 @@
         "safety": true,
         "raised": "02/11 10:24",
         "raised_iso": "2026-11-02T10:24:35+10:00",
-        "age_days": 3.4,
+        "age_days": 3.5,
         "today": false,
         "status": "new"
       },
@@ -8247,7 +8259,7 @@
         "safety": true,
         "raised": "02/11 10:22",
         "raised_iso": "2026-11-02T10:22:26+10:00",
-        "age_days": 3.4,
+        "age_days": 3.5,
         "today": false,
         "status": "new"
       },
@@ -8377,7 +8389,7 @@
         "safety": true,
         "raised": "30/10 07:59",
         "raised_iso": "2026-10-30T07:59:04+10:00",
-        "age_days": 6.5,
+        "age_days": 6.6,
         "today": false,
         "status": "new"
       },
@@ -8387,7 +8399,7 @@
         "safety": true,
         "raised": "30/10 07:58",
         "raised_iso": "2026-10-30T07:58:34+10:00",
-        "age_days": 6.5,
+        "age_days": 6.6,
         "today": false,
         "status": "new"
       },
@@ -8397,7 +8409,7 @@
         "safety": false,
         "raised": "30/10 07:57",
         "raised_iso": "2026-10-30T07:57:52+10:00",
-        "age_days": 6.5,
+        "age_days": 6.6,
         "today": false,
         "status": "new"
       },
@@ -8407,7 +8419,7 @@
         "safety": true,
         "raised": "30/10 07:57",
         "raised_iso": "2026-10-30T07:57:16+10:00",
-        "age_days": 6.5,
+        "age_days": 6.6,
         "today": false,
         "status": "new"
       },
@@ -8417,7 +8429,7 @@
         "safety": false,
         "raised": "30/10 07:56",
         "raised_iso": "2026-10-30T07:56:57+10:00",
-        "age_days": 6.5,
+        "age_days": 6.6,
         "today": false,
         "status": "new"
       },
@@ -8887,7 +8899,7 @@
         "safety": false,
         "raised": "20/10 05:36",
         "raised_iso": "2026-10-20T05:36:31+10:00",
-        "age_days": 16.6,
+        "age_days": 16.7,
         "today": false,
         "status": "new"
       },
@@ -8897,7 +8909,7 @@
         "safety": true,
         "raised": "20/10 05:35",
         "raised_iso": "2026-10-20T05:35:58+10:00",
-        "age_days": 16.6,
+        "age_days": 16.7,
         "today": false,
         "status": "new"
       },
@@ -8907,7 +8919,7 @@
         "safety": true,
         "raised": "20/10 05:33",
         "raised_iso": "2026-10-20T05:33:36+10:00",
-        "age_days": 16.6,
+        "age_days": 16.7,
         "today": false,
         "status": "new"
       },
@@ -9137,7 +9149,7 @@
         "safety": false,
         "raised": "18/10 07:53",
         "raised_iso": "2026-10-18T07:53:15+10:00",
-        "age_days": 18.5,
+        "age_days": 18.6,
         "today": false,
         "status": "new"
       },
@@ -9157,7 +9169,7 @@
         "safety": false,
         "raised": "17/10 05:35",
         "raised_iso": "2026-10-17T05:35:53+10:00",
-        "age_days": 19.6,
+        "age_days": 19.7,
         "today": false,
         "status": "new"
       },
@@ -9167,7 +9179,7 @@
         "safety": false,
         "raised": "17/10 05:35",
         "raised_iso": "2026-10-17T05:35:24+10:00",
-        "age_days": 19.6,
+        "age_days": 19.7,
         "today": false,
         "status": "new"
       },
@@ -9267,7 +9279,7 @@
         "safety": false,
         "raised": "13/10 10:31",
         "raised_iso": "2026-10-13T10:31:11+10:00",
-        "age_days": 23.4,
+        "age_days": 23.5,
         "today": false,
         "status": "new"
       },
@@ -9277,7 +9289,7 @@
         "safety": false,
         "raised": "13/10 10:30",
         "raised_iso": "2026-10-13T10:30:41+10:00",
-        "age_days": 23.4,
+        "age_days": 23.5,
         "today": false,
         "status": "new"
       },
@@ -9287,7 +9299,7 @@
         "safety": false,
         "raised": "13/10 10:29",
         "raised_iso": "2026-10-13T10:29:19+10:00",
-        "age_days": 23.4,
+        "age_days": 23.5,
         "today": false,
         "status": "new"
       },
@@ -9297,7 +9309,7 @@
         "safety": false,
         "raised": "13/10 10:26",
         "raised_iso": "2026-10-13T10:26:15+10:00",
-        "age_days": 23.4,
+        "age_days": 23.5,
         "today": false,
         "status": "new"
       },
@@ -9447,7 +9459,7 @@
         "safety": false,
         "raised": "09/10 07:55",
         "raised_iso": "2026-10-09T07:55:47+10:00",
-        "age_days": 27.5,
+        "age_days": 27.6,
         "today": false,
         "status": "new"
       },
@@ -9537,7 +9549,7 @@
         "safety": false,
         "raised": "02/10 07:53",
         "raised_iso": "2026-10-02T07:53:52+10:00",
-        "age_days": 34.5,
+        "age_days": 34.6,
         "today": false,
         "status": "new"
       },
@@ -9547,7 +9559,7 @@
         "safety": false,
         "raised": "02/10 07:52",
         "raised_iso": "2026-10-02T07:52:58+10:00",
-        "age_days": 34.5,
+        "age_days": 34.6,
         "today": false,
         "status": "new"
       },
