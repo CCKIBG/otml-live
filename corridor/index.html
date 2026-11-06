@@ -71,6 +71,13 @@
 .tcount{display:inline-block;min-width:1.3em;background:var(--red);color:#fff;border-radius:99px;font-size:12px;padding:0 5px;margin-left:4px}
 .tcount:empty{display:none}
 [data-tab]{display:none} [data-tab].on{display:block} [data-tab]:not(.on){display:none!important}
+.pipe{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.pipe-h{font:700 12px Barlow,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.pipe-b{font-size:11px;padding:2px 8px;border-radius:99px;letter-spacing:.05em} .pipe-b.ok{background:var(--okbg);color:var(--okfg)} .pipe-b.amber{background:color-mix(in srgb,#d6a21a 20%,transparent);color:#9a7208} .pipe-b.red{background:var(--errbg);color:var(--errfg)}
+.pipe-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:6px}
+.pipe-c{border-radius:6px;padding:6px 4px;text-align:center;background:var(--okbg)} .pipe-c.amber{background:color-mix(in srgb,#d6a21a 20%,var(--paper))} .pipe-c.red{background:var(--errbg)}
+.pn{display:block;font-size:12px;color:var(--muted)} .pa{display:block;font:700 20px "Barlow Condensed",sans-serif;color:var(--ink)}
+@media (max-width:520px){.pipe-row{grid-template-columns:repeat(3,1fr)}}
 .ask{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
 .ask input[type=text]{flex:1;min-width:180px;font:16px inherit;padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
 .askmic{font-size:20px;width:48px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--paper);cursor:pointer}
@@ -756,6 +763,26 @@ function fuelShipping(){ const m=c0manual||{}, V=m.fuel_vessels; if(!V) return n
 
 const ROAD_MODE = typeof location!=="undefined" && /\/road\/?$|\/road\/index\.html$/.test(location.pathname);
 const DATA_BASE = ROAD_MODE ? "../corridor/" : "";
+function pipelineHealth(){ const c=c0raw||{}, now=Date.now(), ageMin=iso=>iso?Math.round((now-new Date(iso).getTime())/60000):null;
+  const fmt=m=>m==null?"–":m<60?m+"m":m<48*60?(m/60).toFixed(1).replace(/\.0$/,"")+"h":Math.round(m/1440)+"d";
+  const dayAge=d=>d?Math.max(0,Math.round((now-new Date(d+"T12:00:00+10:00").getTime())/60000)):null;
+  const st=k=>(c[k]||{}).state, t=c.trucks||{};
+  const parseDM=x=>{const m=String(x||"").match(/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/); if(!m) return null; const y=(c.generated||"").slice(0,4)||new Date().getFullYear(); return `${y}-${m[2]}-${m[1]}T${m[3]}:${m[4]}:00+10:00`;};
+  const items=[
+    ["Trakpro", ageMin(t.as_of), 20, 60, st("trucks")],
+    ["Tanks", ageMin((c.fuel||{}).as_of), 30, 90, st("fuel"), Object.keys((c.fuel||{}).site_errors||{}).length?"one console down":""],
+    ["ChekRite", ageMin((c.prestarts||{}).as_of), 30, 90, st("prestarts")],
+    ["Readi", ageMin((c.fatigue||{}).as_of), 30, 90, st("fatigue")],
+    ["Wakata", ageMin((c.bags||{}).as_of), 30, 90, st("bags")],
+    ["Shift rpt", dayAge((c.fleet||{}).report_date), 36*60, 60*60, st("fleet")],
+    ["CuCon ELT", dayAge(((c.inbox||{}).cucon||{}).date), 36*60, 60*60],
+    ["Road team", ageMin(parseDM(((c.inbox||{}).roadteam||{}).updated)), 48*60, 96*60],
+    ["OTML Live", c0power&&c0power.generated_at?ageMin(c0power.generated_at):null, 120, 360]];
+  const rows=items.map(([n,m,ok,warn,state,note])=>{ let lvl=m==null?"red":m<=ok?"ok":m<=warn?"amber":"red"; if(state&&state!=="live"&&lvl==="ok") lvl="amber"; if(note&&lvl==="ok") lvl="amber";
+    return {n,age:fmt(m),lvl,note:note||(state&&state!=="live"?state.replace("_"," "):"")}; });
+  const worst=rows.some(r=>r.lvl==="red")?"red":rows.some(r=>r.lvl==="amber")?"amber":"ok";
+  return {rows,worst};
+}
 let c0gen=Date.now(), c0raw={}, c0manual={}, c0power=null;
 function render(){ // keep the tab bar and the page where the user left them across the 2-minute refreshes
   let tabX=0, pageY=0; try{ const tb=document.querySelector(".tabs"); if(tb) tabX=tb.scrollLeft; pageY=window.scrollY||0; }catch(e){}
@@ -778,6 +805,8 @@ function renderInner(){
   </nav>
 
   <section data-tab="summary">
+  ${(()=>{const P=pipelineHealth(); return `<div class="pipe"><div class="pipe-h">Pipeline health <span class="pipe-b ${P.worst}">${P.worst==="ok"?"OK":P.worst==="amber"?"WATCH":"CHECK"}</span></div>
+    <div class="pipe-row">${P.rows.map(r=>`<div class="pipe-c ${r.lvl}" title="${esc(r.note||"")}"><span class="pn">${esc(r.n)}</span><span class="pa">${esc(r.age)}</span></div>`).join("")}</div></div>`;})()}
   <div class="ask"><button id="askMic" class="askmic" aria-label="Ask by voice">🎤</button><input id="askIn" type="text" placeholder="Ask: where is IT15? what time will Convoy 1 arrive at West Bank?" autocomplete="off"><button id="askGo">Ask</button>
     <label class="askv"><input type="checkbox" id="askVoice" checked> Speak answer</label><div id="askOut" class="askout" aria-live="polite"></div></div>
   ${(()=>{const G=D.cmap||[], n=f=>G.reduce((a,g)=>a+g.units.filter(f).length,0);
@@ -827,7 +856,7 @@ function renderInner(){
     </div>
     ${reds.length?`<div class="topalerts"><div class="tl">Needs attention</div>${reds.slice(0,4).map(x=>`<div class="ta"><b>${esc(x.tag)}</b> ${esc(x.text)}</div>`).join("")}${reds.length>4?`<button class="more" data-go="alerts">All ${reds.length} alerts</button>`:""}</div>`:""}
     <div class="actions"><button id="msgBtn">Make WhatsApp update</button><a href="${esc(D.adasUrl)}" target="_blank" rel="noopener" class="ghost">ADAS footage (Trakpro › Video › Files)</a></div>
-    <p class="srcline">${[["Trakpro","trucks"],["ChekRite","prestarts"],["Readi","fatigue"],["Wakata","bags"],["Tanks","fuel"],["Shift report","fleet"]].map(([nm,k])=>{const st=(c0raw[k]||{}).state; return `<span><i class="${st==="live"?"ok":st==="cached_stale"?"feed":"bad"}"></i>${nm}</span>`;}).join("")}</p>`;})()}
+    <p class="srcline" style="display:none">${[["Trakpro","trucks"],["ChekRite","prestarts"],["Readi","fatigue"],["Wakata","bags"],["Tanks","fuel"],["Shift report","fleet"]].map(([nm,k])=>{const st=(c0raw[k]||{}).state; return `<span><i class="${st==="live"?"ok":st==="cached_stale"?"feed":"bad"}"></i>${nm}</span>`;}).join("")}</p>`;})()}
   </section>
   <section class="flags" aria-label="Flags" data-tab="alerts">
     ${D.flags.map(fl=>`<div class="flag ${fl.lvl}"><b>${esc(fl.tag)}</b><span>${esc(fl.text)}</span></div>`).join("")}
