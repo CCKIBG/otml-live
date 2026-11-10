@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-10T20:45+10:00",
+  "generated": "2026-11-10T21:00+10:00",
   "window": {
     "from": "2026-11-09T13:00+10:00",
     "to": "2026-11-10T13:00+10:00"
@@ -260,7 +260,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-10T20:45+10:00",
+    "as_of": "2026-11-10T21:00+10:00",
     "since_1_oct": 4832,
     "filled_in_window": 166,
     "wakata": {
@@ -328,7 +328,7 @@
     "basis": "Wakata Bulka asset count; per shift = difference between readings at 06:00 and 18:00"
   },
   "trucks": {
-    "state": "live",
+    "state": "cached_stale",
     "as_of": "2026-11-10T20:46+10:00",
     "positions": {
       "aiambak": [
@@ -3086,7 +3086,8 @@
           "TT23": []
         }
       }
-    }
+    },
+    "note": "Page.evaluate: Execution context was destroyed, most likely because of a navigation."
   },
   "fleet": {
     "state": "cached_stale",
@@ -3723,7 +3724,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-10T20:48+10:00",
+    "as_of": "2026-11-10T21:07+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -4467,16 +4468,16 @@
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-10T20:48+10:00",
-    "as_of_readi": "10 Nov 2026, 8:49PM",
+    "as_of": "2026-11-10T21:07+10:00",
+    "as_of_readi": "10 Nov 2026, 9:07PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
         "name": "Douglas Doa",
-        "sync": "3h",
+        "sync": "4h",
         "source": "Wearable Only",
-        "score": 94,
+        "score": 89,
         "group": "below",
         "now_below": false,
         "time_to_70": "5h",
@@ -4486,57 +4487,47 @@
         "name": "Eduardo B Gallego",
         "sync": "11h",
         "source": "Wearable Only",
-        "score": 88,
+        "score": 86,
         "group": "below",
         "now_below": false,
         "time_to_70": "4h",
         "when": "At 1:00AM"
       },
       {
-        "name": "Isaac Stoney",
-        "sync": "12h",
-        "source": "Wearable Only",
-        "score": 93,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "5h",
-        "when": "At 2:00AM"
-      },
-      {
         "name": "Eric Nathan Gebob",
         "sync": "12h",
-        "source": "Wearable Only",
-        "score": 72,
+        "source": "ReadiML",
+        "score": 74,
         "group": "below",
         "now_below": false,
-        "time_to_70": "1h",
-        "when": "At 10:00PM"
+        "time_to_70": "2h",
+        "when": "At 11:00PM"
       },
       {
         "name": "Essy Hansa",
         "sync": "14h",
         "source": "ReadiML",
-        "score": 74,
+        "score": 70,
         "group": "below",
-        "now_below": false,
-        "time_to_70": "",
-        "when": ""
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 9:00PM"
       },
       {
         "name": "Harry Harihi",
         "sync": "14h",
         "source": "ReadiML",
-        "score": 73,
+        "score": 70,
         "group": "below",
-        "now_below": false,
-        "time_to_70": "",
-        "when": ""
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 9:00PM"
       },
       {
         "name": "Benedict Sikari",
         "sync": "14h",
         "source": "ReadiML",
-        "score": 80,
+        "score": 78,
         "group": "below",
         "now_below": false,
         "time_to_70": "2h",
@@ -4546,27 +4537,27 @@
         "name": "Jason Murin",
         "sync": "14h",
         "source": "ReadiML",
-        "score": 75,
+        "score": 72,
         "group": "below",
         "now_below": false,
-        "time_to_70": "1h",
-        "when": "At 10:00PM"
+        "time_to_70": "",
+        "when": ""
       },
       {
         "name": "Andy Guma",
         "sync": "14h",
         "source": "ReadiML",
-        "score": 78,
+        "score": 75,
         "group": "below",
         "now_below": false,
         "time_to_70": "2h",
         "when": "At 11:00PM"
       },
       {
-        "name": "User 57545",
+        "name": "User 500",
         "sync": "14h",
         "source": "ReadiML",
-        "score": 80,
+        "score": 76,
         "group": "below",
         "now_below": false,
         "time_to_70": "2h",
@@ -4574,9 +4565,9 @@
       },
       {
         "name": "Barta Lage",
-        "sync": "37h",
+        "sync": "38h",
         "source": "ReadiML",
-        "score": 80,
+        "score": 76,
         "group": "below",
         "now_below": false,
         "time_to_70": "2h",
@@ -4586,6 +4577,16 @@
         "name": "George Ovia",
         "sync": "38h",
         "source": "ReadiML",
+        "score": 70,
+        "group": "below",
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 9:00PM"
+      },
+      {
+        "name": "George Penrose",
+        "sync": "40h",
+        "source": "ReadiML",
         "score": 73,
         "group": "below",
         "now_below": false,
@@ -4593,20 +4594,10 @@
         "when": ""
       },
       {
-        "name": "George Penrose",
-        "sync": "40h",
-        "source": "ReadiML",
-        "score": 77,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "1h",
-        "when": "At 10:00PM"
-      },
-      {
         "name": "Amsi Vagi",
         "sync": "40h",
         "source": "ReadiML",
-        "score": 81,
+        "score": 76,
         "group": "below",
         "now_below": false,
         "time_to_70": "2h",
@@ -4614,23 +4605,33 @@
       },
       {
         "name": "Malts Pore",
-        "sync": "40h",
+        "sync": "41h",
         "source": "ReadiML",
-        "score": 78,
+        "score": 76,
         "group": "below",
         "now_below": false,
-        "time_to_70": "1h",
-        "when": "At 10:00PM"
+        "time_to_70": "",
+        "when": ""
       },
       {
         "name": "Nelson David",
         "sync": "2d",
         "source": "ReadiML",
-        "score": 77,
+        "score": 72,
         "group": "below",
         "now_below": false,
         "time_to_70": "2h",
         "when": "At 11:00PM"
+      },
+      {
+        "name": "Paul Mage",
+        "sync": "2d",
+        "source": "ReadiML",
+        "score": 67,
+        "group": "below",
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 9:00PM"
       }
     ],
     "no_forecast": null,
@@ -4638,7 +4639,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-11-10T20:49+10:00",
+    "as_of": "2026-11-10T21:07+10:00",
     "pairs_today": [],
     "trailer_inspections_today": [],
     "site": "Tabubil Engineering (TE)",
@@ -5155,7 +5156,7 @@
         "safety": true,
         "raised": "09/11 05:29",
         "raised_iso": "2026-11-09T05:29:02+10:00",
-        "age_days": 1.6,
+        "age_days": 1.7,
         "today": false,
         "status": "new"
       },
@@ -5165,7 +5166,7 @@
         "safety": false,
         "raised": "09/11 05:22",
         "raised_iso": "2026-11-09T05:22:57+10:00",
-        "age_days": 1.6,
+        "age_days": 1.7,
         "today": false,
         "status": "new"
       },
@@ -5235,7 +5236,7 @@
         "safety": true,
         "raised": "06/11 05:31",
         "raised_iso": "2026-11-06T05:31:49+10:00",
-        "age_days": 4.6,
+        "age_days": 4.7,
         "today": false,
         "status": "new"
       },
@@ -5245,7 +5246,7 @@
         "safety": true,
         "raised": "06/11 05:30",
         "raised_iso": "2026-11-06T05:30:38+10:00",
-        "age_days": 4.6,
+        "age_days": 4.7,
         "today": false,
         "status": "new"
       },
@@ -5255,7 +5256,7 @@
         "safety": false,
         "raised": "06/11 05:26",
         "raised_iso": "2026-11-06T05:26:56+10:00",
-        "age_days": 4.6,
+        "age_days": 4.7,
         "today": false,
         "status": "new"
       },
@@ -5265,7 +5266,7 @@
         "safety": false,
         "raised": "06/11 05:26",
         "raised_iso": "2026-11-06T05:26:32+10:00",
-        "age_days": 4.6,
+        "age_days": 4.7,
         "today": false,
         "status": "new"
       },
@@ -5275,7 +5276,7 @@
         "safety": true,
         "raised": "06/11 05:15",
         "raised_iso": "2026-11-06T05:15:13+10:00",
-        "age_days": 4.6,
+        "age_days": 4.7,
         "today": false,
         "status": "new"
       },
@@ -5955,7 +5956,7 @@
         "safety": false,
         "raised": "23/10 12:33",
         "raised_iso": "2026-10-23T12:33:59+10:00",
-        "age_days": 18.3,
+        "age_days": 18.4,
         "today": false,
         "status": "new"
       },
@@ -6005,7 +6006,7 @@
         "safety": false,
         "raised": "22/10 05:14",
         "raised_iso": "2026-10-22T05:14:06+10:00",
-        "age_days": 19.6,
+        "age_days": 19.7,
         "today": false,
         "status": "new"
       },
@@ -6055,7 +6056,7 @@
         "safety": true,
         "raised": "21/10 07:47",
         "raised_iso": "2026-10-21T07:47:28+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6065,7 +6066,7 @@
         "safety": false,
         "raised": "21/10 07:37",
         "raised_iso": "2026-10-21T07:37:37+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6145,7 +6146,7 @@
         "safety": false,
         "raised": "20/10 05:25",
         "raised_iso": "2026-10-20T05:25:30+10:00",
-        "age_days": 21.6,
+        "age_days": 21.7,
         "today": false,
         "status": "new"
       },
@@ -6155,7 +6156,7 @@
         "safety": true,
         "raised": "20/10 05:22",
         "raised_iso": "2026-10-20T05:22:00+10:00",
-        "age_days": 21.6,
+        "age_days": 21.7,
         "today": false,
         "status": "new"
       },
@@ -6165,7 +6166,7 @@
         "safety": false,
         "raised": "20/10 05:14",
         "raised_iso": "2026-10-20T05:14:14+10:00",
-        "age_days": 21.6,
+        "age_days": 21.7,
         "today": false,
         "status": "new"
       },
@@ -6225,7 +6226,7 @@
         "safety": false,
         "raised": "19/10 05:26",
         "raised_iso": "2026-10-19T05:26:53+10:00",
-        "age_days": 22.6,
+        "age_days": 22.7,
         "today": false,
         "status": "new"
       },
@@ -6235,7 +6236,7 @@
         "safety": true,
         "raised": "19/10 05:21",
         "raised_iso": "2026-10-19T05:21:58+10:00",
-        "age_days": 22.6,
+        "age_days": 22.7,
         "today": false,
         "status": "new"
       },
@@ -6245,7 +6246,7 @@
         "safety": true,
         "raised": "19/10 05:18",
         "raised_iso": "2026-10-19T05:18:57+10:00",
-        "age_days": 22.6,
+        "age_days": 22.7,
         "today": false,
         "status": "new"
       },
@@ -6255,7 +6256,7 @@
         "safety": false,
         "raised": "19/10 05:16",
         "raised_iso": "2026-10-19T05:16:09+10:00",
-        "age_days": 22.6,
+        "age_days": 22.7,
         "today": false,
         "status": "new"
       },
@@ -6365,7 +6366,7 @@
         "safety": false,
         "raised": "18/10 07:53",
         "raised_iso": "2026-10-18T07:53:15+10:00",
-        "age_days": 23.5,
+        "age_days": 23.6,
         "today": false,
         "status": "new"
       },
@@ -6375,7 +6376,7 @@
         "safety": true,
         "raised": "18/10 05:15",
         "raised_iso": "2026-10-18T05:15:51+10:00",
-        "age_days": 23.6,
+        "age_days": 23.7,
         "today": false,
         "status": "new"
       },
@@ -6415,7 +6416,7 @@
         "safety": false,
         "raised": "16/10 07:42",
         "raised_iso": "2026-10-16T07:42:21+10:00",
-        "age_days": 25.5,
+        "age_days": 25.6,
         "today": false,
         "status": "new"
       },
@@ -6425,7 +6426,7 @@
         "safety": false,
         "raised": "16/10 07:38",
         "raised_iso": "2026-10-16T07:38:38+10:00",
-        "age_days": 25.5,
+        "age_days": 25.6,
         "today": false,
         "status": "new"
       },
@@ -6435,7 +6436,7 @@
         "safety": false,
         "raised": "16/10 07:38",
         "raised_iso": "2026-10-16T07:38:18+10:00",
-        "age_days": 25.5,
+        "age_days": 25.6,
         "today": false,
         "status": "new"
       },
@@ -6675,7 +6676,7 @@
         "safety": false,
         "raised": "09/10 07:55",
         "raised_iso": "2026-10-09T07:55:47+10:00",
-        "age_days": 32.5,
+        "age_days": 32.6,
         "today": false,
         "status": "new"
       },
@@ -6725,7 +6726,7 @@
         "safety": false,
         "raised": "06/10 05:19",
         "raised_iso": "2026-10-06T05:19:08+10:00",
-        "age_days": 35.6,
+        "age_days": 35.7,
         "today": false,
         "status": "new"
       },
@@ -6765,7 +6766,7 @@
         "safety": false,
         "raised": "02/10 07:53",
         "raised_iso": "2026-10-02T07:53:52+10:00",
-        "age_days": 39.5,
+        "age_days": 39.6,
         "today": false,
         "status": "new"
       },
@@ -6775,7 +6776,7 @@
         "safety": false,
         "raised": "02/10 07:52",
         "raised_iso": "2026-10-02T07:52:58+10:00",
-        "age_days": 39.5,
+        "age_days": 39.6,
         "today": false,
         "status": "new"
       },
@@ -6785,7 +6786,7 @@
         "safety": true,
         "raised": "02/10 07:51",
         "raised_iso": "2026-10-02T07:51:02+10:00",
-        "age_days": 39.5,
+        "age_days": 39.6,
         "today": false,
         "status": "new"
       }
