@@ -1,22 +1,22 @@
 {
-  "generated": "2026-11-16T02:45+10:00",
+  "generated": "2026-11-16T03:00+10:00",
   "window": {
     "from": "2026-11-14T13:00+10:00",
     "to": "2026-11-15T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-16T02:45+10:00",
+    "as_of": "2026-11-16T03:00+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
           {
             "id": "T4",
             "product": "DIESEL",
-            "vol": 59838.0,
-            "ullage": 2197764.0,
+            "vol": 59841.0,
+            "ullage": 2197762.0,
             "height_mm": 188.0,
-            "cap": 2257602.0,
+            "cap": 2257603.0,
             "moved_24h_l": {
               "in": 0,
               "out": 0
@@ -24,18 +24,18 @@
             "configured_in_service": false,
             "in_service": false,
             "live_by_movement": false,
-            "suction_l": 35012,
-            "unusable_l": 59838.0,
+            "suction_l": 35013,
+            "unusable_l": 59841.0,
             "usable_l": 0.0,
             "below_suction": false
           },
           {
             "id": "T5",
             "product": "DIESEL",
-            "vol": 304833.0,
-            "ullage": 1956368.0,
+            "vol": 304837.0,
+            "ullage": 1956363.0,
             "height_mm": 957.8,
-            "cap": 2261201.0,
+            "cap": 2261200.0,
             "moved_24h_l": {
               "in": 0,
               "out": 74343
@@ -45,35 +45,35 @@
             "live_by_movement": false,
             "suction_l": 188495,
             "unusable_l": 188495,
-            "usable_l": 116338.0,
+            "usable_l": 116342.0,
             "below_suction": false
           },
           {
             "id": "T6",
             "product": "DIESEL",
-            "vol": 54782.0,
-            "ullage": 2215695.0,
-            "height_mm": 149.1,
-            "cap": 2270477.0,
+            "vol": 54746.0,
+            "ullage": 2215732.0,
+            "height_mm": 149.0,
+            "cap": 2270478.0,
             "moved_24h_l": {
               "in": 60440,
-              "out": 371581
+              "out": 370290
             },
             "configured_in_service": true,
             "in_service": true,
             "live_by_movement": false,
             "suction_l": 188495,
-            "unusable_l": 54782.0,
+            "unusable_l": 54746.0,
             "usable_l": 0.0,
             "below_suction": true
           },
           {
             "id": "T7",
             "product": "DIESEL",
-            "vol": 94424.0,
+            "vol": 94425.0,
             "ullage": 812583.0,
             "height_mm": 770.9,
-            "cap": 907007.0,
+            "cap": 907008.0,
             "moved_24h_l": {
               "in": 0,
               "out": 0
@@ -81,18 +81,18 @@
             "configured_in_service": false,
             "in_service": false,
             "live_by_movement": false,
-            "suction_l": 31846,
-            "unusable_l": 94424.0,
+            "suction_l": 31847,
+            "unusable_l": 94425.0,
             "usable_l": 0.0,
             "below_suction": false
           }
         ],
-        "total_l": 513877.0,
-        "usable_l": 116338.0,
+        "total_l": 513849.0,
+        "usable_l": 116342.0,
         "buffer_l": 400000,
-        "available_l": -283662.0,
+        "available_l": -283658.0,
         "net_l": -134534.0,
-        "change_3h_l": -1579.0
+        "change_3h_l": -1379.0
       },
       "tabubil": {
         "tanks": [
@@ -163,7 +163,7 @@
       }
     },
     "site_errors": {},
-    "available_total_l": 10167.0,
+    "available_total_l": 10171.0,
     "vessel": {
       "name": "Fly Resilience",
       "docked_at": "2026-10-25T15:00+10:00",
@@ -271,8 +271,8 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-16T02:45+10:00",
-    "since_1_oct": 6059,
+    "as_of": "2026-11-16T03:00+10:00",
+    "since_1_oct": 6062,
     "filled_in_window": 232,
     "wakata": {
       "export_note": "Wakata export not captured: Timeout 30000ms exceeded while waiting for event \"download\""
@@ -281,8 +281,8 @@
       {
         "date": "2026-11-15",
         "day": 83,
-        "night": 81,
-        "total": 164,
+        "night": 84,
+        "total": 167,
         "partial": false,
         "in_progress": true
       },
@@ -339,7 +339,7 @@
     "basis": "Wakata Bulka asset count; per shift = difference between readings at 06:00 and 18:00"
   },
   "trucks": {
-    "state": "live",
+    "state": "cached_stale",
     "as_of": "2026-11-16T02:45+10:00",
     "positions": {
       "aiambak": [
@@ -2336,7 +2336,8 @@
           "TT23": []
         }
       }
-    }
+    },
+    "note": "Trakpro not logged in or not loaded"
   },
   "fleet": {
     "state": "cached_stale",
@@ -2973,7 +2974,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-16T02:48+10:00",
+    "as_of": "2026-11-16T03:02+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -2994,8 +2995,8 @@
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-16T02:48+10:00",
-    "as_of_readi": "16 Nov 2026, 2:48AM",
+    "as_of": "2026-11-16T03:02+10:00",
+    "as_of_readi": "16 Nov 2026, 3:02AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
@@ -3003,111 +3004,101 @@
         "name": "Hayu Bangum",
         "sync": "16h",
         "source": "ReadiML",
-        "score": 68,
-        "group": "below",
-        "now_below": true,
-        "time_to_70": "Now",
-        "when": "Since 2:00AM"
-      },
-      {
-        "name": "Moses Norman",
-        "sync": "17h",
-        "source": "ReadiML",
         "score": 70,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Paul Mage",
-        "sync": "18h",
+        "sync": "19h",
         "source": "ReadiML",
-        "score": 64,
+        "score": 66,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Harry Harihi",
-        "sync": "18h",
+        "sync": "19h",
         "source": "ReadiML",
         "score": 59,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Eduardo B Gallego",
-        "sync": "21h",
+        "sync": "22h",
         "source": "ReadiML",
-        "score": 62,
+        "score": 64,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Eric Nathan Gebob",
         "sync": "42h",
         "source": "ReadiML",
-        "score": 59,
+        "score": 60,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Charles Nogokas",
         "sync": "43h",
         "source": "ReadiML",
-        "score": 62,
+        "score": 65,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Michael John",
         "sync": "43h",
         "source": "ReadiML",
-        "score": 64,
+        "score": 65,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Emmanuel Peterson",
         "sync": "43h",
         "source": "ReadiML",
-        "score": 60,
+        "score": 61,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Justin Bart",
-        "sync": "43h",
+        "sync": "44h",
         "source": "ReadiML",
-        "score": 69,
+        "score": 70,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "Sira Ben",
-        "sync": "43h",
+        "sync": "44h",
         "source": "ReadiML",
-        "score": 60,
+        "score": 59,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "George Penrose",
@@ -3117,47 +3108,57 @@
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
         "name": "John Vaname",
-        "sync": "46h",
-        "source": "ReadiML",
-        "score": 66,
-        "group": "below",
-        "now_below": true,
-        "time_to_70": "Now",
-        "when": "Since 2:00AM"
-      },
-      {
-        "name": "George Ovia",
-        "sync": "46h",
-        "source": "ReadiML",
-        "score": 54,
-        "group": "below",
-        "now_below": true,
-        "time_to_70": "Now",
-        "when": "Since 2:00AM"
-      },
-      {
-        "name": "Benedict Sikari",
         "sync": "46h",
         "source": "ReadiML",
         "score": 68,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
       },
       {
-        "name": "Sani Wata Wahawe",
-        "sync": "3d",
+        "name": "George Ovia",
+        "sync": "46h",
         "source": "ReadiML",
-        "score": 70,
+        "score": 56,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 2:00AM"
+        "when": "Since 3:00AM"
+      },
+      {
+        "name": "Jason Murin",
+        "sync": "3d",
+        "source": "ReadiML",
+        "score": 63,
+        "group": "below",
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 3:00AM"
+      },
+      {
+        "name": "Adrean Arovo",
+        "sync": "3d",
+        "source": "ReadiML",
+        "score": 59,
+        "group": "below",
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 3:00AM"
+      },
+      {
+        "name": "Barok Nicholas",
+        "sync": "3d",
+        "source": "ReadiML",
+        "score": 68,
+        "group": "below",
+        "now_below": true,
+        "time_to_70": "Now",
+        "when": "Since 3:00AM"
       }
     ],
     "no_forecast": null,
@@ -3165,7 +3166,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-11-16T02:48+10:00",
+    "as_of": "2026-11-16T03:02+10:00",
     "pairs_today": [],
     "trailer_inspections_today": [],
     "site": "Tabubil Engineering (TE)",
@@ -3840,7 +3841,7 @@
         "safety": true,
         "raised": "09/11 06:36",
         "raised_iso": "2026-11-09T06:36:58+10:00",
-        "age_days": 6.8,
+        "age_days": 6.9,
         "today": false,
         "status": "new"
       },
@@ -3910,7 +3911,7 @@
         "safety": false,
         "raised": "08/11 13:47",
         "raised_iso": "2026-11-08T13:47:58+10:00",
-        "age_days": 7.5,
+        "age_days": 7.6,
         "today": false,
         "status": "new"
       },
@@ -4050,7 +4051,7 @@
         "safety": false,
         "raised": "05/11 18:36",
         "raised_iso": "2026-11-05T18:36:30+10:00",
-        "age_days": 10.3,
+        "age_days": 10.4,
         "today": false,
         "status": "new"
       },
@@ -4070,7 +4071,7 @@
         "safety": true,
         "raised": "05/11 08:49",
         "raised_iso": "2026-11-05T08:49:50+10:00",
-        "age_days": 10.7,
+        "age_days": 10.8,
         "today": false,
         "status": "new"
       },
@@ -4090,7 +4091,7 @@
         "safety": false,
         "raised": "05/11 06:37",
         "raised_iso": "2026-11-05T06:37:10+10:00",
-        "age_days": 10.8,
+        "age_days": 10.9,
         "today": false,
         "status": "new"
       },
@@ -4100,7 +4101,7 @@
         "safety": false,
         "raised": "05/11 06:29",
         "raised_iso": "2026-11-05T06:29:33+10:00",
-        "age_days": 10.8,
+        "age_days": 10.9,
         "today": false,
         "status": "new"
       },
@@ -4290,7 +4291,7 @@
         "safety": false,
         "raised": "31/10 08:57",
         "raised_iso": "2026-10-31T08:57:49+10:00",
-        "age_days": 15.7,
+        "age_days": 15.8,
         "today": false,
         "status": "new"
       },
@@ -4300,7 +4301,7 @@
         "safety": true,
         "raised": "31/10 08:57",
         "raised_iso": "2026-10-31T08:57:18+10:00",
-        "age_days": 15.7,
+        "age_days": 15.8,
         "today": false,
         "status": "new"
       },
@@ -4310,7 +4311,7 @@
         "safety": false,
         "raised": "31/10 08:56",
         "raised_iso": "2026-10-31T08:56:23+10:00",
-        "age_days": 15.7,
+        "age_days": 15.8,
         "today": false,
         "status": "new"
       },
@@ -4700,7 +4701,7 @@
         "safety": false,
         "raised": "22/10 16:02",
         "raised_iso": "2026-10-22T16:02:09+10:00",
-        "age_days": 24.4,
+        "age_days": 24.5,
         "today": false,
         "status": "new"
       },
