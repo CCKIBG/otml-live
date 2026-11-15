@@ -1,21 +1,21 @@
 {
-  "generated": "2026-11-15T17:30+10:00",
+  "generated": "2026-11-15T17:45+10:00",
   "window": {
     "from": "2026-11-14T13:00+10:00",
     "to": "2026-11-15T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-15T17:30+10:00",
+    "as_of": "2026-11-15T17:45+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
           {
             "id": "T4",
             "product": "DIESEL",
-            "vol": 59945.0,
-            "ullage": 2197657.0,
-            "height_mm": 188.3,
+            "vol": 59918.0,
+            "ullage": 2197684.0,
+            "height_mm": 188.2,
             "cap": 2257602.0,
             "moved_24h_l": {
               "in": 0,
@@ -24,17 +24,17 @@
             "configured_in_service": false,
             "in_service": false,
             "live_by_movement": false,
-            "suction_l": 35018,
-            "unusable_l": 59945.0,
+            "suction_l": 35021,
+            "unusable_l": 59918.0,
             "usable_l": 0.0,
             "below_suction": false
           },
           {
             "id": "T5",
             "product": "DIESEL",
-            "vol": 309042.0,
-            "ullage": 1952158.0,
-            "height_mm": 971.0,
+            "vol": 308462.0,
+            "ullage": 1952738.0,
+            "height_mm": 969.2,
             "cap": 2261200.0,
             "moved_24h_l": {
               "in": 0,
@@ -45,33 +45,33 @@
             "live_by_movement": false,
             "suction_l": 188495,
             "unusable_l": 188495,
-            "usable_l": 120547.0,
+            "usable_l": 119967.0,
             "below_suction": false
           },
           {
             "id": "T6",
             "product": "DIESEL",
-            "vol": 71972.0,
-            "ullage": 2198506.0,
+            "vol": 71960.0,
+            "ullage": 2198518.0,
             "height_mm": 188.0,
             "cap": 2270478.0,
             "moved_24h_l": {
-              "in": 23723,
+              "in": 7217,
               "out": 295567
             },
             "configured_in_service": true,
             "in_service": true,
             "live_by_movement": false,
             "suction_l": 188495,
-            "unusable_l": 71972.0,
+            "unusable_l": 71960.0,
             "usable_l": 0.0,
             "below_suction": true
           },
           {
             "id": "T7",
             "product": "DIESEL",
-            "vol": 94315.0,
-            "ullage": 812693.0,
+            "vol": 94320.0,
+            "ullage": 812688.0,
             "height_mm": 769.9,
             "cap": 907008.0,
             "moved_24h_l": {
@@ -81,18 +81,18 @@
             "configured_in_service": false,
             "in_service": false,
             "live_by_movement": false,
-            "suction_l": 31851,
-            "unusable_l": 94315.0,
+            "suction_l": 31852,
+            "unusable_l": 94320.0,
             "usable_l": 0.0,
             "below_suction": false
           }
         ],
-        "total_l": 535274.0,
-        "usable_l": 120547.0,
+        "total_l": 534660.0,
+        "usable_l": 119967.0,
         "buffer_l": 400000,
-        "available_l": -279453.0,
+        "available_l": -280033.0,
         "net_l": -134534.0,
-        "change_3h_l": 440.0
+        "change_3h_l": -167.0
       },
       "tabubil": {
         "tanks": [
@@ -163,7 +163,7 @@
       }
     },
     "site_errors": {},
-    "available_total_l": 14376.0,
+    "available_total_l": 13796.0,
     "vessel": {
       "name": "Fly Resilience",
       "docked_at": "2026-10-25T15:00+10:00",
@@ -271,8 +271,8 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-15T17:30+10:00",
-    "since_1_oct": 5971,
+    "as_of": "2026-11-15T17:45+10:00",
+    "since_1_oct": 5978,
     "filled_in_window": 232,
     "wakata": {
       "export_note": "Wakata export not captured: Timeout 30000ms exceeded while waiting for event \"download\""
@@ -280,7 +280,7 @@
     "shifts": [
       {
         "date": "2026-11-15",
-        "day": 76,
+        "day": 83,
         "night": null,
         "total": null,
         "partial": true,
@@ -339,7 +339,7 @@
     "basis": "Wakata Bulka asset count; per shift = difference between readings at 06:00 and 18:00"
   },
   "trucks": {
-    "state": "live",
+    "state": "cached_stale",
     "as_of": "2026-11-15T17:30+10:00",
     "positions": {
       "aiambak": [
@@ -3289,7 +3289,8 @@
           "TT23": []
         }
       }
-    }
+    },
+    "note": "Trakpro not logged in or not loaded"
   },
   "fleet": {
     "state": "cached_stale",
@@ -3926,7 +3927,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-15T17:34+10:00",
+    "as_of": "2026-11-15T17:47+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -4709,14 +4710,14 @@
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-15T17:34+10:00",
-    "as_of_readi": "15 Nov 2026, 5:34PM",
+    "as_of": "2026-11-15T17:47+10:00",
+    "as_of_readi": "15 Nov 2026, 5:47PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
         "name": "Elizah Putt",
-        "sync": "6h",
+        "sync": "7h",
         "source": "Wearable Only",
         "score": 92,
         "group": "below",
@@ -4846,7 +4847,7 @@
       },
       {
         "name": "Ackroyd Bualten",
-        "sync": "9h",
+        "sync": "10h",
         "source": "Wearable Only",
         "score": 87,
         "group": "below",
@@ -4870,7 +4871,7 @@
   },
   "prestarts": {
     "state": "live",
-    "as_of": "2026-11-15T17:34+10:00",
+    "as_of": "2026-11-15T17:47+10:00",
     "pairs_today": [
       {
         "truck": "IT24",
@@ -5483,7 +5484,7 @@
         "safety": true,
         "raised": "12/11 04:32",
         "raised_iso": "2026-11-12T04:32:18+10:00",
-        "age_days": 3.5,
+        "age_days": 3.6,
         "today": false,
         "status": "new"
       },
@@ -5493,7 +5494,7 @@
         "safety": true,
         "raised": "12/11 04:30",
         "raised_iso": "2026-11-12T04:30:22+10:00",
-        "age_days": 3.5,
+        "age_days": 3.6,
         "today": false,
         "status": "new"
       },
@@ -5503,7 +5504,7 @@
         "safety": false,
         "raised": "12/11 04:30",
         "raised_iso": "2026-11-12T04:30:02+10:00",
-        "age_days": 3.5,
+        "age_days": 3.6,
         "today": false,
         "status": "new"
       },
@@ -5543,7 +5544,7 @@
         "safety": true,
         "raised": "09/11 09:16",
         "raised_iso": "2026-11-09T09:16:40+10:00",
-        "age_days": 6.3,
+        "age_days": 6.4,
         "today": false,
         "status": "new"
       },
@@ -5553,7 +5554,7 @@
         "safety": false,
         "raised": "09/11 09:10",
         "raised_iso": "2026-11-09T09:10:34+10:00",
-        "age_days": 6.3,
+        "age_days": 6.4,
         "today": false,
         "status": "new"
       },
@@ -5893,7 +5894,7 @@
         "safety": false,
         "raised": "02/11 21:15",
         "raised_iso": "2026-11-02T21:15:35+10:00",
-        "age_days": 12.8,
+        "age_days": 12.9,
         "today": false,
         "status": "new"
       },
@@ -6013,7 +6014,7 @@
         "safety": true,
         "raised": "31/10 14:01",
         "raised_iso": "2026-10-31T14:01:27+10:00",
-        "age_days": 15.1,
+        "age_days": 15.2,
         "today": false,
         "status": "new"
       },
@@ -6123,7 +6124,7 @@
         "safety": false,
         "raised": "29/10 06:53",
         "raised_iso": "2026-10-29T06:53:25+10:00",
-        "age_days": 17.4,
+        "age_days": 17.5,
         "today": false,
         "status": "new"
       },
@@ -6173,7 +6174,7 @@
         "safety": false,
         "raised": "27/10 09:22",
         "raised_iso": "2026-10-27T09:22:54+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6183,7 +6184,7 @@
         "safety": true,
         "raised": "27/10 09:21",
         "raised_iso": "2026-10-27T09:21:43+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6193,7 +6194,7 @@
         "safety": false,
         "raised": "27/10 09:21",
         "raised_iso": "2026-10-27T09:21:02+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6203,7 +6204,7 @@
         "safety": false,
         "raised": "27/10 09:19",
         "raised_iso": "2026-10-27T09:19:42+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6213,7 +6214,7 @@
         "safety": true,
         "raised": "27/10 09:18",
         "raised_iso": "2026-10-27T09:18:22+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6223,7 +6224,7 @@
         "safety": true,
         "raised": "27/10 09:17",
         "raised_iso": "2026-10-27T09:17:41+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6233,7 +6234,7 @@
         "safety": false,
         "raised": "27/10 09:17",
         "raised_iso": "2026-10-27T09:17:24+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6243,7 +6244,7 @@
         "safety": false,
         "raised": "27/10 09:16",
         "raised_iso": "2026-10-27T09:16:55+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6253,7 +6254,7 @@
         "safety": false,
         "raised": "27/10 09:16",
         "raised_iso": "2026-10-27T09:16:18+10:00",
-        "age_days": 19.3,
+        "age_days": 19.4,
         "today": false,
         "status": "new"
       },
@@ -6263,7 +6264,7 @@
         "safety": true,
         "raised": "26/10 04:32",
         "raised_iso": "2026-10-26T04:32:03+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6273,7 +6274,7 @@
         "safety": false,
         "raised": "26/10 04:30",
         "raised_iso": "2026-10-26T04:30:18+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6283,7 +6284,7 @@
         "safety": false,
         "raised": "26/10 04:29",
         "raised_iso": "2026-10-26T04:29:38+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6293,7 +6294,7 @@
         "safety": false,
         "raised": "26/10 04:26",
         "raised_iso": "2026-10-26T04:26:41+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6303,7 +6304,7 @@
         "safety": false,
         "raised": "26/10 04:26",
         "raised_iso": "2026-10-26T04:26:12+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6313,7 +6314,7 @@
         "safety": true,
         "raised": "26/10 04:25",
         "raised_iso": "2026-10-26T04:25:17+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6323,7 +6324,7 @@
         "safety": true,
         "raised": "26/10 04:24",
         "raised_iso": "2026-10-26T04:24:08+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6333,7 +6334,7 @@
         "safety": false,
         "raised": "26/10 04:23",
         "raised_iso": "2026-10-26T04:23:36+10:00",
-        "age_days": 20.5,
+        "age_days": 20.6,
         "today": false,
         "status": "new"
       },
@@ -6393,7 +6394,7 @@
         "safety": false,
         "raised": "23/10 14:03",
         "raised_iso": "2026-10-23T14:03:36+10:00",
-        "age_days": 23.1,
+        "age_days": 23.2,
         "today": false,
         "status": "new"
       },
@@ -6403,7 +6404,7 @@
         "safety": false,
         "raised": "23/10 14:02",
         "raised_iso": "2026-10-23T14:02:07+10:00",
-        "age_days": 23.1,
+        "age_days": 23.2,
         "today": false,
         "status": "new"
       },
@@ -6443,7 +6444,7 @@
         "safety": true,
         "raised": "22/10 09:15",
         "raised_iso": "2026-10-22T09:15:51+10:00",
-        "age_days": 24.3,
+        "age_days": 24.4,
         "today": false,
         "status": "new"
       },
@@ -6453,7 +6454,7 @@
         "safety": false,
         "raised": "22/10 09:15",
         "raised_iso": "2026-10-22T09:15:14+10:00",
-        "age_days": 24.3,
+        "age_days": 24.4,
         "today": false,
         "status": "new"
       },
@@ -6533,7 +6534,7 @@
         "safety": false,
         "raised": "21/10 06:53",
         "raised_iso": "2026-10-21T06:53:10+10:00",
-        "age_days": 25.4,
+        "age_days": 25.5,
         "today": false,
         "status": "new"
       },
@@ -7193,7 +7194,7 @@
         "safety": false,
         "raised": "05/10 09:20",
         "raised_iso": "2026-10-05T09:20:48+10:00",
-        "age_days": 41.3,
+        "age_days": 41.4,
         "today": false,
         "status": "new"
       },
