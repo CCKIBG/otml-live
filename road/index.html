@@ -242,6 +242,7 @@ function toD(c, m){
   try{ const hm=x=>new Date((x+36000)*1000).toISOString().slice(11,16);
     ((c.trucks||{}).convoys||[]).filter(cv=>cv.quiet).forEach(cv=>{ const h=((Date.now()/1000-cv.last_fix)/3600).toFixed(1);
       flags.push({lvl:"red",tag:"Convoy",text:`${cv.name} (${cv.units.map(u=>/^TT(1[5-9]|2\d)$/.test(u)?"IT"+u.slice(2):u).join(", ")}) has had no GPS for ${h} h, last at KM${cv.km[0]}${cv.km[1]!==cv.km[0]?"–"+cv.km[1]:""} at ${hm(cv.last_fix)}. Check by radio: stopped, held, or in the weak-coverage stretch.`}); }); }catch(e){}
+  try{ const C=fleetCalc(); if(C) C.alerts.forEach(a=>flags.push({lvl:"amber",tag:"Diesel",text:a})); }catch(e){}
   if(false) try{ const S=fuelShipping(); if(S){ S.vs.filter(v=>v.atJT).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} looks to be at JT (${v.nm_jt} nm). Change its state to loading in manual.json.`}));
      S.vs.filter(v=>v.atAiambak).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} looks to be at Aiambak (${v.nm_aiambak} nm). Change its state to discharging with the docked time.`}));
      S.dis.filter(v=>v.nearlyEmpty).forEach(v=>flags.push({lvl:"amber",tag:"Shipping",text:`${v.name} is nearly empty at Aiambak (about ${Math.round(v.left/1000)} kL left). When she leaves, change her state to to_jt.`})); } }catch(e){}
@@ -434,7 +435,7 @@ async function load(){
     }catch(e){}
     try{ const h=await fetch((ROAD_MODE?"../":"../")+"otml-live.html"+bust,{cache:"no-store"}).then(r=>r.ok?r.text():"");
       const grab=key=>{const i=h.indexOf('"'+key+'"'); if(i<0) return null; let j=h.indexOf("{",i), d=0, k=j; for(;k<h.length;k++){ if(h[k]==="{") d++; else if(h[k]==="}"){ d--; if(!d) break; } } try{return JSON.parse(h.slice(j,k+1));}catch(e){return null;}};
-      const hd=grab("headline"); const g=(h.match(/"generated_at"\s*:\s*"([^"]+)"/)||[])[1];
+      const hd=grab("headline"); try{ const fm=h.match(/window\.FLEET_DATA = (\{[\s\S]*?\});<\/script>/); c0fleet=fm?JSON.parse(fm[1]):null; }catch(e){ c0fleet=null; } const g=(h.match(/"generated_at"\s*:\s*"([^"]+)"/)||[])[1];
       c0power=hd?Object.assign({},hd,{generated_at:g, flow:(h.match(/"ok_menga_flow_m3s"\s*:\s*([\d.]+)/)||[])[1], gh01:(h.match(/"gh01_mw"\s*:\s*([\d.]+)/)||[])[1], gh02:(h.match(/"gh02_mw"\s*:\s*([\d.]+)/)||[])[1], river_fc:grab("forecast"), river_d24:(h.match(/"kiunga_delta_24h_m"\s*:\s*(-?[\d.]+)/)||[])[1]}):null;
     }catch(e){ c0power=null; }
     try{ // a convoy whose trucks have gone quiet (no GPS 3 h+) is still on the road until it arrives
@@ -791,6 +792,50 @@ function render(){ // keep the tab bar and the page where the user left them acr
         if(on){ const l=on.offsetLeft, r=l+on.offsetWidth; if(l<tb.scrollLeft||r>tb.scrollLeft+tb.clientWidth) tb.scrollLeft=Math.max(0,l-16); } }
        if(pageY) window.scrollTo(0,pageY); }catch(e){}
 }
+// --- Fleet + diesel on water (from MarineTraffic block in otml-live.html) ---
+let c0fleet=null;
+function fleetCalc(){ const F=c0fleet; if(!F||!F.vessels) return null;
+  const near=(v,a,b,d)=>Math.abs(v.lat-a)<d&&Math.abs(v.lon-b)<d;
+  const zone=v=>v.lat==null?"none":near(v,-9.45,147.12,0.15)?"pom":near(v,-6.13,141.29,0.05)?"kiunga":near(v,-7.355,141.265,0.03)?"aiambak":(v.lat>-8.75&&v.lat<-5.9&&v.lon>140.6&&v.lon<143.6)?"fly":"else";
+  const where=v=>{const z=zone(v); if(z==="pom") return "Port Moresby"; if(z==="kiunga") return "Kiunga"; if(z==="aiambak") return "Aiambak"; if(z==="fly") return v.lon>142.9?"Fly mouth":v.lat>-6.9?"Upper Fly":v.lat>-7.6?"Middle Fly":"Lower Fly"; return "";};
+  const isIn=v=>/AIAMB|KIUNGA|DOUBI/.test(v.dest||"");
+  const V=F.vessels.filter(v=>!v.missing);
+  const D=F.vessels.filter(v=>(v.role||"").indexOf("D")>=0);
+  const inb=D.filter(v=>!v.missing&&isIn(v)&&(zone(v)==="fly"||zone(v)==="else"));
+  const dd=s=>{ if(!s) return ""; const p=new Date(new Date(s).getTime()+36e6); return p.getUTCDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][p.getUTCMonth()]; };
+  const alerts=[]; D.forEach(v=>{ if(v.missing) return;
+    if(v.prev_zone==="pom"&&zone(v)!=="pom"&&isIn(v)) alerts.push(`${v.name} has left Port Moresby for ${v.dest}`);
+    else if(inb.includes(v)) alerts.push(`${v.name} (diesel) ${v.kn>=1?"under way at "+v.kn+" kn":"stopped"} in the ${where(v)}, heading for ${/KIUNGA|DOUBI/.test(v.dest)?"Kiunga":"Aiambak"}${v.eta?", ETA "+dd(v.eta):""}.`);
+    if(v.prev_zone&&v.prev_zone!=="aiambak"&&zone(v)==="aiambak") alerts.push(`${v.name} (diesel) has arrived at Aiambak.`); });
+  return {F,V,D,inb,alerts,zone,where,isIn,dd};
+}
+function fleetPanel(){ const C=fleetCalc(); if(!C) return `<div class="ph"><h2>Fleet movements</h2></div><p class="muted small">Waiting for the MarineTraffic fleet read (06:45, 11:45, 17:45 from Brendan's Mac via OTML Live).</p>`;
+  const {F,V,D,inb,alerts,zone,where,isIn,dd}=C;
+  const ageH=(Date.now()-new Date(F.as_of))/36e5, ago=h=>h<1?Math.round(h*60)+" min ago":h<36?Math.round(h)+" h ago":Math.round(h/24)+" d ago";
+  const role=r=>(r||"").indexOf("D")>=0&&(r||"").indexOf("Cu")>=0?' <span class="muted">D+Cu</span>':(r||"").indexOf("D")>=0?' <b style="color:#B08A00">D</b>':(r||"").indexOf("Cu")>=0?' <span class="muted">Cu</span>':"";
+  const seen=v=>{const h=(Date.now()-new Date(v.seen))/36e5; return h>18?` <span style="color:#B08A00">seen ${ago(h)}</span>`:"";};
+  const dest=v=>v.dest?`→ ${esc(v.dest)}${v.eta?" · "+dd(v.eta):""}`:"no destination";
+  const map=v=>v.lat!=null?`<a href="https://maps.google.com/?q=${v.lat},${v.lon}" target="_blank" rel="noopener">${esc(where(v)||"map")}</a>`:"";
+  const tr=(v,a,b)=>`<tr><td><b>${esc(v.name)}</b>${role(v.role)}</td><td>${a}</td><td>${b}${seen(v)}</td></tr>`;
+  const tbl=(t,rows,h2)=>rows.length?`<h3 class="small" style="margin:12px 0 4px">${t} (${rows.length})</h3><div style="overflow-x:auto"><table class="small"><tr><th>Vessel</th><th>${h2[0]}</th><th>${h2[1]}</th></tr>${rows.join("")}</table></div>`:"";
+  const uw=V.filter(v=>v.kn>=1&&zone(v)!=="pom"), rest=V.filter(v=>!(v.kn>=1&&zone(v)!=="pom")), by=z=>rest.filter(v=>zone(v)===z);
+  const cap=v=>v.cap_ml?` · ${v.cap_ml} ML`:"";
+  const atP=D.filter(v=>zone(v)==="pom"||v.missing), atAK=D.filter(v=>zone(v)==="aiambak"||zone(v)==="kiunga");
+  return `<div class="ph"><h2>Diesel on water</h2><span class="state ${ageH>9?"stale":"live"}">MarineTraffic ${ago(ageH)}</span></div>
+    ${alerts.map(a=>`<div class="standout"><span class="tl">Diesel</span><span class="ts">${esc(a)}</span></div>`).join("")}
+    ${tbl("Inbound to Aiambak / Kiunga",inb.map(v=>tr(v,`${v.kn} kn · ${map(v)}`,`${dest(v)}${cap(v)}`)),["Speed · where","Destination"])}
+    ${tbl("At Aiambak / Kiunga",atAK.map(v=>tr(v,map(v),cap(v).replace(" · ",""))),["Where",""])}
+    ${tbl("Port Moresby (loading / waiting)",atP.map(v=>v.missing?`<tr><td><b>${esc(v.name)}</b>${role(v.role)}</td><td colspan="2"><span style="color:#B08A00">not in the MarineTraffic fleet yet</span></td></tr>`:tr(v,/Moored/.test(v.status)?"Moored":"Anchorage",(v.dest&&!/POM|MORESBY/.test(v.dest))?dest(v):"next: not set")),["Status","Next"])}
+    ${(F.fixed||[]).length?`<p class="small"><b>Fixed / no tracker:</b> ${(F.fixed||[]).map(f=>`${esc(f.name)} (${esc(f.note||"")})`).join("; ")}</p>`:""}
+    <div class="ph" style="margin-top:16px"><h2>Fleet movements</h2></div>
+    ${tbl("Under way",uw.map(v=>tr(v,`${v.kn} kn · ${map(v)||"at sea"}`,dest(v)+(v.note?" · "+esc(v.note):""))),["Speed · where","Destination · ETA"])}
+    ${tbl("Waiting in the Fly",by("fly").concat(by("aiambak")).map(v=>tr(v,map(v),isIn(v)&&zone(v)!=="aiambak"?dest(v):"")),["Where",""])}
+    ${tbl("At Kiunga",by("kiunga").map(v=>tr(v,/Anchor/.test(v.status)?"Anchored":"Wharf","")),["",""])}
+    ${tbl("Port Moresby",by("pom").map(v=>tr(v,/Moored/.test(v.status)?"Moored":"Anchorage",(v.dest&&!/POM|MORESBY/.test(v.dest))?dest(v):"next: not set")),["Status","Next destination"])}
+    ${tbl("Elsewhere",by("else").concat(by("none")).map(v=>tr(v,"",dest(v))),["","Destination"])}
+    <p class="muted small">D = diesel, Cu = copper concentrate, D+Cu = both. From the MarineTraffic fleet "BG" (satellite tracking), read three times a day; destinations and ETAs are typed in by each crew and can be out of date.</p>`;
+}
+
 function renderInner(){
   const f=D.fuel, b=D.bags, fa=D.fatigue;
   const below=fa.rows.filter(r=>r.score<fa.threshold), crossing=fa.rows.filter(r=>r.score>=fa.threshold && r.at);
@@ -801,7 +846,7 @@ function renderInner(){
   </header>
 
   <nav class="tabs${ROAD_MODE?" two":""}" role="tablist" aria-label="Sections">
-    ${(ROAD_MODE?[["roads","Road"],["road","Convoys"]]:[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]]).map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
+    ${(ROAD_MODE?[["roads","Road"],["road","Convoys"]]:[["summary","Summary"],["road","Convoys"],["alerts",`Alerts <span class="tcount">${D.flags.filter(f=>f.lvl==="red").length||""}</span>`],["fuel","Fuel"],["shipping","Shipping"],["cucon","CuCon"],["people","People"],["fleet","Fleet"],["roads","Road"],["plan","Plan"]]).map(([k,l])=>`<button role="tab" class="tab" data-t="${k}">${l}</button>`).join("")}
   </nav>
 
   <section data-tab="summary">
@@ -963,6 +1008,7 @@ function renderInner(){
         ${fm.tanks.map(t=>`<div class="tank"><span>${t.id} ${kl(t.vol)} kL</span><div class="bar" role="img" aria-label="${t.id} ${pct(t.vol,t.cap)} percent full"><span style="width:${Math.max(1,pct(t.vol,t.cap))}%;${!t.inService?"background:var(--gap)":t.belowSuction?"background:var(--red)":""}"></span>${t.suction&&t.cap?`<i class="suction" style="left:${(t.suction/t.cap*100).toFixed(1)}%" title="Suction level ${kl(t.suction)} kL"></i>`:""}</div><span class="r muted small">${!t.inService?"out of service":t.belowSuction?"below suction":t.usable!=null?kl(t.usable)+" usable"+(t.liveMove?(t.mvIn>=t.mvOut?" (filling)":" (discharging)"):""):pct(t.vol,t.cap)+" %"}</span></div>`).join("")}</div>`;}).join("")}
     </section>
     <section class="panel wide" data-tab="shipping">
+      ${fleetPanel()}
       ${(()=>{const S=fuelShipping(); if(!S) return `<div class="ph"><h2>Shipping</h2></div><p class="muted small">No vessels recorded.</p>`; const kl=v=>v==null?"–":Math.round(v/1000).toLocaleString("en-AU");
         const pos=v=>{const p=v.position||{}; if(p.lat==null) return `<span class="muted">${esc(v.where||"")}</span>`; return `<a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">${Math.abs(p.lat).toFixed(2)}°${p.lat<0?"S":"N"} ${p.lon.toFixed(2)}°E</a>${p.at?` <span class="muted">${p.at.slice(8,10)}/${p.at.slice(5,7)} ${p.at.slice(11,16)}</span>`:""}${p.note?`<br><span class="muted">${esc(p.note)}</span>`:""}${v.nm_aiambak!=null?`<br><span class="muted">${v.nm_aiambak} nm from Aiambak${v.nm_jt!=null?`, ${v.nm_jt} nm from JT`:""}</span>`:""}`;};
         const tow=v=>[v.type,v.tug?`tug ${v.tug}`:"",v.mmsi?`MMSI ${v.mmsi}`:""].filter(Boolean).join(", ");
