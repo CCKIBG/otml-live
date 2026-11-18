@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-19T09:15+10:00",
+  "generated": "2026-11-19T09:30+10:00",
   "window": {
     "from": "2026-11-17T13:00+10:00",
     "to": "2026-11-18T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-19T09:15+10:00",
+    "as_of": "2026-11-19T09:30+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -210,7 +210,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-19T09:15+10:00",
+    "as_of": "2026-11-19T09:30+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3860,7 +3860,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-19T09:17+10:00",
+    "as_of": "2026-11-19T09:32+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -4581,9 +4581,9 @@
         },
         {
           "where": "Aiambak (trucked, not yet shipped)",
-          "bags": 288,
-          "tonnes": 593.3,
-          "tonnes_est": 593.3
+          "bags": 24,
+          "tonnes": 49.4,
+          "tonnes_est": 49.4
         },
         {
           "where": "Shipped",
@@ -4598,7 +4598,7 @@
       "brief": [
         "17/11 Day: 172 bags filled (351 t), 24 sent to West Bank, 0 sent to Aiambak. 0",
         "17/11 Night: 53 bags filled (112 t), 16 sent to West Bank, 0 sent to Aiambak. 0",
-        "18/11 Day: 0 bags filled (0 t), 0 sent to West Bank, 0 sent to Aiambak. 0",
+        "18/11 Day: 0 bags filled (0 t), 0 sent to West Bank, 0 sent to Aiambak.",
         "18/11 Night: 0 bags filled (0 t), 0 sent to West Bank, 0 sent to Aiambak."
       ],
       "focus": [],
@@ -4623,7 +4623,7 @@
           "to_wb": 8,
           "to_aia": 0,
           "aia_in": 0,
-          "comment": "212"
+          "comment": "0"
         },
         {
           "date": "2026-11-17",
@@ -4652,8 +4652,8 @@
           "t": 0,
           "to_wb": 0,
           "to_aia": 0,
-          "aia_in": 0,
-          "comment": "0"
+          "aia_in": 24,
+          "comment": ""
         },
         {
           "date": "2026-11-18",
@@ -4667,43 +4667,28 @@
         }
       ],
       "tarped": {
-        "total": 1363,
+        "total": 288,
         "entries": [
           {
-            "date": "2026-11-06",
+            "date": "2026-11-13",
             "shift": "Day",
-            "value": 64
+            "value": 112
           },
           {
-            "date": "2026-11-08",
-            "shift": "Day",
-            "value": 48
-          },
-          {
-            "date": "2026-11-08",
+            "date": "2026-11-13",
             "shift": "Night",
-            "value": 64
+            "value": 96
           },
           {
-            "date": "2026-11-11",
+            "date": "2026-11-14",
             "shift": "Day",
             "value": 80
-          },
-          {
-            "date": "2026-11-12",
-            "shift": "Day",
-            "value": 32
-          },
-          {
-            "date": "2026-11-18",
-            "shift": "Day",
-            "value": 96
           }
         ],
         "last": {
-          "date": "2026-11-18",
+          "date": "2026-11-14",
           "shift": "Day",
-          "value": 96
+          "value": 80
         }
       }
     },
@@ -4712,55 +4697,55 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21293,
-        "at": "2026-11-19T09:17+10:00"
+        "at": "2026-11-19T09:32+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
-        "bytes": 514922,
-        "at": "2026-11-19T09:17+10:00"
+        "bytes": 518707,
+        "at": "2026-11-19T09:32+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-19T09:17+10:00",
-    "as_of_readi": "19 Nov 2026, 9:17AM",
+    "as_of": "2026-11-19T09:32+10:00",
+    "as_of_readi": "19 Nov 2026, 9:32AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
         "name": "Hayu Bangum",
-        "sync": "9m",
+        "sync": "24m",
         "source": "Wearable Only",
         "score": 90,
         "group": "below",
         "now_below": false,
-        "time_to_70": "15h",
+        "time_to_70": "14h",
         "when": "At 12:00AM"
       },
       {
         "name": "Jason Murin",
-        "sync": "9m",
+        "sync": "24m",
         "source": "Wearable Only",
         "score": 79,
         "group": "below",
         "now_below": false,
-        "time_to_70": "14h",
+        "time_to_70": "13h",
         "when": "At 11:00PM"
       },
       {
         "name": "Justin Bart",
-        "sync": "9m",
+        "sync": "24m",
         "source": "ReadiML",
         "score": 82,
         "group": "below",
         "now_below": false,
-        "time_to_70": "15h",
+        "time_to_70": "14h",
         "when": "At 12:00AM"
       },
       {
         "name": "Penias Telong",
-        "sync": "22m",
+        "sync": "37m",
         "source": "ReadiML",
         "score": 60,
         "group": "below",
@@ -4770,12 +4755,12 @@
       },
       {
         "name": "Nelson David",
-        "sync": "35m",
+        "sync": "50m",
         "source": "Wearable Only",
         "score": 93,
         "group": "below",
         "now_below": false,
-        "time_to_70": "16h",
+        "time_to_70": "15h",
         "when": "At 1:00AM"
       },
       {
@@ -4785,7 +4770,7 @@
         "score": 72,
         "group": "below",
         "now_below": false,
-        "time_to_70": "3h",
+        "time_to_70": "2h",
         "when": "At 12:00PM"
       },
       {
@@ -4795,7 +4780,7 @@
         "score": 98,
         "group": "below",
         "now_below": false,
-        "time_to_70": "17h",
+        "time_to_70": "16h",
         "when": "At 2:00AM"
       },
       {
@@ -4805,7 +4790,7 @@
         "score": 90,
         "group": "below",
         "now_below": false,
-        "time_to_70": "15h",
+        "time_to_70": "14h",
         "when": "At 12:00AM"
       },
       {
@@ -4815,7 +4800,7 @@
         "score": 76,
         "group": "below",
         "now_below": false,
-        "time_to_70": "13h",
+        "time_to_70": "12h",
         "when": "At 10:00PM"
       },
       {
@@ -4825,7 +4810,7 @@
         "score": 76,
         "group": "below",
         "now_below": false,
-        "time_to_70": "12h",
+        "time_to_70": "11h",
         "when": "At 9:00PM"
       },
       {
@@ -4835,7 +4820,7 @@
         "score": 90,
         "group": "below",
         "now_below": false,
-        "time_to_70": "15h",
+        "time_to_70": "14h",
         "when": "At 12:00AM"
       }
     ],
