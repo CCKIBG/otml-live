@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-19T07:55+10:00",
+  "generated": "2026-11-19T08:15+10:00",
   "window": {
     "from": "2026-11-17T13:00+10:00",
     "to": "2026-11-18T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-19T07:55+10:00",
+    "as_of": "2026-11-19T08:15+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -94,7 +94,7 @@
         "net_l": null,
         "change_3h_l": null,
         "stale": true,
-        "stale_note": "console not reachable: Page.goto: Timeout 60000ms exceeded."
+        "stale_note": "console not reachable: logged out: log in again in this tab"
       },
       "tabubil": {
         "tanks": [
@@ -165,7 +165,7 @@
       }
     },
     "site_errors": {
-      "kiunga": "Page.goto: Timeout 60000ms exceeded."
+      "kiunga": "logged out: log in again in this tab"
     },
     "available_total_l": -271711.0,
     "vessel": {
@@ -210,7 +210,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-19T07:57+10:00",
+    "as_of": "2026-11-19T08:15+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3860,7 +3860,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-19T07:59+10:00",
+    "as_of": "2026-11-19T08:17+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -4712,37 +4712,47 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21293,
-        "at": "2026-11-19T07:59+10:00"
+        "at": "2026-11-19T08:17+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
         "bytes": 514980,
-        "at": "2026-11-19T07:59+10:00"
+        "at": "2026-11-19T08:17+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-19T07:59+10:00",
-    "as_of_readi": "19 Nov 2026, 7:59AM",
+    "as_of": "2026-11-19T08:17+10:00",
+    "as_of_readi": "19 Nov 2026, 8:17AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
         "name": "Harry Harihi",
-        "sync": "22m",
+        "sync": "40m",
         "source": "Wearable Only",
-        "score": 69,
+        "score": 70,
         "group": "below",
-        "now_below": true,
-        "time_to_70": "Now",
-        "when": "Since 7:00AM"
+        "now_below": false,
+        "time_to_70": "4h",
+        "when": "At 12:00PM"
+      },
+      {
+        "name": "Paul Kuri",
+        "sync": "1h",
+        "source": "Wearable Only",
+        "score": 99,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "18h",
+        "when": "At 2:00AM"
       },
       {
         "name": "Michael John",
-        "sync": "47m",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 89,
+        "score": 90,
         "group": "below",
         "now_below": false,
         "time_to_70": "16h",
@@ -4750,9 +4760,9 @@
       },
       {
         "name": "Adrean Arovo",
-        "sync": "47m",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 75,
+        "score": 76,
         "group": "below",
         "now_below": false,
         "time_to_70": "14h",
@@ -4760,9 +4770,9 @@
       },
       {
         "name": "Barok Nicholas",
-        "sync": "49m",
+        "sync": "1h",
         "source": "ReadiML",
-        "score": 75,
+        "score": 76,
         "group": "below",
         "now_below": false,
         "time_to_70": "13h",
@@ -4770,9 +4780,9 @@
       },
       {
         "name": "Nambuga Alex",
-        "sync": "51m",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 92,
+        "score": 91,
         "group": "below",
         "now_below": false,
         "time_to_70": "16h",
@@ -4780,9 +4790,9 @@
       },
       {
         "name": "Essy Hansa",
-        "sync": "51m",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 72,
+        "score": 74,
         "group": "below",
         "now_below": false,
         "time_to_70": "14h",
@@ -4790,7 +4800,7 @@
       },
       {
         "name": "John Vaname",
-        "sync": "52m",
+        "sync": "1h",
         "source": "Wearable Only",
         "score": 85,
         "group": "below",
@@ -4800,9 +4810,9 @@
       },
       {
         "name": "Malts Pore",
-        "sync": "52m",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 81,
+        "score": 82,
         "group": "below",
         "now_below": false,
         "time_to_70": "15h",
@@ -4810,33 +4820,23 @@
       },
       {
         "name": "Sani Wata Wahawe",
-        "sync": "54m",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 77,
+        "score": 78,
         "group": "below",
         "now_below": false,
         "time_to_70": "15h",
         "when": "At 11:00PM"
       },
       {
-        "name": "Amsi Vagi",
-        "sync": "56m",
+        "name": "George Penrose",
+        "sync": "1h",
         "source": "Wearable Only",
-        "score": 89,
+        "score": 87,
         "group": "below",
         "now_below": false,
-        "time_to_70": "15h",
-        "when": "At 11:00PM"
-      },
-      {
-        "name": "Gambu Jack",
-        "sync": "2h",
-        "source": "Wearable Only",
-        "score": 84,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "16h",
-        "when": "At 12:00AM"
+        "time_to_70": "18h",
+        "when": "At 2:00AM"
       }
     ],
     "no_forecast": null,
