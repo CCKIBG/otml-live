@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-19T09:00+10:00",
+  "generated": "2026-11-19T09:15+10:00",
   "window": {
     "from": "2026-11-17T13:00+10:00",
     "to": "2026-11-18T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-19T09:00+10:00",
+    "as_of": "2026-11-19T09:15+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -210,7 +210,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-19T09:00+10:00",
+    "as_of": "2026-11-19T09:15+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3860,7 +3860,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-19T09:02+10:00",
+    "as_of": "2026-11-19T09:17+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -4712,24 +4712,55 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21293,
-        "at": "2026-11-19T09:02+10:00"
+        "at": "2026-11-19T09:17+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
-        "ok": false,
-        "note": "HTTP 200: SharePoint login needed on the SharePoint tab"
+        "ok": true,
+        "bytes": 514922,
+        "at": "2026-11-19T09:17+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-19T09:02+10:00",
-    "as_of_readi": "19 Nov 2026, 9:02AM",
+    "as_of": "2026-11-19T09:17+10:00",
+    "as_of_readi": "19 Nov 2026, 9:17AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
+        "name": "Hayu Bangum",
+        "sync": "9m",
+        "source": "Wearable Only",
+        "score": 90,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "15h",
+        "when": "At 12:00AM"
+      },
+      {
+        "name": "Jason Murin",
+        "sync": "9m",
+        "source": "Wearable Only",
+        "score": 79,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "14h",
+        "when": "At 11:00PM"
+      },
+      {
+        "name": "Justin Bart",
+        "sync": "9m",
+        "source": "ReadiML",
+        "score": 82,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "15h",
+        "when": "At 12:00AM"
+      },
+      {
         "name": "Penias Telong",
-        "sync": "7m",
+        "sync": "22m",
         "source": "ReadiML",
         "score": 60,
         "group": "below",
@@ -4739,7 +4770,7 @@
       },
       {
         "name": "Nelson David",
-        "sync": "20m",
+        "sync": "35m",
         "source": "Wearable Only",
         "score": 93,
         "group": "below",
@@ -4749,7 +4780,7 @@
       },
       {
         "name": "Harry Harihi",
-        "sync": "1h",
+        "sync": "2h",
         "source": "Wearable Only",
         "score": 72,
         "group": "below",
@@ -4806,36 +4837,6 @@
         "now_below": false,
         "time_to_70": "15h",
         "when": "At 12:00AM"
-      },
-      {
-        "name": "Essy Hansa",
-        "sync": "2h",
-        "source": "Wearable Only",
-        "score": 75,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "13h",
-        "when": "At 10:00PM"
-      },
-      {
-        "name": "John Vaname",
-        "sync": "2h",
-        "source": "Wearable Only",
-        "score": 85,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "14h",
-        "when": "At 11:00PM"
-      },
-      {
-        "name": "Malts Pore",
-        "sync": "2h",
-        "source": "Wearable Only",
-        "score": 82,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "14h",
-        "when": "At 11:00PM"
       }
     ],
     "no_forecast": null,
