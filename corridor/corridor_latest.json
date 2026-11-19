@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-19T10:45+10:00",
+  "generated": "2026-11-19T11:00+10:00",
   "window": {
     "from": "2026-11-17T13:00+10:00",
     "to": "2026-11-18T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-19T10:45+10:00",
+    "as_of": "2026-11-19T11:00+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -210,7 +210,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-19T10:45+10:00",
+    "as_of": "2026-11-19T11:00+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3860,7 +3860,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-19T10:47+10:00",
+    "as_of": "2026-11-19T11:02+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -5370,27 +5370,37 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21215,
-        "at": "2026-11-19T10:47+10:00"
+        "at": "2026-11-19T11:02+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
         "bytes": 520462,
-        "at": "2026-11-19T10:47+10:00"
+        "at": "2026-11-19T11:02+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-19T10:47+10:00",
-    "as_of_readi": "19 Nov 2026, 10:47AM",
+    "as_of": "2026-11-19T11:02+10:00",
+    "as_of_readi": "19 Nov 2026, 11:02AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
+        "name": "Lane Waka",
+        "sync": "2h",
+        "source": "Wearable Only",
+        "score": 90,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "16h",
+        "when": "At 3:00AM"
+      },
+      {
         "name": "Hayu Bangum",
         "sync": "2h",
         "source": "Wearable Only",
-        "score": 89,
+        "score": 88,
         "group": "below",
         "now_below": false,
         "time_to_70": "13h",
@@ -5400,7 +5410,7 @@
         "name": "Jason Murin",
         "sync": "2h",
         "source": "Wearable Only",
-        "score": 78,
+        "score": 77,
         "group": "below",
         "now_below": false,
         "time_to_70": "12h",
@@ -5410,7 +5420,7 @@
         "name": "Justin Bart",
         "sync": "2h",
         "source": "ReadiML",
-        "score": 82,
+        "score": 81,
         "group": "below",
         "now_below": false,
         "time_to_70": "13h",
@@ -5424,13 +5434,13 @@
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 10:00AM"
+        "when": "Since 11:00AM"
       },
       {
         "name": "Nelson David",
         "sync": "2h",
         "source": "Wearable Only",
-        "score": 92,
+        "score": 91,
         "group": "below",
         "now_below": false,
         "time_to_70": "14h",
@@ -5440,17 +5450,17 @@
         "name": "Harry Harihi",
         "sync": "3h",
         "source": "Wearable Only",
-        "score": 72,
+        "score": 71,
         "group": "below",
         "now_below": false,
-        "time_to_70": "1h",
-        "when": "At 12:00PM"
+        "time_to_70": "",
+        "when": ""
       },
       {
         "name": "Paul Kuri",
         "sync": "4h",
         "source": "Wearable Only",
-        "score": 97,
+        "score": 96,
         "group": "below",
         "now_below": false,
         "time_to_70": "15h",
@@ -5460,7 +5470,7 @@
         "name": "Michael John",
         "sync": "4h",
         "source": "Wearable Only",
-        "score": 89,
+        "score": 88,
         "group": "below",
         "now_below": false,
         "time_to_70": "13h",
@@ -5470,7 +5480,7 @@
         "name": "Adrean Arovo",
         "sync": "4h",
         "source": "Wearable Only",
-        "score": 75,
+        "score": 74,
         "group": "below",
         "now_below": false,
         "time_to_70": "11h",
@@ -5480,21 +5490,11 @@
         "name": "Barok Nicholas",
         "sync": "4h",
         "source": "ReadiML",
-        "score": 75,
+        "score": 74,
         "group": "below",
         "now_below": false,
         "time_to_70": "10h",
         "when": "At 9:00PM"
-      },
-      {
-        "name": "Nambuga Alex",
-        "sync": "4h",
-        "source": "Wearable Only",
-        "score": 89,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "13h",
-        "when": "At 12:00AM"
       }
     ],
     "no_forecast": null,
