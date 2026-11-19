@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-19T18:15+10:00",
+  "generated": "2026-11-19T18:30+10:00",
   "window": {
     "from": "2026-11-18T13:00+10:00",
     "to": "2026-11-19T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-19T18:15+10:00",
+    "as_of": "2026-11-19T18:30+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -229,7 +229,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-19T18:15+10:00",
+    "as_of": "2026-11-19T18:30+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3879,7 +3879,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-19T18:17+10:00",
+    "as_of": "2026-11-19T18:32+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -5389,22 +5389,32 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21215,
-        "at": "2026-11-19T18:17+10:00"
+        "at": "2026-11-19T18:32+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
         "bytes": 520489,
-        "at": "2026-11-19T18:17+10:00"
+        "at": "2026-11-19T18:32+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-19T18:17+10:00",
-    "as_of_readi": "19 Nov 2026, 6:17PM",
+    "as_of": "2026-11-19T18:32+10:00",
+    "as_of_readi": "19 Nov 2026, 6:32PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
+      {
+        "name": "Joe Guiap",
+        "sync": "14m",
+        "source": "ReadiML",
+        "score": 86,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "4h",
+        "when": "At 11:00PM"
+      },
       {
         "name": "Lane Waka",
         "sync": "9h",
@@ -5412,7 +5422,7 @@
         "score": 87,
         "group": "below",
         "now_below": false,
-        "time_to_70": "9h",
+        "time_to_70": "8h",
         "when": "At 3:00AM"
       },
       {
@@ -5422,7 +5432,7 @@
         "score": 91,
         "group": "below",
         "now_below": false,
-        "time_to_70": "6h",
+        "time_to_70": "5h",
         "when": "At 12:00AM"
       },
       {
@@ -5432,7 +5442,7 @@
         "score": 80,
         "group": "below",
         "now_below": false,
-        "time_to_70": "5h",
+        "time_to_70": "4h",
         "when": "At 11:00PM"
       },
       {
@@ -5442,12 +5452,12 @@
         "score": 83,
         "group": "below",
         "now_below": false,
-        "time_to_70": "6h",
+        "time_to_70": "5h",
         "when": "At 12:00AM"
       },
       {
         "name": "Penias Telong",
-        "sync": "9h",
+        "sync": "10h",
         "source": "ReadiML",
         "score": 63,
         "group": "below",
@@ -5462,7 +5472,7 @@
         "score": 94,
         "group": "below",
         "now_below": false,
-        "time_to_70": "7h",
+        "time_to_70": "6h",
         "when": "At 1:00AM"
       },
       {
@@ -5472,7 +5482,7 @@
         "score": 73,
         "group": "below",
         "now_below": false,
-        "time_to_70": "4h",
+        "time_to_70": "3h",
         "when": "At 10:00PM"
       },
       {
@@ -5482,7 +5492,7 @@
         "score": 98,
         "group": "below",
         "now_below": false,
-        "time_to_70": "8h",
+        "time_to_70": "7h",
         "when": "At 2:00AM"
       },
       {
@@ -5492,7 +5502,7 @@
         "score": 91,
         "group": "below",
         "now_below": false,
-        "time_to_70": "6h",
+        "time_to_70": "5h",
         "when": "At 12:00AM"
       },
       {
@@ -5502,18 +5512,8 @@
         "score": 77,
         "group": "below",
         "now_below": false,
-        "time_to_70": "4h",
-        "when": "At 10:00PM"
-      },
-      {
-        "name": "Barok Nicholas",
-        "sync": "11h",
-        "source": "ReadiML",
-        "score": 78,
-        "group": "below",
-        "now_below": false,
         "time_to_70": "3h",
-        "when": "At 9:00PM"
+        "when": "At 10:00PM"
       }
     ],
     "no_forecast": null,
