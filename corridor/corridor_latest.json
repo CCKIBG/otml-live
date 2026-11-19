@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-19T12:45+10:00",
+  "generated": "2026-11-19T13:00+10:00",
   "window": {
-    "from": "2026-11-17T13:00+10:00",
-    "to": "2026-11-18T13:00+10:00"
+    "from": "2026-11-18T13:00+10:00",
+    "to": "2026-11-19T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-19T12:45+10:00",
+    "as_of": "2026-11-19T13:00+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -177,10 +177,6 @@
     "movements": {
       "window": {
         "kiunga": null,
-        "tabubil": null
-      },
-      "so_far": {
-        "kiunga": null,
         "tabubil": {
           "in_l": 0,
           "out_l": 0,
@@ -202,15 +198,38 @@
           "partial": true
         }
       },
+      "so_far": {
+        "kiunga": null,
+        "tabubil": {
+          "in_l": 0,
+          "out_l": 0,
+          "tanks": {
+            "T1": {
+              "in_l": 0,
+              "out_l": 0
+            },
+            "T2": {
+              "in_l": 0,
+              "out_l": 0
+            },
+            "T3": {
+              "in_l": 0,
+              "out_l": 0
+            }
+          },
+          "from": "2026-11-19T13:00+10:00",
+          "partial": false
+        }
+      },
       "basis": "rises and falls in 15-min tank readings (estimate until the console delivery report is read)"
     },
     "received_l": null,
     "to_tbg_l": null,
-    "tbg_received_l": null
+    "tbg_received_l": 0
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-19T12:45+10:00",
+    "as_of": "2026-11-19T13:00+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3860,7 +3879,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-19T12:47+10:00",
+    "as_of": "2026-11-19T13:02+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -5370,19 +5389,19 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21215,
-        "at": "2026-11-19T12:47+10:00"
+        "at": "2026-11-19T13:02+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
         "bytes": 520462,
-        "at": "2026-11-19T12:47+10:00"
+        "at": "2026-11-19T13:02+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-19T12:47+10:00",
-    "as_of_readi": "19 Nov 2026, 12:47PM",
+    "as_of": "2026-11-19T13:02+10:00",
+    "as_of_readi": "19 Nov 2026, 1:02PM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
@@ -5390,7 +5409,7 @@
         "name": "Lane Waka",
         "sync": "4h",
         "source": "Wearable Only",
-        "score": 89,
+        "score": 88,
         "group": "below",
         "now_below": false,
         "time_to_70": "14h",
@@ -5420,7 +5439,7 @@
         "name": "Justin Bart",
         "sync": "4h",
         "source": "ReadiML",
-        "score": 80,
+        "score": 79,
         "group": "below",
         "now_below": false,
         "time_to_70": "11h",
@@ -5430,11 +5449,11 @@
         "name": "Penias Telong",
         "sync": "4h",
         "source": "ReadiML",
-        "score": 61,
+        "score": 60,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 12:00PM"
+        "when": "Since 1:00PM"
       },
       {
         "name": "Nelson David",
@@ -5450,11 +5469,11 @@
         "name": "Harry Harihi",
         "sync": "5h",
         "source": "Wearable Only",
-        "score": 70,
+        "score": 69,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
-        "when": "Since 12:00PM"
+        "when": "Since 1:00PM"
       },
       {
         "name": "Paul Kuri",
