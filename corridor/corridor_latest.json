@@ -1,12 +1,12 @@
 {
-  "generated": "2026-11-20T06:30+10:00",
+  "generated": "2026-11-20T06:45+10:00",
   "window": {
     "from": "2026-11-18T13:00+10:00",
     "to": "2026-11-19T13:00+10:00"
   },
   "fuel": {
     "state": "live",
-    "as_of": "2026-11-20T06:30+10:00",
+    "as_of": "2026-11-20T06:45+10:00",
     "farms": {
       "kiunga": {
         "tanks": [
@@ -229,7 +229,7 @@
   },
   "bags": {
     "state": "live",
-    "as_of": "2026-11-20T06:30+10:00",
+    "as_of": "2026-11-20T06:45+10:00",
     "since_1_oct": 6334,
     "filled_in_window": null,
     "wakata": {
@@ -3879,7 +3879,7 @@
   },
   "inbox": {
     "state": "live",
-    "as_of": "2026-11-20T06:32+10:00",
+    "as_of": "2026-11-20T06:47+10:00",
     "folder": "C:\\Users\\16276\\OneDrive - OK TEDI\\Documents\\OTML Data\\Corridor",
     "notes": [],
     "tables": [],
@@ -5389,25 +5389,45 @@
       "RMT Db for Aiambak-Kiunga Highway.xlsx": {
         "ok": true,
         "bytes": 21215,
-        "at": "2026-11-20T06:32+10:00"
+        "at": "2026-11-20T06:47+10:00"
       },
       "ELT Copper Con Daily Update.xlsx": {
         "ok": true,
         "bytes": 520489,
-        "at": "2026-11-20T06:32+10:00"
+        "at": "2026-11-20T06:47+10:00"
       }
     }
   },
   "fatigue": {
     "state": "live",
-    "as_of": "2026-11-20T06:32+10:00",
-    "as_of_readi": "20 Nov 2026, 6:32AM",
+    "as_of": "2026-11-20T06:47+10:00",
+    "as_of_readi": "20 Nov 2026, 6:47AM",
     "group": "HTL TE",
     "threshold": 70,
     "rows": [
       {
+        "name": "Moses Mori",
+        "sync": "4m",
+        "source": "ReadiML",
+        "score": 89,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "15h",
+        "when": "At 10:00PM"
+      },
+      {
+        "name": "Penias Telong",
+        "sync": "13m",
+        "source": "ReadiML",
+        "score": 81,
+        "group": "below",
+        "now_below": false,
+        "time_to_70": "15h",
+        "when": "At 10:00PM"
+      },
+      {
         "name": "Michael Paska",
-        "sync": "18m",
+        "sync": "33m",
         "source": "Wearable Only",
         "score": 84,
         "group": "below",
@@ -5417,7 +5437,7 @@
       },
       {
         "name": "John Tex",
-        "sync": "30m",
+        "sync": "45m",
         "source": "ReadiML",
         "score": 86,
         "group": "below",
@@ -5427,7 +5447,7 @@
       },
       {
         "name": "Essy Hansa",
-        "sync": "58m",
+        "sync": "1h",
         "source": "Wearable Only",
         "score": 71,
         "group": "below",
@@ -5457,7 +5477,7 @@
       },
       {
         "name": "Hayu Bangum",
-        "sync": "21h",
+        "sync": "22h",
         "source": "ReadiML",
         "score": 86,
         "group": "below",
@@ -5467,7 +5487,7 @@
       },
       {
         "name": "Jason Murin",
-        "sync": "21h",
+        "sync": "22h",
         "source": "ReadiML",
         "score": 72,
         "group": "below",
@@ -5477,23 +5497,13 @@
       },
       {
         "name": "Justin Bart",
-        "sync": "21h",
+        "sync": "22h",
         "source": "ReadiML",
         "score": 75,
         "group": "below",
         "now_below": false,
         "time_to_70": "16h",
         "when": "At 11:00PM"
-      },
-      {
-        "name": "Penias Telong",
-        "sync": "22h",
-        "source": "ReadiML",
-        "score": 64,
-        "group": "below",
-        "now_below": true,
-        "time_to_70": "Now",
-        "when": "Since 6:00AM"
       },
       {
         "name": "Harry Harihi",
@@ -5507,23 +5517,13 @@
       },
       {
         "name": "Adrean Arovo",
-        "sync": "23h",
+        "sync": "24h",
         "source": "ReadiML",
         "score": 67,
         "group": "below",
         "now_below": true,
         "time_to_70": "Now",
         "when": "Since 6:00AM"
-      },
-      {
-        "name": "John Vaname",
-        "sync": "23h",
-        "source": "ReadiML",
-        "score": 79,
-        "group": "below",
-        "now_below": false,
-        "time_to_70": "15h",
-        "when": "At 10:00PM"
       }
     ],
     "no_forecast": null,
